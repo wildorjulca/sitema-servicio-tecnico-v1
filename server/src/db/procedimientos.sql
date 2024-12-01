@@ -33,3 +33,20 @@ BEGIN
    INSERT INTO MARCA(idMarca,nombre)
    VALUES( _idMarca, _nombre);
 END
+
+
+-----------------------------------------------------------
+-- PROCEDIMIENTOS ALMACENADOS DE LA TABLA (TIPO_DOCUMENTO)
+---------------------------------------------------------
+CREATE DEFINER=`root`@`localhost` PROCEDURE `add_tipoDocumento`(
+  IN _cod_tipo CHAR(3),
+  IN _nombre_tipo VARCHAR(45),
+  IN _cant_digitos INT
+)
+BEGIN
+INSERT INTO TIPO_DOCUMENTO(
+   cod_tipo, nombre_tipo, cant_digitos
+)
+VALUES(_cod_tipo,_nombre_tipo,_cant_digitos);
+
+END

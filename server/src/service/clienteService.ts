@@ -1,19 +1,18 @@
 import { ResultSetHeader } from 'mysql2'
 import { coneccion } from "../config/conexion"
-import { Document_Type } from '../interface/interface.type'
+import { Customer } from "../interface/interface.type"
 const cn = coneccion()
-const newTipoDocumento = async (tipo_documento: Document_Type) => {
-    try {
-        const [result] = await cn.promise().query<ResultSetHeader>
-            ("CALL add_tipoDocumento(?,?,?)",
-                [tipo_documento.cod_tipo, tipo_documento.nombre_tipo, tipo_documento.cant_digitos]
 
-            )
+const newClienteService = async (cliente: Customer) => {
+    try {
+        const [result] = await cn.promise().query<ResultSetHeader>("CALL add_cliente(?,?,?,?,?)",
+            [cliente.nombre, cliente.TIPO_DOCUMENTO_cod_tipo,cliente.numero_documento, cliente.direccion, cliente.telefono]
+        )
         if (result.affectedRows === 1) {
             return {
                 status: 201,
                 succes: true,
-                mensaje: "Tipo documento guardado con exito"
+                mensaje: "Cliente Guardado exitosamente!"
             }
         } else {
             return {
@@ -24,16 +23,15 @@ const newTipoDocumento = async (tipo_documento: Document_Type) => {
             }
         }
 
+
     } catch (error) {
         return {
             status: 500,
             succes: false,
-            mensaje: "Error en la base de datos",
+            mensaje: "Error de servidor o en la base de datos",
             error: error
         }
-
     }
-
 }
 
-export { newTipoDocumento }
+export { newClienteService }
