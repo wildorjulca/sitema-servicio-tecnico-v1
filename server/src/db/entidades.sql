@@ -31,3 +31,21 @@ CREATE TABLE IF NOT EXISTS TIPO_DOCUMENTO (
    cant_digitos INT NOT NULL,
    PRIMARY KEY (cod_tipo)
 )
+
+
+
+CREATE TABLE IF NOT EXISTS CLIENTE (
+  idCliente CHAR(36) NOT NULL, 
+  nombre VARCHAR(75) NOT NULL, 
+  TIPO_DOCUMENTO_cod_tipo CHAR(3) NOT NULL, 
+  numero_documento CHAR(11) NOT NULL UNIQUE, 
+  direccion VARCHAR(75) NULL, 
+  telefono VARCHAR(45) NULL, 
+  PRIMARY KEY (idCliente),
+    FOREIGN KEY (TIPO_DOCUMENTO_cod_tipo) 
+    REFERENCES TIPO_DOCUMENTO (cod_tipo)
+    ON DELETE NO ACTION  -- Si se intenta eliminar un tipo de documento en uso, no se permite
+    ON UPDATE NO ACTION  -- Si se actualiza un tipo de documento, no afecta a CLIENTE
+) 
+
+

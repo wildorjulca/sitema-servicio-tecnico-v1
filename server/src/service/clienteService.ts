@@ -1,12 +1,15 @@
 import { ResultSetHeader } from 'mysql2'
+import { v4 as uuidv4 } from 'uuid'
 import { coneccion } from "../config/conexion"
 import { Customer } from "../interface/interface.type"
 const cn = coneccion()
 
 const newClienteService = async (cliente: Customer) => {
+    console.log(cliente)
     try {
-        const [result] = await cn.promise().query<ResultSetHeader>("CALL add_cliente(?,?,?,?,?)",
-            [cliente.nombre, cliente.TIPO_DOCUMENTO_cod_tipo,cliente.numero_documento, cliente.direccion, cliente.telefono]
+        const idCliente = uuidv4()
+        const [result] = await cn.promise().query<ResultSetHeader>("CALL add_cliente(?,?,?,?,?,?)",
+            [idCliente, cliente.nombre, cliente.TIPO_DOCUMENTO_cod_tipo, cliente.numero_documento, cliente.direccion, cliente.telefono]
         )
         if (result.affectedRows === 1) {
             return {
@@ -22,8 +25,6 @@ const newClienteService = async (cliente: Customer) => {
                 result: result
             }
         }
-
-
     } catch (error) {
         return {
             status: 500,
