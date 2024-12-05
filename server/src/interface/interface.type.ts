@@ -29,3 +29,9 @@ export interface Customer{
     direccion: string,
     telefono: string
 }
+
+// MOTIVO INGRESO
+export interface REASON_FOR_ADMISSION {
+    descripcion: string,
+    precio_cobrar : number
+}

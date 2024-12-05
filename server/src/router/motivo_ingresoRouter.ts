@@ -4,3 +4,5 @@ const routerMotivoIngreso = Router()
 
 
 routerMotivoIngreso.post("/addMotivoIngreso",addMotivo_ingresoCTRL)
+
+export { routerMotivoIngreso}
