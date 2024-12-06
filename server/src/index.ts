@@ -7,6 +7,7 @@ import { routerMarca } from './router/marcaRouter'
 import { routerTipDocument } from './router/tipo_documentoRouter'
 import { routerCliente } from './router/clienteRouter'
 import { routerMotivoIngreso } from './router/motivo_ingresoRouter'
+import { routerServicioEquipos } from './router/servicio_equiposRouter'
 
 const PORT = process.env.PORT || 3001
 const app = express()
@@ -21,6 +22,8 @@ app.use("/api/servicio", routerMarca)
 app.use("/api/servicio", routerTipDocument)
 app.use("/api/servicio", routerCliente)
 app.use("/api/servicio", routerMotivoIngreso)
+app.use("/api/servicio", routerServicioEquipos)
+
 
 
 

@@ -35,3 +35,12 @@ export interface REASON_FOR_ADMISSION {
     descripcion: string,
     precio_cobrar : number
 }
+
+// SRVICIO_EQUIPOS
+export interface Service_equipment {
+    EQUIPO_idequipo: string;
+    marca_idMarca: string;
+    modelo: string;
+    serie: string,
+    codigo_barras: string
+}

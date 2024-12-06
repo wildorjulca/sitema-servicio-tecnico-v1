@@ -19,8 +19,6 @@ const newMotivo_ingreso = async (motivo_ingreso: REASON_FOR_ADMISSION) => {
     } catch (error) {
         return createResponse(500, false, "Error en el servidor o en la base de datos MYSQL.", error);
     }
-
-
 }
 
 export { newMotivo_ingreso }
