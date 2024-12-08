@@ -5,7 +5,6 @@ import { Customer } from "../interface/interface.type"
 const cn = coneccion()
 
 const newClienteService = async (cliente: Customer) => {
-    console.log(cliente)
     try {
         const idCliente = uuidv4()
         const [result] = await cn.promise().query<ResultSetHeader>("CALL add_cliente(?,?,?,?,?,?)",
