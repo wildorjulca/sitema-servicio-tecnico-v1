@@ -1,14 +1,17 @@
-
-import { useState } from 'react'
-import { Button } from './components/ui/button'
-// import './App.css'
+import './App.css'
+import { SidebarProvider, SidebarTrigger } from './components/ui/sidebar'
+import { AppSidebar } from "@/components/app-sidebar"
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
-      <Button>Click me</Button>
+      <SidebarProvider>
+        <AppSidebar />
+        <main>
+          <SidebarTrigger />
+          <p>contenido</p>
+        </main>
+      </SidebarProvider>
     </>
   )
 }
