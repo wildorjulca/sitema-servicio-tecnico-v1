@@ -5,11 +5,12 @@ import { AppSidebar } from "@/components/app-sidebar"
 function App() {
   return (
     <>
+  
       <SidebarProvider>
         <AppSidebar />
         <main>
           <SidebarTrigger />
-          <p>contenido</p>
+          <p>z</p>
         </main>
       </SidebarProvider>
     </>
