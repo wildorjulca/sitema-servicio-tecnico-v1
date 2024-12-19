@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import Login from '@/pages/auth/Login';
 import ProtectedRoute from '@/components/protected-route';
+import ClientePage from '@/pages/dashboard/cliente/ClientePage.tsx';
 
 const AppRoutes = () => {
     return (
@@ -23,7 +24,7 @@ const AppRoutes = () => {
                     }
                 >
                     {/* Rutas hijas dentro de /dashboard */}
-                    <Route path="cliente" element={"cliente"} />
+                    <Route path="cliente" element={<ClientePage />} />
                     <Route path="settings" element={"setting"} />
                     {/* Agrega más rutas hijas según sea necesario */}
                 </Route>
