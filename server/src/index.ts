@@ -1,5 +1,6 @@
 
 import express from 'express'
+import cors from 'cors'
 import 'dotenv/config'
 import { router } from './router/categoriaRouter'
 import { routerEquipo } from './router/equipoRouter'
@@ -8,12 +9,15 @@ import { routerTipDocument } from './router/tipo_documentoRouter'
 import { routerCliente } from './router/clienteRouter'
 import { routerMotivoIngreso } from './router/motivo_ingresoRouter'
 import { routerServicioEquipos } from './router/servicio_equiposRouter'
-
 const PORT = process.env.PORT || 3001
 const app = express()
 
 // MIDLEWAR
 app.use(express.json())
+app.use(cors({
+    origin: "http://localhost:5173",
+    credentials: true
+}))
 // RUTAS DE LOS ENPOINTS
 app.use("/api/servicio", router)
 app.use("/api/servicio", routerEquipo)
