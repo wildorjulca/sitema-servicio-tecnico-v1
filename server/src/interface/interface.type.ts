@@ -23,6 +23,7 @@ export interface Document_Type {
 
 // CLiente
 export interface Customer{
+    idCliente?: string
     nombre : string,
     TIPO_DOCUMENTO_cod_tipo: string,
     numero_documento: string,

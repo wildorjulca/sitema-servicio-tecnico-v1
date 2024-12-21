@@ -50,3 +50,21 @@ INSERT INTO TIPO_DOCUMENTO(
 VALUES(_cod_tipo,_nombre_tipo,_cant_digitos);
 
 END
+
+
+
+-----------------------------------------------------------
+-- PROCEDIMIENTOS ALMACENADOS DE LA TABLA (CLIENTE)
+---------------------------------------------------------
+
+  CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllCliente`(
+    IN _filtro varchar(20)
+  )
+  BEGIN
+    IF _filtro = '' THEN
+        SELECT * FROM CLIENTE;
+    ELSE
+        SELECT * FROM CLIENTE WHERE nombre LIKE CONCAT('%', _filtro, '%');
+    END IF;
+
+  END

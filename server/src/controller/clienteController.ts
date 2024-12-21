@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { newClienteService } from "../service/clienteService"
+import { getAllClienteService, newClienteService } from "../service/clienteService"
 
 
 
@@ -8,4 +8,9 @@ const addClienteCTRL = async (req: Request, res: Response) => {
     res.status(response.status).send(response)
 }
 
-export { addClienteCTRL }
+const getAllClienteCTRL = async (req: Request, res: Response) => {
+    const response = await getAllClienteService(req.params.filtro || '')
+    res.status(response.status).send(response)
+}
+
+export { addClienteCTRL, getAllClienteCTRL }

@@ -29,11 +29,6 @@ app.use("/api/servicio", routerMotivoIngreso)
 app.use("/api/servicio", routerServicioEquipos)
 
 
-
-
-
-
-
 app.listen(PORT, () => {
     console.log("Servidor en ejecucion PORT:", PORT)
 })

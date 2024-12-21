@@ -1,4 +1,4 @@
-import { ResultSetHeader } from 'mysql2'
+import { QueryResult, ResultSetHeader, RowDataPacket } from 'mysql2'
 import { v4 as uuidv4 } from 'uuid'
 import { coneccion } from "../config/conexion"
 import { Customer } from "../interface/interface.type"
@@ -34,4 +34,25 @@ const newClienteService = async (cliente: Customer) => {
     }
 }
 
-export { newClienteService }
+const getAllClienteService = async (filtro: string) => {
+    try {
+        const [result] = await cn
+            .promise()
+            .query<[RowDataPacket[], ResultSetHeader]>("CALL getAllCliente(?)", [filtro]);
+
+        const customers: Customer[] = result[0] as Customer[];
+        if (customers.length > 0) {
+            return { status: 200, succes: true, data: customers };
+        }
+        return { status: 404, succes: false, data: [], mensaje: "Datos no encontrador | datos no econtrados" };
+    } catch (error) {
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error de servidor o en la base de datos",
+            error: error,
+        };
+    }
+};
+
+export { newClienteService, getAllClienteService }

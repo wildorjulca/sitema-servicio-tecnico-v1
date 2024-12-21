@@ -13,3 +13,15 @@ export const createCliente = async (values: z.infer<typeof clienteSchema>) => {
         console.log(error)
     }
 }
+
+
+export const fetchCliente = async () => {
+    try {
+        const response = await instance.get("/getAllCliente")
+        if (response.data.data.length > 0) {
+            return { succes: true, status: 200, data: response.data.data }
+        }
+    } catch (error) {
+        console.log(error)
+    }
+}
