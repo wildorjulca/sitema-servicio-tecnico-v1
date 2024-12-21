@@ -10,6 +10,7 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
+import { ModeToggle } from '@/components/mode-toggle';
 
 const DashboardLayout: React.FC = () => {
     return (
@@ -34,6 +35,7 @@ const DashboardLayout: React.FC = () => {
                                     <BreadcrumbItem>
                                         <BreadcrumbPage>Data Fetching</BreadcrumbPage>
                                     </BreadcrumbItem>
+                                    <ModeToggle />
                                 </BreadcrumbList>
                             </Breadcrumb>
                         </div>
