@@ -3,6 +3,8 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 import Login from '@/pages/auth/Login';
 import ProtectedRoute from '@/components/protected-route';
 import ClientePage from '@/pages/dashboard/cliente/ClientePage.tsx';
+import ServicioLayout from '@/layouts/ServicioLayout';
+import ServicioNuevo from '@/pages/dashboard/servicio/ServicioNuevo';
 
 const AppRoutes = () => {
     return (
@@ -26,6 +28,10 @@ const AppRoutes = () => {
                     {/* Rutas hijas dentro de /dashboard */}
                     <Route path="cliente" element={<ClientePage />} />
                     <Route path="settings" element={"setting"} />
+                    <Route path="servicio" element={<ServicioLayout />}>
+                        <Route index element={"listado de servicio"} /> {/* Ruta inicial */}
+                        <Route  path="nuevo" element={<ServicioNuevo />}  />
+                    </Route>
                     {/* Agrega más rutas hijas según sea necesario */}
                 </Route>
             </Routes>

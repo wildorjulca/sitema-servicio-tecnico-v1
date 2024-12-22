@@ -57,14 +57,14 @@ const data = {
     ],
     navMain: [
         {
-            title: "Playground",
+            title: "Clientes",
             url: "#",
             icon: SquareTerminal,
             isActive: true,
             items: [
                 {
-                    title: "History",
-                    url: "#",
+                    title: "Lista Cliente",
+                    url: "cliente",
                 },
                 {
                     title: "Starred",
@@ -130,6 +130,29 @@ const data = {
                 {
                     title: "Team",
                     url: "#",
+                },
+                {
+                    title: "Billing",
+                    url: "#",
+                },
+                {
+                    title: "Limits",
+                    url: "#",
+                },
+            ],
+        },
+        {
+            title: "Servicio",
+            url: "#",
+            icon: Settings2,
+            items: [
+                {
+                    title: "listado del servicio",
+                    url: "servicio",
+                },
+                {
+                    title: "Nuevo servicio",
+                    url: "servicio/nuevo",
                 },
                 {
                     title: "Billing",
