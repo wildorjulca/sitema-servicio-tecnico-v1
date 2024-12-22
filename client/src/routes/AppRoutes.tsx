@@ -6,6 +6,7 @@ import ClientePage from '@/pages/dashboard/cliente/ClientePage.tsx';
 import ServicioLayout from '@/layouts/ServicioLayout';
 import ServicioNuevo from '@/pages/dashboard/servicio/ServicioNuevo';
 
+
 const AppRoutes = () => {
     return (
         <BrowserRouter>
@@ -30,7 +31,7 @@ const AppRoutes = () => {
                     <Route path="settings" element={"setting"} />
                     <Route path="servicio" element={<ServicioLayout />}>
                         <Route index element={"listado de servicio"} /> {/* Ruta inicial */}
-                        <Route  path="nuevo" element={<ServicioNuevo />}  />
+                        <Route path="nuevo" element={<ServicioNuevo />} />
                     </Route>
                     {/* Agrega más rutas hijas según sea necesario */}
                 </Route>
