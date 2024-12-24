@@ -1,96 +1,159 @@
 import { Button } from "@/components/ui/button"
+import { useStoreMCS } from "@/store"
+import ShowServicioClient from "./ui/showServicioClient";
+
+
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 
-
-import {
-    Calculator,
-    Calendar,
-    CreditCard,
-    Settings,
-    Smile,
-    User,
-} from "lucide-react"
-
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-    CommandSeparator,
-    CommandShortcut,
-} from "@/components/ui/command"
-
+const formSchema = z.object({
+    username: z.string().min(2, {
+        message: "Username must be at least 2 characters.",
+    }),
+})
 const ServicioNuevo = () => {
+    const { isModalOpen, openModal, closeModal } = useStoreMCS();
+    console.log({ isModalOpen })
+    // 1. Define your form.
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            username: "",
+        },
+    })
+
+    // 2. Define a submit handler.
+    function onSubmit(values: z.infer<typeof formSchema>) {
+        // Do something with the form values.
+        // ✅ This will be type-safe and validated.
+        console.log(values)
+    }
+
     return (
         <>
-            <Dialog>
-                <DialogTrigger asChild>
-                    <Button variant="outline">Edit Profile</Button>
-                </DialogTrigger>
+            {/* Botón para abrir el modal */}
+            <Button variant="outline" onClick={openModal}>
+                Nuevo
+            </Button>
 
-                <DialogContent className="">  {/* className="sm:max-w-[425px]" */}
-                    <DialogHeader>
-                        <DialogTitle>Edit profile</DialogTitle>
-                        <DialogDescription>
-                            Make changes to your profile here. Click save when you're done.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <Command className="rounded-lg border shadow-md md:min-w-[450px]">
-                        <CommandInput placeholder="Buscar cliente con servicio.." />
-                        <CommandList>
-                            <CommandEmpty>No results found.</CommandEmpty>
-                            <CommandGroup heading="Suggestions">
-                                <CommandItem>
-                                    <Calendar />
-                                    <span>Calendar</span>
-                                </CommandItem>
-                                <CommandItem>
-                                    <Smile />
-                                    <span>Search Emoji</span>
-                                </CommandItem>
-                                <CommandItem disabled>
-                                    <Calculator />
-                                    <span>Calculator</span>
-                                </CommandItem>
-                            </CommandGroup>
-                            <CommandSeparator />
-                            <CommandGroup heading="Settings">
-                                <CommandItem>
-                                    <User />
-                                    <span>Profile</span>
-                                    <CommandShortcut>⌘P</CommandShortcut>
-                                </CommandItem>
-                                <CommandItem>
-                                    <CreditCard />
-                                    <span>Billing</span>
-                                    <CommandShortcut>⌘B</CommandShortcut>
-                                </CommandItem>
-                                <CommandItem>
-                                    <Settings />
-                                    <span>Settings</span>
-                                    <CommandShortcut>⌘S</CommandShortcut>
-                                </CommandItem>
-                            </CommandGroup>
-                        </CommandList>
-                    </Command>
-                    <DialogFooter>
-                        <Button type="submit">Save changes</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
 
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                    <FormField
+                        control={form.control}
+                        name="username"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Username</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="shadcn" {...field} />
+                                </FormControl>
+                                <FormDescription>
+                                    This is your public display name.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="username"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Username</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="shadcn" {...field} />
+                                </FormControl>
+                                <FormDescription>
+                                    This is your public display name.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="username"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Username</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="shadcn" {...field} />
+                                </FormControl>
+                                <FormDescription>
+                                    This is your public display name.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="username"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Username</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="shadcn" {...field} />
+                                </FormControl>
+                                <FormDescription>
+                                    This is your public display name.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="username"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Username</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="shadcn" {...field} />
+                                </FormControl>
+                                <FormDescription>
+                                    This is your public display name.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="username"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Username</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="shadcn" {...field} />
+                                </FormControl>
+                                <FormDescription>
+                                    This is your public display name.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <Button type="submit">Submit</Button>
+                </form>
+            </Form>
+
+            {/* Modal controlado por Zustand */}
+            {isModalOpen && <ShowServicioClient />}
 
 
             {/* <section className="px-4 py-12 mx-auto max-w-7xl">
