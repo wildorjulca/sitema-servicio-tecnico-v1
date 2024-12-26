@@ -21,3 +21,16 @@ export const clienteSchema = z.object({
         .max(45, { message: "El teléfono debe tener máximo 45 caracteres." }),
 });
 
+
+export const servicioSchema = z.object({
+    MOTIVO_INGRESO_idMOTIVO_INGRESO: z.string()
+        .min(1, { message: "Motivo ingreso es obligatorio." }),
+
+    descripcion_motivo: z.string()
+        .max(1, { message: "Máximo 95 caracteres." }),
+
+    observacion: z.string()
+        .max(11, { message: "máximo 150 caracteres." }),
+});
+
+

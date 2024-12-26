@@ -7,6 +7,16 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+
+import {
     Card,
     CardContent,
     CardDescription,
@@ -27,27 +37,24 @@ import {
 import { Input } from "@/components/ui/input"
 import ShowServicioClient from "./ui/ShowServicioClient"
 import { BellRing, Check, ChevronRight } from "lucide-react"
+import { servicioSchema } from "@/lib/zods"
 
-
-const formSchema = z.object({
-    username: z.string().min(2, {
-        message: "Username must be at least 2 characters.",
-    }),
-})
 const ServicioNuevo = () => {
     const { isModalOpen, openModal, closeModal } = useStoreMCS();
     console.log({ isModalOpen });
 
     // Define the form
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+    const form = useForm<z.infer<typeof servicioSchema>>({
+        resolver: zodResolver(servicioSchema),
         defaultValues: {
-            username: "",
+            MOTIVO_INGRESO_idMOTIVO_INGRESO: "",
+            descripcion_motivo: "",
+            observacion: ""
         },
     });
 
     // Form submission handler
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    function onSubmit(values: z.infer<typeof servicioSchema>) {
         console.log(values);
     }
 
@@ -77,9 +84,9 @@ const ServicioNuevo = () => {
             <Button variant="outline" size="icon">
                 <ChevronRight />
             </Button>
-            <div className="fixed bottom-0 z-50 w-full -translate-x-1/2 bg-white border-t border-gray-200 left-1/2 dark:bg-gray-700 dark:border-gray-600">
-                {/* Group Buttons */}
-                <div className="w-full">
+            {/* <div className="fixed bottom-0 z-50 w-full -translate-x-1/2 bg-white border-t border-gray-200 left-1/2 dark:bg-gray-700 dark:border-gray-600"> */}
+            {/* Group Buttons */}
+            {/* <div className="w-full">
                     <div
                         className="grid max-w-xs grid-cols-3 gap-1 p-1 mx-auto my-2 bg-gray-100 rounded-lg dark:bg-gray-600"
                         role="group"
@@ -106,10 +113,10 @@ const ServicioNuevo = () => {
                             Following
                         </button>
                     </div>
-                </div>
+                </div> */}
 
-                {/* Navigation Buttons */}
-                <div className="grid h-full max-w-lg grid-cols-5 mx-auto">
+            {/* Navigation Buttons */}
+            {/* <div className="grid h-full max-w-lg grid-cols-5 mx-auto">
                     {[
                         { title: "Home", icon: "M19.707 9.293l-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414z" },
                         { title: "Bookmark", icon: "M13 20a1 1 0 0 1-.64-.231L7 15.3l-5.36 4.469A1 1 0 0 1 0 19V2a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17a1 1 0 0 1-1 1Z" },
@@ -139,10 +146,8 @@ const ServicioNuevo = () => {
                             <span className="sr-only">{title}</span>
                         </button>
                     ))}
-                </div>
-            </div>
-
-
+                </div> */}
+            {/* </div> */}
 
 
             <section className="w-full flex flex-col lg:flex-row gap-4 mt-6">
@@ -150,12 +155,49 @@ const ServicioNuevo = () => {
                 <div className="w-full lg:w-[60%]">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                            {/* Select con validación */}
                             <FormField
+                              
                                 control={form.control}
-                                name="username"
+                                name="MOTIVO_INGRESO_idMOTIVO_INGRESO"
+                                rules={{ required: "Por favor, selecciona una fruta" }} // Validación requerida
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Username</FormLabel>
+                                        <FormLabel>Selecciona una fruta</FormLabel>
+                                        <FormControl>
+                                            <Select
+                                                onValueChange={field.onChange} // Actualizar el valor con React Hook Form
+                                                value={field.value} // Sincronizar con el valor actual del formulario
+                                            >
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Select a fruit" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectGroup>
+                                                        <SelectLabel>Fruits</SelectLabel>
+                                                        <SelectItem value="apple">Apple</SelectItem>
+                                                        <SelectItem value="banana">Banana</SelectItem>
+                                                        <SelectItem value="blueberry">Blueberry</SelectItem>
+                                                        <SelectItem value="grapes">Grapes</SelectItem>
+                                                        <SelectItem value="pineapple">Pineapple</SelectItem>
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormDescription>
+                                            Selecciona tu fruta favorita.
+                                        </FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            {/* Otro campo */}
+                            <FormField
+                                control={form.control}
+                                name="MOTIVO_INGRESO_idMOTIVO_INGRESO"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Seleccionar el motivo de ingreso</FormLabel>
                                         <FormControl>
                                             <Input placeholder="shadcn" {...field} />
                                         </FormControl>
@@ -168,10 +210,10 @@ const ServicioNuevo = () => {
                             />
                             <FormField
                                 control={form.control}
-                                name="username"
+                                name="descripcion_motivo"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Username</FormLabel>
+                                        <FormLabel>Descripcion del motivo</FormLabel>
                                         <FormControl>
                                             <Input placeholder="shadcn" {...field} />
                                         </FormControl>
@@ -184,10 +226,10 @@ const ServicioNuevo = () => {
                             />
                             <FormField
                                 control={form.control}
-                                name="username"
+                                name="observacion"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Username</FormLabel>
+                                        <FormLabel>Observación a la reparación</FormLabel>
                                         <FormControl>
                                             <Input placeholder="shadcn" {...field} />
                                         </FormControl>
@@ -198,59 +240,11 @@ const ServicioNuevo = () => {
                                     </FormItem>
                                 )}
                             />
-                            <FormField
-                                control={form.control}
-                                name="username"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Username</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="shadcn" {...field} />
-                                        </FormControl>
-                                        <FormDescription>
-                                            This is your public display name.
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="username"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Username</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="shadcn" {...field} />
-                                        </FormControl>
-                                        <FormDescription>
-                                            This is your public display name.
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="username"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Username</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="shadcn" {...field} />
-                                        </FormControl>
-                                        <FormDescription>
-                                            This is your public display name.
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
                             <Button type="submit">Submit</Button>
                         </form>
                     </Form>
                 </div>
+
 
                 {/* Estadísticas - 20% del ancho */}
                 <div className="w-full lg:w-[40%]">
