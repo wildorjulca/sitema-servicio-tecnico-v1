@@ -2,19 +2,6 @@ import { Button } from "@/components/ui/button"
 import { useStoreMCS } from "@/store"
 
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
 
 import {
     Card,
@@ -25,38 +12,13 @@ import {
     CardTitle,
 } from "@/components/ui/card"
 
-import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import ShowServicioClient from "./ui/ShowServicioClient"
 import { BellRing, Check, ChevronRight } from "lucide-react"
-import { servicioSchema } from "@/lib/zods"
+import FormServicio from "./ui/Form-servicio"
 
 const ServicioNuevo = () => {
     const { isModalOpen, openModal, closeModal } = useStoreMCS();
     console.log({ isModalOpen });
-
-    // Define the form
-    const form = useForm<z.infer<typeof servicioSchema>>({
-        resolver: zodResolver(servicioSchema),
-        defaultValues: {
-            MOTIVO_INGRESO_idMOTIVO_INGRESO: "",
-            descripcion_motivo: "",
-            observacion: ""
-        },
-    });
-
-    // Form submission handler
-    function onSubmit(values: z.infer<typeof servicioSchema>) {
-        console.log(values);
-    }
 
     const notifications = [
         {
@@ -84,170 +46,73 @@ const ServicioNuevo = () => {
             <Button variant="outline" size="icon">
                 <ChevronRight />
             </Button>
-            {/* <div className="fixed bottom-0 z-50 w-full -translate-x-1/2 bg-white border-t border-gray-200 left-1/2 dark:bg-gray-700 dark:border-gray-600"> */}
-            {/* Group Buttons */}
-            {/* <div className="w-full">
-                    <div
-                        className="grid max-w-xs grid-cols-3 gap-1 p-1 mx-auto my-2 bg-gray-100 rounded-lg dark:bg-gray-600"
-                        role="group"
-                    >
-                        <button
-                            type="button"
-                            className="px-5 py-1.5 text-xs font-medium text-gray-900 hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700 rounded-lg"
-                            title="New"
-                        >
-                            New
-                        </button>
-                        <button
-                            type="button"
-                            className="px-5 py-1.5 text-xs font-medium text-white bg-gray-900 dark:bg-gray-300 dark:text-gray-900 rounded-lg"
-                            title="Popular"
-                        >
-                            Popular
-                        </button>
-                        <button
-                            type="button"
-                            className="px-5 py-1.5 text-xs font-medium text-gray-900 hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700 rounded-lg"
-                            title="Following"
-                        >
-                            Following
-                        </button>
-                    </div>
-                </div> */}
 
-            {/* Navigation Buttons */}
-            {/* <div className="grid h-full max-w-lg grid-cols-5 mx-auto">
-                    {[
-                        { title: "Home", icon: "M19.707 9.293l-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414z" },
-                        { title: "Bookmark", icon: "M13 20a1 1 0 0 1-.64-.231L7 15.3l-5.36 4.469A1 1 0 0 1 0 19V2a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v17a1 1 0 0 1-1 1Z" },
-                        { title: "New Post", icon: "M9 1v16M1 9h16", customViewBox: "0 0 18 18" },
-                        { title: "Search", icon: "M19 19l-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" },
-                        { title: "Settings", icon: "M4 12.25V1m0 11.25a2.25 2.25 0 0 0 0 4.5m0-4.5a2.25 2.25 0 0 1 0 4.5M4 19v-2.25m6-13.5V1m0 2.25a2.25 2.25 0 0 0 0 4.5m0-4.5a2.25 2.25 0 0 1 0 4.5M10 19V7.75m6 4.5V1m0 11.25a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5ZM16 19v-2" },
-                    ].map(({ title, icon, customViewBox = "0 0 20 20" }) => (
-                        <button
-                            key={title}
-                            type="button"
-                            className="inline-flex flex-col items-center justify-center p-4 hover:bg-gray-50 dark:hover:bg-gray-800 group"
-                        >
-                            <svg
-                                className="w-5 h-5 mb-1 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox={customViewBox}
-                            >
-                                <path d={icon} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                            </svg>
-                            <span
-                                className="absolute px-2 py-1 text-xs font-medium text-white bg-black rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                style={{ top: "-20px", whiteSpace: "nowrap" }}
-                            >
-                                {title}
-                            </span>
-                            <span className="sr-only">{title}</span>
-                        </button>
-                    ))}
-                </div> */}
-            {/* </div> */}
 
 
             <section className="w-full flex flex-col lg:flex-row gap-4 mt-6">
+
                 {/* Formulario - 20% del ancho */}
                 <div className="w-full lg:w-[60%]">
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                            {/* Select con validación */}
-                            <FormField
-                              
-                                control={form.control}
-                                name="MOTIVO_INGRESO_idMOTIVO_INGRESO"
-                                rules={{ required: "Por favor, selecciona una fruta" }} // Validación requerida
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Selecciona una fruta</FormLabel>
-                                        <FormControl>
-                                            <Select
-                                                onValueChange={field.onChange} // Actualizar el valor con React Hook Form
-                                                value={field.value} // Sincronizar con el valor actual del formulario
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Select a fruit" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectGroup>
-                                                        <SelectLabel>Fruits</SelectLabel>
-                                                        <SelectItem value="apple">Apple</SelectItem>
-                                                        <SelectItem value="banana">Banana</SelectItem>
-                                                        <SelectItem value="blueberry">Blueberry</SelectItem>
-                                                        <SelectItem value="grapes">Grapes</SelectItem>
-                                                        <SelectItem value="pineapple">Pineapple</SelectItem>
-                                                    </SelectGroup>
-                                                </SelectContent>
-                                            </Select>
-                                        </FormControl>
-                                        <FormDescription>
-                                            Selecciona tu fruta favorita.
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            {/* Otro campo */}
-                            <FormField
-                                control={form.control}
-                                name="MOTIVO_INGRESO_idMOTIVO_INGRESO"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Seleccionar el motivo de ingreso</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="shadcn" {...field} />
-                                        </FormControl>
-                                        <FormDescription>
-                                            This is your public display name.
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="descripcion_motivo"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Descripcion del motivo</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="shadcn" {...field} />
-                                        </FormControl>
-                                        <FormDescription>
-                                            This is your public display name.
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="observacion"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Observación a la reparación</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="shadcn" {...field} />
-                                        </FormControl>
-                                        <FormDescription>
-                                            This is your public display name.
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <Button type="submit">Submit</Button>
-                        </form>
-                    </Form>
+                    <FormServicio />
                 </div>
 
 
                 {/* Estadísticas - 20% del ancho */}
-                <div className="w-full lg:w-[40%]">
+                <div className="relative w-full lg:w-[40%]">
+                    <div className="bottom-0 left-0 z-50 w-full h-16 bg-white border-t border-gray-200 dark:bg-gray-700 dark:border-gray-600 md:h-20 lg:h-24">
+                        <div className="grid h-full max-w-lg grid-cols-4 mx-auto font-medium">
+                            <button type="button" className="inline-flex flex-col items-center justify-center px-5 border-gray-200 border-x hover:bg-gray-50 dark:hover:bg-gray-800 group dark:border-gray-600">
+                                <svg
+                                    className="w-5 h-5 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500"
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z" />
+                                </svg>
+                                <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Home</span>
+                            </button>
+                            <button type="button" className="inline-flex flex-col items-center justify-center px-5 border-e border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 group dark:border-gray-600">
+                                <svg
+                                    className="w-5 h-5 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500"
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path d="M11.074 4 8.442.408A.95.95 0 0 0 7.014.254L2.926 4h8.148ZM9 13v-1a4 4 0 0 1 4-4h6V6a1 1 0 0 0-1-1H1a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h17a1 1 0 0 0 1-1v-2h-6a4 4 0 0 1-4-4Z" />
+                                    <path d="M19 10h-6a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1Zm-4.5 3.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2ZM12.62 4h2.78L12.539.41a1.086 1.086 0 1 0-1.7 1.352L12.62 4Z" />
+                                </svg>
+                                <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Wallet</span>
+                            </button>
+                            <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group">
+                                <svg
+                                    className="w-5 h-5 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500"
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 12.25V1m0 11.25a2.25 2.25 0 0 0 0 4.5m0-4.5a2.25 2.25 0 0 1 0 4.5M4 19v-2.25m6-13.5V1m0 2.25a2.25 2.25 0 0 0 0 4.5m0-4.5a2.25 2.25 0 0 1 0 4.5M10 19V7.75m6 4.5V1m0 11.25a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5ZM16 19v-2" />
+                                </svg>
+                                <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Settings</span>
+                            </button>
+                            <button type="button" className="inline-flex flex-col items-center justify-center px-5 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 group border-x dark:border-gray-600">
+                                <svg
+                                    className="w-5 h-5 mb-2 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500"
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z" />
+                                </svg>
+                                <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500">Profile</span>
+                            </button>
+                        </div>
+                    </div>
+
                     <Card>
                         <CardHeader>
                             <CardTitle>Notifications</CardTitle>
@@ -264,7 +129,6 @@ const ServicioNuevo = () => {
                                         Send notifications to device.
                                     </p>
                                 </div>
-                                {/* <Switch /> */}
                             </div>
                             <div>
                                 {notifications.map((notification, index) => (
@@ -291,48 +155,7 @@ const ServicioNuevo = () => {
                             </Button>
                         </CardFooter>
                     </Card>
-                    {/* <div className="border  mx-auto w-full">
-                    <h4 className="px-4 py-3  font-medium text-gray-700 uppercase">Detalle del servicio</h4>
-                        <div className="grid grid-cols-1 gap-12">
-                            <div className="card">
-                                <div className="px-4 py-3 border-0 card-header">
-                                    <span className="text-white badge bg-blue-700 rounded-full px-3 py-1">32 Total</span>
-                                </div>
-                                <div className="px-4 mb-1 -mt-2 divide-y divide-gray-200 card-body">
-                                    <div className="flex items-center justify-between py-3 text-sm">
-                                        <div className="flex items-center space-x-2 text-gray-700">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="flex-none w-5 h-5">
-                                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                                <path
-                                                    fillRule="evenodd"
-                                                    d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                                                    clipRule="evenodd"
-                                                />
-                                            </svg>
-                                            <span>Unique Views</span>
-                                        </div>
-                                        <span className="font-mono text-gray-900">132</span>
-                                    </div>
-                                    <div className="flex items-center justify-between py-3 text-sm">
-                                        <div className="flex items-center space-x-2 text-gray-700">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="flex-none w-5 h-5">
-                                                <path
-                                                    fillRule="evenodd"
-                                                    d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z"
-                                                    clipRule="evenodd"
-                                                />
-                                            </svg>
-                                            <span>Comments</span>
-                                        </div>
-                                        <span className="font-mono text-gray-900">32,422</span>
-                                    </div>
-                                </div>
-                                <a href="#" className="px-4 py-3 text-sm font-medium text-purple-700 hover:text-purple-900 card-footer">
-                                    More Information
-                                </a>
-                            </div>
-                        </div>
-                    </div> */}
+
                 </div>
             </section>
 
