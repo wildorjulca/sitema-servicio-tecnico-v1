@@ -111,7 +111,7 @@ const FormServicio = () => {
                             </FormItem>
                         )}
                     />
-                        <FormField
+                    <FormField
                         control={form.control}
                         name="observacion"
                         render={({ field }) => (
@@ -127,7 +127,7 @@ const FormServicio = () => {
                             </FormItem>
                         )}
                     />
-                        <FormField
+                    <FormField
                         control={form.control}
                         name="observacion"
                         render={({ field }) => (
@@ -143,7 +143,7 @@ const FormServicio = () => {
                             </FormItem>
                         )}
                     />
-                        <FormField
+                    <FormField
                         control={form.control}
                         name="observacion"
                         render={({ field }) => (

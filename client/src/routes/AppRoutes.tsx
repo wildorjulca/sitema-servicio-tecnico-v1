@@ -5,6 +5,8 @@ import ProtectedRoute from '@/components/protected-route';
 import ClientePage from '@/pages/dashboard/cliente/ClientePage.tsx';
 import ServicioLayout from '@/layouts/ServicioLayout';
 import ServicioNuevo from '@/pages/dashboard/servicio/ServicioNuevo';
+import PageServicio from '@/pages/dashboard/servicio/pageServicio';
+import IndexElement from '@/pages/dashboard/servicio/indexElement';
 
 
 const AppRoutes = () => {
@@ -31,7 +33,12 @@ const AppRoutes = () => {
                     <Route path="settings" element={"setting"} />
                     <Route path="servicio" element={<ServicioLayout />}>
                         <Route index element={"listado de servicio"} /> {/* Ruta inicial */}
-                        <Route path="nuevo" element={<ServicioNuevo />} />
+                        {/* <Route path="nuevo" element={<ServicioNuevo />} > */}
+                        <Route path="nuevo" element={<PageServicio />} >
+                            <Route index element={<IndexElement />} />
+                            <Route path='paso2' element={"paso 2"} />
+                            <Route path='paso3' element={"paso 3"} />
+                        </Route>
                     </Route>
                     {/* Agrega más rutas hijas según sea necesario */}
                 </Route>

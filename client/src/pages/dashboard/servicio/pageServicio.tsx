@@ -1,56 +1,17 @@
-import { Button } from "@/components/ui/button"
-import { useStoreMCS } from "@/store"
+import { useStoreMCS } from "@/store";
+import { Outlet } from "react-router-dom";
+import FormServicio from "./ui/Form-servicio";
+import ShowServicioClient from "./ui/ShowServicioClient";
+import NavServicio from "./ui/nav-servicio";
 
-
-
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import ShowServicioClient from "./ui/ShowServicioClient"
-import { BellRing, Check, ChevronRight } from "lucide-react"
-import FormServicio from "./ui/Form-servicio"
-import NavServicio from "./ui/nav-servicio"
-
-const ServicioNuevo = () => {
+const PageServicio = () => {
     const { isModalOpen, openModal, closeModal } = useStoreMCS();
-    console.log({ isModalOpen });
-
-    const notifications = [
-        {
-            title: "Your call has been confirmed.",
-            description: "1 hour ago",
-        },
-        {
-            title: "You have a new message!",
-            description: "1 hour ago",
-        },
-        {
-            title: "Your subscription is expiring soon!",
-            description: "2 hours ago",
-        },
-    ]
     return (
         <>
-            {/* Botón para abrir el modal */}
-            {/* <Button variant="outline" onClick={openModal}>
-                Nuevo
-            </Button>
-            <Button variant="outline" size="icon">
-                <ChevronRight />
-            </Button>
-            <Button variant="outline" size="icon">
-                <ChevronRight />
-            </Button> */}
+            {/* encabezado del servicio */}
+            <NavServicio />
 
-
-
-            <section className="w-full  flex flex-col lg:flex-row gap-4 mt-6">
-
+            <main className="w-full  flex flex-col lg:flex-row gap-4 mt-6">
                 {/* Formulario - 20% del ancho */}
                 <div className="w-full lg:w-[60%]">
                     <FormServicio />
@@ -178,7 +139,7 @@ const ServicioNuevo = () => {
                         </li>
                     </ul>
                     <div className='h-full  flex flex-col items-center gap-1 relative top-4 '>
-                        <div className="w-full flex flex-col p-4 gap-4 text-lg font-semibold shadow-md border rounded-sm lg:w-full">
+                        {/* <div className="w-full flex flex-col p-4 gap-4 text-lg font-semibold shadow-md border rounded-sm lg:w-full">
                             <div className="w-full flex flex-row justify-between">
                                 <p className="text-gray-600">Subtotal (2 Items)</p>
                                 <p className="text-end font-bold">$99.98</p>
@@ -211,81 +172,18 @@ const ServicioNuevo = () => {
                                     ADD MORE PRODUCTS
                                 </button>
                             </div>
-                        </div>
-                        {/* <div className="relative rounded-lg border border-gray-200 ">
-                            <button className="absolute -end-1 -top-1 rounded-full border border-gray-300 bg-gray-100 p-1">
-                                <span className="sr-only">Close</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="size-3" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        fillRule="evenodd"
-                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                        clipRule="evenodd"
-                                    />
-                                </svg>
-                            </button>
-
-                            <div className="flex items-center gap-4 p-3">
-                                <img
-                                    alt=""
-                                    src="https://images.unsplash.com/photo-1611432579699-484f7990b127?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80"
-                                    className="size-12 rounded-lg object-cover"
-                                />
-
-                                <div>
-                                    <p className="font-medium text-gray-900">Carol Daines</p>
-
-                                    <p className="line-clamp-1 text-sm text-gray-500">
-                                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eveniet, laborum?
-                                    </p>
-                                </div>
-                            </div>
                         </div> */}
-                        {/* <div className="relative rounded-lg border border-gray-200 ">
-                            <button className="absolute -end-1 -top-1 rounded-full border border-gray-300 bg-gray-100 p-1">
-                                <span className="sr-only">Close</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="size-3" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        fillRule="evenodd"
-                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                        clipRule="evenodd"
-                                    />
-                                </svg>
-                            </button>
-
-                            <div className="flex items-center gap-4 p-3">
-                                <img
-                                    alt=""
-                                    src=""
-                                    className="size-12 rounded-lg object-cover"
-                                />
-
-                                <div>
-                                    <p className="font-medium text-gray-900">Carol Daines</p>
-
-                                    <p className="line-clamp-1 text-sm text-gray-500">
-                                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eveniet, laborum?
-                                    </p>
-                                </div>
-                            </div>
-                        </div> */}
-
-
-
-
-
-
+                        <Outlet />
                     </div>
-
-
                 </div>
+            </main>
 
-
-            </section>
 
             {/* Modal controlado por Zustand */}
             {isModalOpen && <ShowServicioClient />}
-        </>
-    );
-};
 
-export default ServicioNuevo;
+        </>
+    )
+}
+
+export default PageServicio
