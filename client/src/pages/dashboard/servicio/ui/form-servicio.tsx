@@ -111,6 +111,54 @@ const FormServicio = () => {
                             </FormItem>
                         )}
                     />
+                        <FormField
+                        control={form.control}
+                        name="observacion"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Observación a la reparación</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="shadcn" {...field} />
+                                </FormControl>
+                                <FormDescription>
+                                    This is your public display name.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                        <FormField
+                        control={form.control}
+                        name="observacion"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Observación a la reparación</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="shadcn" {...field} />
+                                </FormControl>
+                                <FormDescription>
+                                    This is your public display name.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                        <FormField
+                        control={form.control}
+                        name="observacion"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Observación a la reparación</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="shadcn" {...field} />
+                                </FormControl>
+                                <FormDescription>
+                                    This is your public display name.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                     <Button type="submit">Submit</Button>
                 </form>
             </Form>
