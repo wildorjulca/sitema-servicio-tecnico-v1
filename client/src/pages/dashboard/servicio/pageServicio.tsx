@@ -1,5 +1,5 @@
 import { useStoreMCS } from "@/store";
-import { Outlet } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import FormServicio from "./ui/Form-servicio";
 import ShowServicioClient from "./ui/ShowServicioClient";
 import NavServicio from "./ui/nav-servicio";
@@ -16,15 +16,13 @@ const PageServicio = () => {
                 <div className="w-full lg:w-[60%]">
                     <FormServicio />
                 </div>
-
-
                 {/* Estadísticas - 20% del ancho */}
-                <div className="w-full  h-screen sticky top-0 bg-gray-50 px-2  border-l-2 border-solid border-gray-200
+                <div className="w-full  h-screen sticky top-0 px-2  border-l-2 border-solid border-gray-200
                                 lg:w-[40%]">
                     <ul className="flex  overflow-x-auto scrollbar-hidden ">
                         <li className="flex-none">
-                            <a
-                                href="#"
+                            <Link
+                                to="/dashboard/servicio/nuevo"
                                 className="flex items-center gap-2 border-s-[3px] border-blue-500 bg-blue-50 px-4 py-3 text-blue-700"
                             >
                                 <svg
@@ -43,12 +41,12 @@ const PageServicio = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                                 <span className="text-sm font-medium">General</span>
-                            </a>
+                            </Link>
                         </li>
 
                         <li className="flex-none">
-                            <a
-                                href="#"
+                            <Link
+                                to="paso2"
                                 className="flex items-center gap-2 border-s-[3px] border-transparent px-4 py-3 text-gray-500 hover:border-gray-100 hover:bg-gray-50 hover:text-gray-700"
                             >
                                 <svg
@@ -66,12 +64,12 @@ const PageServicio = () => {
                                     />
                                 </svg>
                                 <span className="text-sm font-medium">Teams</span>
-                            </a>
+                            </Link>
                         </li>
 
                         <li className="flex-none">
-                            <a
-                                href="#"
+                            <Link
+                                to="paso3"
                                 className="flex items-center gap-2 border-s-[3px] border-transparent px-4 py-3 text-gray-500 hover:border-gray-100 hover:bg-gray-50 hover:text-gray-700"
                             >
                                 <svg
@@ -89,11 +87,11 @@ const PageServicio = () => {
                                     />
                                 </svg>
                                 <span className="text-sm font-medium">Billing</span>
-                            </a>
+                            </Link>
                         </li>
 
                         <li className="flex-none">
-                            <a
+                            <Link
                                 href="#"
                                 className="flex items-center gap-2 border-s-[3px] border-transparent px-4 py-3 text-gray-500 hover:border-gray-100 hover:bg-gray-50 hover:text-gray-700"
                             >
@@ -112,11 +110,11 @@ const PageServicio = () => {
                                     />
                                 </svg>
                                 <span className="text-sm font-medium">Invoices</span>
-                            </a>
+                            </Link>
                         </li>
 
                         <li className="flex-none">
-                            <a
+                            <Link
                                 href="#"
                                 className="flex items-center gap-2 border-s-[3px] border-transparent px-4 py-3 text-gray-500 hover:border-gray-100 hover:bg-gray-50 hover:text-gray-700"
                             >
@@ -135,10 +133,10 @@ const PageServicio = () => {
                                     />
                                 </svg>
                                 <span className="text-sm font-medium">Account</span>
-                            </a>
+                            </Link>
                         </li>
                     </ul>
-                    <div className='h-full  flex flex-col items-center gap-1 relative top-4 '>
+                    <div className='h-full relative top-4 '>
                         {/* <div className="w-full flex flex-col p-4 gap-4 text-lg font-semibold shadow-md border rounded-sm lg:w-full">
                             <div className="w-full flex flex-row justify-between">
                                 <p className="text-gray-600">Subtotal (2 Items)</p>
