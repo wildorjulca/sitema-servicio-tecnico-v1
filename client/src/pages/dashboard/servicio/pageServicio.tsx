@@ -1,8 +1,8 @@
 import { useStoreMCS } from "@/store";
 import { Link, Outlet } from "react-router-dom";
-import FormServicio from "./ui/Form-servicio";
 import ShowServicioClient from "./ui/ShowServicioClient";
 import NavServicio from "./ui/nav-servicio";
+import FormServicio from "./ui/Form-servicio";
 
 const PageServicio = () => {
     const { isModalOpen, openModal, closeModal } = useStoreMCS();
