@@ -68,3 +68,24 @@ END
     END IF;
 
   END
+
+
+
+  -----------------------------------------------------------
+-- PROCEDIMIENTOS ALMACENADOS DE LA TABLA (TECNICO)
+-------------------------------------------------------------
+CREATE PROCEDURE `add_tecnico` (
+   IN _idTecnico CHAR(36) ,
+    IN _nombre VARCHAR(75),
+	IN _dni CHAR(8),
+	IN _celular VARCHAR(9),
+    IN _usuario VARCHAR(45),
+    IN _password VARCHAR(45)
+)
+BEGIN
+
+INSERT INTO TECNICO 
+      (idTecnico, nombre, dni, celular, usuario, password)
+VALUES(_idTecnico, _nombre, _dni, _celular, _usuario, _password);
+
+END

@@ -22,9 +22,9 @@ export interface Document_Type {
 }
 
 // CLiente
-export interface Customer{
+export interface Customer {
     idCliente?: string
-    nombre : string,
+    nombre: string,
     TIPO_DOCUMENTO_cod_tipo: string,
     numero_documento: string,
     direccion: string,
@@ -34,7 +34,7 @@ export interface Customer{
 // MOTIVO INGRESO
 export interface REASON_FOR_ADMISSION {
     descripcion: string,
-    precio_cobrar : number
+    precio_cobrar: number
 }
 
 // SRVICIO_EQUIPOS
@@ -44,4 +44,14 @@ export interface Service_equipment {
     modelo: string;
     serie: string,
     codigo_barras: string
+}
+
+// TECNICO
+
+export interface Technical {
+    nombre: string;
+    dni: string;
+    celular?: string;
+    usuario: string;
+    password: string;
 }
