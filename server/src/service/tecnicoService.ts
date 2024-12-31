@@ -11,10 +11,10 @@ const cn = coneccion()
 const registerUser = async (tecnico: Technical) => {
     try {
         const idTecnico = uuidv4()
-        const password = bcryptjs.hashSync(tecnico.password, 10)
+        // const password = bcryptjs.hashSync(tecnico.password, 10)
 
         const [result] = await cn.promise().query<ResultSetHeader>("CALL add_tecnico(?,?,?,?,?,?)", [
-            idTecnico, tecnico.nombre, tecnico.dni, tecnico.celular, tecnico.usuario, password])
+            idTecnico, tecnico.nombre, tecnico.dni, tecnico.celular, tecnico.usuario, tecnico.password])
 
         if (result.affectedRows === 1) {
             return { status: 201, succes: true, memsaje: "Tecnico guardado exitosamente", idUsuario: idTecnico }

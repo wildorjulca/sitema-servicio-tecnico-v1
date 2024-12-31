@@ -12,6 +12,7 @@ import { routerMotivoIngreso } from './router/motivo_ingresoRouter'
 import { routerServicioEquipos } from './router/servicio_equiposRouter'
 import { routerTecnico } from './router/tecnicoRouter'
 import { routerLogin } from './router/authRouter'
+import { protectedRoute } from './router/protectedRoute'
 const PORT = process.env.PORT || 3001
 const app = express()
 
@@ -34,6 +35,8 @@ app.use("/api/servicio", routerMotivoIngreso)
 app.use("/api/servicio", routerServicioEquipos)
 app.use("/api/servicio", routerTecnico)
 app.use("/api/servicio", routerLogin)
+app.use("/api/servicio", protectedRoute)
+
 
 
 

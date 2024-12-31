@@ -19,8 +19,8 @@ const authservice = async (usuario: string, password: string) => {
 
         // Si el usuario se encuentra, comparas la contraseña
         const item = tecnico[0];
-        const comparePass = bcryptjs.compareSync(password, item.password);
-        console.log(comparePass)
+        // const comparePass = bcryptjs.compareSync(password, item.password);
+        const comparePass = item.password === password
 
         // Si la contraseña no coincide
         if (!comparePass) {

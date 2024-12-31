@@ -9,14 +9,16 @@ export const authRequired = (req: Request, res: Response, next: NextFunction) =>
             status: 401,
             mensaje: "Autorización denegada: ¡No hay token!",
         });
+        console.log((req as any).user)
+        return
     }
-
     jwt.verify(token, process.env.JWT_SECRET as string, (err: any, user: any) => {
         if (err) {
             res.status(401).send({
                 status: 401,
                 mensaje: "¡Token no válido!",
             });
+            return
         }
         (req as any).user = user;
         next();
