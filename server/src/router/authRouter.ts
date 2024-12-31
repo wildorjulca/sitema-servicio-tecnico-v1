@@ -1,8 +1,12 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { authLoginCTRL } from "../controller/authController";
+import { authRequired } from "../middlewares/verifyToken";
 
 const routerLogin = Router()
 
 routerLogin.post("/login", authLoginCTRL)
-
-export { routerLogin} 
+routerLogin.post("/profile", authRequired, (req: Request, res: Response) => {
+    console.log((req as any).user);
+    res.status(200).send({ status: 200, mensaje: "Paso validacion" })
+})
+export { routerLogin } 
