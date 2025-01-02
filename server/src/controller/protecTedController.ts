@@ -11,7 +11,6 @@ export const verifyRutaAuthenticate = (req: Request, res: Response) => {
 
     try {
         const { token } = req.cookies
-        console.log({ token })
         if (!token) res.status(401).send({
             status: 401,
             mensaje: "Autorización denegada: ¡No hay token!"
@@ -22,7 +21,6 @@ export const verifyRutaAuthenticate = (req: Request, res: Response) => {
                 mensaje: "Tokem no valido"
             })
             const idTecnico = (req as any).user
-            console.log({ idTecnico })
             /// buscamos el id del user del token si el id es valido me va a devolver  el token
             // const idTecnico = "d7cd4ba3-d725-442b-a601-6f3496a0231c"
             const [result] = await cn.promise().query<[RowDataPacket[], ResultSetHeader]>("Call protected_routes(?)", [idTecnico])

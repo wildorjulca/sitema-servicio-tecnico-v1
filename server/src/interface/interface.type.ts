@@ -49,6 +49,7 @@ export interface Service_equipment {
 // TECNICO
 
 export interface Technical {
+    idTecnico?: string
     nombre: string;
     dni: string;
     celular?: string;
