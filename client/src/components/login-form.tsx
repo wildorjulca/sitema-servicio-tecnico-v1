@@ -1,68 +1,96 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { authenticateUser } from "@/services/authService";
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+// Definir el esquema de validación con Zod
+const formSchema = z.object({
+  username: z
+    .string()
+    .min(2, { message: "El nombre de usuario debe tener al menos 2 caracteres." }),
+  password: z
+    .string()
+    .min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
+});
+
+export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+  // Inicializar el formulario con validación
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
+
+  // Handler del submit
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const { username, password} = values
+    const resonse = await authenticateUser( username, password)
+    // console.log("Datos del formulario:", values);
+    console.log(resonse)
+  }
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
+          <CardTitle className="text-2xl">Iniciar sesión</CardTitle>
+          <CardDescription>Ingresa tu nombre de usuario y contraseña</CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
-                </div>
-                <Input id="password" type="password" required />
-              </div>
-              <Button type="submit" className="w-full">
-                Login
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Campo de Nombre de usuario */}
+            <div>
+              <label htmlFor="username"
+                className="block text-sm font-medium mb-2">
+                Usuario
+              </label>
+              <Input
+                id="username"
+                placeholder="Tu nombre de usuario"
+                {...form.register("username")}
+              />
+              <p className="text-sm text-red-500">{form.formState.errors.username?.message}</p>
+            </div>
+
+            {/* Campo de Contraseña */}
+            <div>
+              <label htmlFor="password"
+                className="block text-sm font-medium mb-2">
+                Contraseña
+              </label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Tu contraseña"
+                {...form.register("password")}
+              />
+              <p className="text-sm text-red-500">{form.formState.errors.password?.message}</p>
+            </div>
+
+            {/* Botones */}
+            <div className="space-y-3">
+              <Button className="w-full" type="submit">
+                Iniciar sesión
               </Button>
               <Button variant="outline" className="w-full">
-                Login with Google
+                Iniciar sesión con email
               </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <a href="#" className="underline underline-offset-4">
-                Sign up
-              </a>
             </div>
           </form>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

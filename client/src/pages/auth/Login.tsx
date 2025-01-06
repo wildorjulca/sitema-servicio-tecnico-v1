@@ -1,5 +1,4 @@
 import { LoginForm } from '@/components/login-form'
-import img from '../../assets/logo.jpg'
 const Login = () => {
     return (
         <div className='degra'>
