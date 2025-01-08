@@ -1,14 +1,24 @@
 
 import { login } from "@/apis"
 
+const BugFunction = (error: any) => {
+    if (error.status === 401) {  // msg => usuario no econtrado
+        return { ok: false, message: "Incorrect credentials!" }
+    }
 
-export const authenticateUser = async (usuario: string, password: string) => {
+}
+
+interface TypeErrror {
+    ok: boolean,
+    message: string | undefined
+}
+export const authenticateUser = async (usuario: string, password: string): Promise<TypeErrror | undefined> => {
     try {
         const userData = await login(usuario, password)
-        return userData
+        if (userData.status == 200) return userData
 
     } catch (error) {
-        console.log(error)
+        return BugFunction(error)
     }
 
 }
