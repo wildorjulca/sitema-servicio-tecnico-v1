@@ -1,6 +1,6 @@
 import React from 'react'
 
-const InfoErroMessage = ({ title }: {title: string}) => {
+const InfoErroMessage = ({ title }: { title: string }) => {
     return (
         <div
             className="flex items-start max-sm:flex-col bg-red-100 text-red-800 p-4 rounded-lg relative"
@@ -21,7 +21,7 @@ const InfoErroMessage = ({ title }: {title: string}) => {
             </div>
 
             <span className="block sm:inline text-sm ml-4 mr-8 max-sm:ml-0 max-sm:mt-2">
-               {title}
+                {title}
             </span>
 
             <svg
