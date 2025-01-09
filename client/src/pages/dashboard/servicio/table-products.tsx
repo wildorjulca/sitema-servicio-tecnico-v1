@@ -1,5 +1,5 @@
 import React, { Suspense, useState, useEffect } from "react";
-
+import img from './teclado.jpg'
 // Simulación de carga de datos con una promesa
 const loadInvoices = () =>
     new Promise((resolve) => {
@@ -68,35 +68,60 @@ const InvoiceTable = () => {
     }
 
     return (
-        <table className="w-full border-collapse border border-gray-300">
-            <caption className="text-lg font-bold mb-2">A list of your recent invoices</caption>
-            <thead>
-                <tr>
-                    <th className="border border-gray-300 px-4 py-2">Invoice</th>
-                    <th className="border border-gray-300 px-4 py-2">Status</th>
-                    <th className="border border-gray-300 px-4 py-2">Method</th>
-                    <th className="border border-gray-300 px-4 py-2 text-right">Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                {invoices.map((invoice) => (
-                    <tr key={invoice.invoice}>
-                        <td className="border border-gray-300 px-4 py-2">{invoice.invoice}</td>
-                        <td className="border border-gray-300 px-4 py-2">{invoice.paymentStatus}</td>
-                        <td className="border border-gray-300 px-4 py-2">{invoice.paymentMethod}</td>
-                        <td className="border border-gray-300 px-4 py-2 text-right">{invoice.totalAmount}</td>
-                    </tr>
-                ))}
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td className="border border-gray-300 px-4 py-2" colSpan={3}>
-                        Total
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2 text-right">$2,500.00</td>
-                </tr>
-            </tfoot>
-        </table>
+        <>
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th
+                                scope="col"
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                                Name
+                            </th>
+                       
+                            <th
+                                scope="col"
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                                Precio
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {Array(4).fill(null).map((_, index) => (
+                            <tr key={index}>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex items-center">
+                                        <div className="flex-shrink-0 h-10 w-10">
+                                            <img
+                                                className="h-10 w-10 rounded-full"
+                                                src="https://i.pravatar.cc/150?img=1"
+                                                alt="Avatar"
+                                            />
+                                        </div>
+                                        <div className="ml-4">
+                                            <div className="text-sm font-medium text-gray-900">
+                                                Jane Cooper
+                                            </div>
+                                            <div className="text-sm text-gray-500">jane.cooper@example.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                               
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <span className="text-blue-900 font-semibold bg-blue-100 px-2 rounded-full">
+                                        23.00
+                                    </span>
+                                </td>
+
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+        </>
     );
 };
 
