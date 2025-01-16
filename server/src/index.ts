@@ -13,6 +13,7 @@ import { routerServicioEquipos } from './router/servicio_equiposRouter'
 import { routerTecnico } from './router/tecnicoRouter'
 import { routerLogin } from './router/authRouter'
 import { protectedRoute } from './router/protectedRoute'
+import { routerProducto } from './router/productoRouter'
 const PORT = process.env.PORT || 3001
 const app = express()
 
@@ -26,6 +27,7 @@ app.use(cors({
 }))
 // RUTAS DE LOS ENPOINTS
 app.use("/api/servicio", router)
+app.use("/api/servicio", routerProducto)
 app.use("/api/servicio", routerEquipo)
 app.use("/api/servicio", routerMarca)
 app.use("/api/servicio", routerMarca)
@@ -36,6 +38,7 @@ app.use("/api/servicio", routerServicioEquipos)
 app.use("/api/servicio", routerTecnico)
 app.use("/api/servicio", routerLogin)
 app.use("/api/servicio", protectedRoute)
+
 
 
 
