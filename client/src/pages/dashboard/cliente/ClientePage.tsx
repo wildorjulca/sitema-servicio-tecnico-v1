@@ -3,7 +3,10 @@ import { Input } from "@/components/ui/input"
 import ModalFormCliente from './ui/ModalFormCliente';
 import TableCliente from './ui/TableCliente';
 
+
 export const ClientePage = () => {
+
+
     return (
         <>
             <div className="p-6  rounded-lg shadow">
