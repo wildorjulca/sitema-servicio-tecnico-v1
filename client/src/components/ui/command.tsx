@@ -35,10 +35,10 @@ const CommandDialog = ({ children, ...props }: DialogProps) => {
 
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
->(({ className, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & { icon?: React.ReactNode }
+>(({ className, icon, ...props }, ref) => (
   <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+    {icon && <span className="mr-2 h-4 w-4 shrink-0 opacity-50">{icon}</span>}
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
@@ -48,7 +48,10 @@ const CommandInput = React.forwardRef<
       {...props}
     />
   </div>
-))
+));
+
+// Uso
+<CommandInput icon={<Search/>} placeholder="Buscar cliente Nombre | DNI" />;
 
 CommandInput.displayName = CommandPrimitive.Input.displayName
 

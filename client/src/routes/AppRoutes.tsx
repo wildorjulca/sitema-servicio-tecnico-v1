@@ -4,9 +4,10 @@ import Login from '@/pages/auth/Login';
 import ProtectedRoute from '@/components/protected-route';
 import ClientePage from '@/pages/dashboard/cliente/ClientePage.tsx';
 import ServicioLayout from '@/layouts/ServicioLayout';
-import IndexElement from '@/pages/dashboard/servicio/indexElement';
-import TablePoducts from '@/pages/dashboard/servicio/table-products';
+
 import SearchClientService from '@/pages/dashboard/servicio/search-client-exist/page';
+
+
 
 
 const AppRoutes = () => {

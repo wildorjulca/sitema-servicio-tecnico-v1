@@ -2,6 +2,7 @@ import {
     Calculator,
     Calendar,
     CreditCard,
+    Search,
     Settings,
     Smile,
     User,
@@ -15,10 +16,11 @@ import {
     CommandItem,
     CommandList,
     CommandSeparator,
-    CommandShortcut,
 } from "@/components/ui/command"
 import { fetchCliente } from "@/services/clienteService"
 import { useEffect, useState } from "react"
+
+
 
 const SearchClientService = () => {
     const [dataCliente, setdataCliente] = useState<ClientTypes[]>([])
@@ -26,7 +28,7 @@ const SearchClientService = () => {
     useEffect(() => {
         const getCliente = async () => {
             const { data, status, succes, error } = await fetchCliente()
-            if (status) {
+            if (succes) {
                 setdataCliente(data)
                 return
             }
@@ -126,20 +128,21 @@ const SearchClientService = () => {
                         </div>
                     </button>
                 </div>
-                <div className="">
-                    <Command className="rounded-lg border shadow-md md:min-w-[450px]">
-                        <CommandInput
-                            placeholder="Buscar cliente Nombre | DNI"
-                        // value={search}
-                        // onChange={(e) => setSearch(e.target.value)} // Actualiza el valor de búsqueda
-                        />
-                        <CommandList>
-                            {/* Si no hay resultados, mostramos un mensaje vacío */}
+
+                {/* className=" rounded-lg border shadow-md " */}
+                <Command >
+                    <CommandInput
+                        icon={<Search className="absolute left-14" size={15} />}
+                        className="border w-full relative pl-7 hi"
+                        placeholder="Buscar cliente Nombre | DNI"
+                    />
+                        <CommandList
+                        >
                             {dataCliente.length === 0 ? (
                                 <CommandEmpty>No results found.</CommandEmpty>
                             ) : (
                                 <>
-                                    <CommandGroup heading="Clientes">
+                                    <CommandGroup heading="Clientes" className="mt-4">
                                         {/* Mapear y mostrar los clientes filtrados */}
                                         {dataCliente.map((item, index) => (
                                             <CommandItem key={index}
@@ -154,10 +157,7 @@ const SearchClientService = () => {
                             )}
                             <CommandSeparator />
                         </CommandList>
-                    </Command>
-                </div>
-
-
+                </Command>
             </div>
         </>
     )
