@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -65,9 +64,8 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Iniciar sesión</CardTitle>
-          <CardDescription>Ingresa tu nombre de usuario y contraseña</CardDescription>
+        <CardHeader className="flex items-center">
+          <CardTitle className="text-2xl">Inforsystem Computer</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -107,12 +105,11 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
             {/* Botones */}
             <div className="space-y-3">
               <Button
-                className="w-full flex items-center justify-center gap-2"
-                type="submit"
+                className="w-full flex items-center justify-center gap-2 bg-[#256093] dark:bg-gray-500"
                 disabled={isPending}
               >
                 {isPending && (
-                  <Loader  /> // Puedes usar cualquier spinner
+                  <Loader /> // Puedes usar cualquier spinner
                 )}
                 Iniciar sesión
               </Button>

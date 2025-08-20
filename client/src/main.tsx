@@ -7,7 +7,5 @@ createRoot(document.getElementById('root')!).render(
   <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
     <AppRoutes />
   </ThemeProvider>
-  // <BrowserRouter>
-  //   <App />
-  // </BrowserRouter>
+
 )

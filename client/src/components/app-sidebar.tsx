@@ -6,11 +6,11 @@ import {
     Bot,
     Command,
     Frame,
-    GalleryVerticalEnd,
     Map,
     PieChart,
     Settings2,
     SquareTerminal,
+    Wrench,
 } from "lucide-react"
 
 // import { NavMain } from "@/components/nav-main"
@@ -40,9 +40,9 @@ const data = {
     },
     teams: [
         {
-            name: "Acme Inc",
-            logo: GalleryVerticalEnd,
-            plan: "Enterprise",
+            name: "Inforsystem Computec",
+            logo: Wrench,
+            plan: "Soporte & Reparación",
         },
         {
             name: "Acme Corp.",
