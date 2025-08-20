@@ -32,6 +32,7 @@
     "@types/node": "^22.10.1",
     "@types/nodemon": "^1.19.6",
     "nodemon": "^3.1.7",
-    "typescript": "^5.7.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
   }
 }

@@ -32,12 +32,7 @@ const authservice = async (usuario: string, password: string) => {
     } catch (error) {
         console.log({ error });
         return createResponse(500, false, "Error de servidor o en la base de datos", error);
-        // return {
-        //     status: 500,
-        //     success: false,
-        //     mensaje: "Error de servidor o en la base de datos",
-        //     error: error,
-        // };
+    
     }
 };
 
