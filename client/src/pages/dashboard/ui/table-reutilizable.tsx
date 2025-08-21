@@ -22,8 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
-
+import { Edit, MoreHorizontal, Trash } from "lucide-react";
 interface DataTableProps<T> {
   columns: ColumnDef<T, any>[];
   data: T[];
@@ -32,6 +31,7 @@ interface DataTableProps<T> {
   onUpdate?: (row: T) => void;
   searchColumn?: keyof T; // columna que se puede buscar
   placeholderSearch?: string;
+  actions?: React.ReactNode; // acciones personalizadas (ej: botón agregar)
 }
 
 export function DataTable<T extends { id: string | number }>({
@@ -42,6 +42,7 @@ export function DataTable<T extends { id: string | number }>({
   onUpdate,
   searchColumn,
   placeholderSearch,
+  actions,
 }: DataTableProps<T>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -64,16 +65,20 @@ export function DataTable<T extends { id: string | number }>({
 
   return (
     <div className="w-full">
-      {searchColumn && (
-        <div className="flex items-center py-4">
-          <Input
-            placeholder={placeholderSearch || "Search..."}
-            value={(table.getColumn(String(searchColumn))?.getFilterValue() as string) ?? ""}
-            onChange={(e) => table.getColumn(String(searchColumn))?.setFilterValue(e.target.value)}
-            className="max-w-sm"
-          />
+      {(searchColumn || actions) && (
+        <div className="flex items-center justify-between py-4">
+          {searchColumn && (
+            <Input
+              placeholder={placeholderSearch || "Search..."}
+              value={(table.getColumn(String(searchColumn))?.getFilterValue() as string) ?? ""}
+              onChange={(e) => table.getColumn(String(searchColumn))?.setFilterValue(e.target.value)}
+              className="max-w-sm"
+            />
+          )}
+          {actions && <div>{actions}</div>}
         </div>
       )}
+
       <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>
@@ -81,7 +86,9 @@ export function DataTable<T extends { id: string | number }>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -106,10 +113,17 @@ export function DataTable<T extends { id: string | number }>({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          {onEdit && <DropdownMenuItem onClick={() => onEdit(row.original)}>Edit</DropdownMenuItem>}
-                          {onUpdate && <DropdownMenuItem onClick={() => onUpdate(row.original)}>Update</DropdownMenuItem>}
-                          {onDelete && <DropdownMenuItem onClick={() => onDelete(row.original)}>Delete</DropdownMenuItem>}
+                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                          {onEdit && (
+                            <DropdownMenuItem onClick={() => onEdit(row.original)}>
+                              <Edit className="mr-2 h-4 w-4" /> Editar
+                            </DropdownMenuItem>
+                          )}
+                          {onDelete && (
+                            <DropdownMenuItem onClick={() => onDelete(row.original)}>
+                              <Trash className="mr-2 h-4 w-4" /> Eliminar
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -126,11 +140,22 @@ export function DataTable<T extends { id: string | number }>({
           </TableBody>
         </Table>
       </div>
+
       <div className="flex items-center justify-end space-x-2 py-4">
-        <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
           Previous
         </Button>
-        <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        >
           Next
         </Button>
       </div>

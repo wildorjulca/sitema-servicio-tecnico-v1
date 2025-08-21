@@ -5,10 +5,11 @@ import toast from 'react-hot-toast';
 // ----------------------
 // Hook para listar marcas
 // ----------------------
-export const useBrands = (usuarioId: number) => {
+export const useBrands = (usuarioId?: number) => {
     const query = useQuery({
         queryKey: ['allBrands', usuarioId],
-        queryFn: () => fetchBrands(usuarioId),
+        queryFn: () => fetchBrands(usuarioId!),
+        enabled: !!usuarioId, // solo se ejecuta si usuarioId existe
     });
 
     if (query.isError) {
@@ -24,14 +25,13 @@ export const useBrands = (usuarioId: number) => {
 // ----------------------
 // Hook para agregar marca
 // ----------------------
-
-export const useAddBrand = () => {
+export const useAddBrand = (usuarioId: number) => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (brand: Brand) => addBrandAPI(brand),
+        mutationFn: (brand: Omit<Brand, 'id'>) => addBrandAPI({ ...brand, usuarioId }),
         onSuccess: () => {
             toast.success('Marca agregada');
-            queryClient.invalidateQueries({ queryKey: ['allBrands'] });
+            queryClient.invalidateQueries({ queryKey: ['allBrands', usuarioId] });
         },
         onError: () => {
             toast.error('Error al agregar marca');
@@ -42,14 +42,13 @@ export const useAddBrand = () => {
 // ----------------------
 // Hook para editar marca
 // ----------------------
-
-export const useEditBrand = () => {
+export const useEditBrand = (usuarioId: number) => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (brand: Brand) => editBrandAPI(brand),
+        mutationFn: (brand: Brand) => editBrandAPI({ ...brand, usuarioId }),
         onSuccess: () => {
             toast.success('Marca actualizada');
-            queryClient.invalidateQueries({ queryKey: ['allBrands'] });
+            queryClient.invalidateQueries({ queryKey: ['allBrands', usuarioId] });
         },
         onError: () => {
             toast.error('Error al actualizar marca');
@@ -60,13 +59,13 @@ export const useEditBrand = () => {
 // ----------------------
 // Hook para eliminar marca
 // ----------------------
-export const useDeleteBrand = () => {
+export const useDeleteBrand = (usuarioId: number) => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, usuarioId }: { id: number; usuarioId: number }) => deleteBrandAPI(id, usuarioId),
+        mutationFn: (id: number) => deleteBrandAPI(id, usuarioId),
         onSuccess: () => {
             toast.success('Marca eliminada');
-            queryClient.invalidateQueries({ queryKey: ['allBrands'] });
+            queryClient.invalidateQueries({ queryKey: ['allBrands', usuarioId] });
         },
         onError: () => {
             toast.error('Error al eliminar marca');
