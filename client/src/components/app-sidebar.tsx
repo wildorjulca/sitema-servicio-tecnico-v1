@@ -1,15 +1,15 @@
 
 import * as React from "react"
 import {
-    AudioWaveform,
     BookOpen,
-    Bot,
-    Command,
+    Box,
     Frame,
     Map,
     PieChart,
+    Settings,
     Settings2,
-    SquareTerminal,
+    ShieldCheck,
+
     Wrench,
 } from "lucide-react"
 
@@ -34,7 +34,7 @@ import {
 // This is sample data.
 const data = {
     user: {
-        name: "shadcn",
+        name: "Admin",
         email: "m@example.com",
         avatar: "/avatars/shadcn.jpg",
     },
@@ -44,22 +44,12 @@ const data = {
             logo: Wrench,
             plan: "Soporte & Reparación",
         },
-        {
-            name: "Acme Corp.",
-            logo: AudioWaveform,
-            plan: "Startup",
-        },
-        {
-            name: "Evil Corp.",
-            logo: Command,
-            plan: "Free",
-        },
     ],
     navMain: [
         {
-            title: "Clientes",
+            title: "Administracion",
             url: "#",
-            icon: SquareTerminal,
+            icon: ShieldCheck ,
             isActive: true,
             items: [
                 {
@@ -67,8 +57,8 @@ const data = {
                     url: "cliente",
                 },
                 {
-                    title: "Starred",
-                    url: "#",
+                    title: "Marca",
+                    url: "marca",
                 },
                 {
                     title: "Settings",
@@ -77,9 +67,9 @@ const data = {
             ],
         },
         {
-            title: "Models",
+            title: "Asignar Roles",
             url: "#",
-            icon: Bot,
+            icon: Box,
             items: [
                 {
                     title: "Genesis",
@@ -121,7 +111,7 @@ const data = {
         {
             title: "Settings",
             url: "#",
-            icon: Settings2,
+            icon: Settings,
             items: [
                 {
                     title: "General",
@@ -153,14 +143,6 @@ const data = {
                 {
                     title: "Nuevo servicio",
                     url: "servicio/nuevo",
-                },
-                {
-                    title: "Billing",
-                    url: "#",
-                },
-                {
-                    title: "Limits",
-                    url: "#",
                 },
             ],
         },

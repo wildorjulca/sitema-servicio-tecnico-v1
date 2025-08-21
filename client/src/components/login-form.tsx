@@ -13,7 +13,8 @@ import { z } from "zod";
 import InfoErroMessage from "./alert-message/alerts";
 import Loader from "./sniper-carga/loader";
 import { useNavigate } from "react-router-dom";
-import { useLogin } from "@/services/authService";
+import { useLogin } from "@/hooks/authService";
+import { useUser } from "@/hooks/useUser";
 
 // ✅ Esquema de validación con Zod
 const formSchema = z.object({
@@ -28,7 +29,7 @@ const formSchema = z.object({
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
   const navigate = useNavigate();
   const { mutate, isPending, data, error } = useLogin(); // 👈 uso isPending en lugar de isLoading
-
+  const { setUser } = useUser(); // 👈 contexto
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -42,17 +43,21 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
       { usuario: values.username, password: values.password },
       {
         onSuccess: (response) => {
-          if (!response.ok) return;
+          if (!response.ok || !response.data) return;
 
-          // 🚀 Guardar token
+          // Guardar usuario y token en contexto
+          setUser(response.data,response.token || "");
+
+          // Opcional: guardar token en localStorage
           localStorage.setItem("token", response.token || "");
 
-          // 🔀 Redirigir
+          // Redirigir al dashboard
           navigate("/dashboard");
         },
       }
     );
   };
+
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
