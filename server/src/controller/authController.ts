@@ -16,8 +16,10 @@ const authLoginCTRL = async (req: Request, res: Response) => {
         });
 
         res.cookie("token", token, {
-            maxAge: 24 * 60 * 60 * 1000,
-            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000, // 1 día
+            httpOnly: true,              // No accesible desde JS
+            secure: process.env.NODE_ENV === "production", // Solo HTTPS en prod
+            sameSite: "strict",          // Evita CSRF
         });
 
         res.status(response.status).send({

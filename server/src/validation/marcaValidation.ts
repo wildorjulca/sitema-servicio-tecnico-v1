@@ -1,8 +1,5 @@
 import { body } from "express-validator";
 
-
-
-
 export const ReglasValidacionMarca = [
     body("nombre")
         .trim()

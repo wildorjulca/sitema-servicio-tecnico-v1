@@ -11,8 +11,11 @@ export interface Equipment {
 }
 // Marcas
 export interface Brands {
-    nombre: String
+    id?: number        // opcional, necesario para actualizar o eliminar
+    nombre: string     // obligatorio
+    usuarioId: number  // obligatorio, el usuario que hace la acción
 }
+
 
 // Tipo_Documento
 export interface Document_Type {

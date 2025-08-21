@@ -27,9 +27,13 @@ const authservice = async (usuario: string, password: string) => {
 
         // Autenticación exitosa
         return createResponse(200, true, "User authenticated successfully", {
-            id: item.id,
+            id: item.idUsuario,
             usuario: item.usuario,
-            rol: item.rol
+            rol: item.rol,
+            nombre: item.nombre,
+            apellidos: item.apellidos,
+            telefono: item.telefono,
+            dni: item.dni,
         });
 
     } catch (error) {
