@@ -6,6 +6,9 @@ import ServicioLayout from '@/layouts/ServicioLayout';
 import SearchClientService from '@/pages/dashboard/servicio/search-client-exist/page';
 import { Marca } from '@/pages/dashboard/marca';
 import ProtectedRoute from './ProtectedRoute';
+import Error404 from './error404';
+
+const NotFound = () => <div><Error404/></div>;
 
 const AppRoutes = () => {
     return (
@@ -34,7 +37,13 @@ const AppRoutes = () => {
                         <Route index element={<div>Listado de servicios</div>} />
                         <Route path="new" element={<SearchClientService />} />
                     </Route>
+
+                    {/* Ruta para cuando no exista una ruta hija */}
+                    <Route path="*" element={<NotFound />} />
                 </Route>
+
+                {/* Ruta global 404 para cualquier otra ruta que no sea /dashboard */}
+                <Route path="*" element={<NotFound />} />
             </Routes>
         </BrowserRouter>
     );
