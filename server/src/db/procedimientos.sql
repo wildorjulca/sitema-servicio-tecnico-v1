@@ -89,3 +89,23 @@ INSERT INTO TECNICO
 VALUES(_idTecnico, _nombre, _dni, _celular, _usuario, _password);
 
 END
+
+
+----2025--------------
+
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `auth_login`(IN _usuario VARCHAR(50))
+BEGIN
+    -- Buscar en tecnicos
+    IF EXISTS (SELECT 1 FROM tecnico WHERE usuario = _usuario) THEN
+        SELECT idTecnico AS id, usuario, password, 'tecnico' AS rol
+        FROM tecnico
+        WHERE usuario = _usuario
+        LIMIT 1;
+    ELSE
+        SELECT idAdministrador AS id, usuario, password, 'administrador' AS rol
+        FROM administrador
+        WHERE usuario = _usuario
+        LIMIT 1;
+    END IF;
+END
