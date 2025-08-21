@@ -7,33 +7,43 @@ const cn = coneccion()
 
 const authservice = async (usuario: string, password: string) => {
     try {
-        const [result] = await cn.promise().query<[RowDataPacket[], ResultSetHeader]>("CALL auth_login(?)", [usuario]);
+        const [result] = await cn.promise().query<[RowDataPacket[], ResultSetHeader]>(
+            "CALL auth_login(?)", [usuario]
+        );
 
-        const tecnico: Technical[] = result[0] as Technical[];
+        const user: any[] = result[0] as any[];
 
-        // Si no se encuentra el usuario
-        if (tecnico.length === 0) {
+        if (user.length === 0) {
             return createResponse(401, false, "Not user found");
         }
 
-        // Si el usuario se encuentra, comparas la contraseña
-        const item = tecnico[0];
-        // const comparePass = bcryptjs.compareSync(password, item.password);
-        const comparePass = item.password === password
-
-        // Si la contraseña no coincide
+        const item = user[0];
+        console.log("DEBUG item:", item);
+        // Comparar contraseña
+        const comparePass = await bcryptjs.compare(password, String(item.password));
         if (!comparePass) {
             return createResponse(401, false, "Incorrect password");
         }
 
-        // Si la autenticación es exitosa
-        return createResponse(200, true, "User authenticated successfully", item.idTecnico);
+        // Autenticación exitosa
+        return createResponse(200, true, "User authenticated successfully", {
+            id: item.id,
+            usuario: item.usuario,
+            rol: item.rol
+        });
 
     } catch (error) {
         console.log({ error });
         return createResponse(500, false, "Error de servidor o en la base de datos", error);
-    
     }
 };
 
-export { authservice }
+const hashText = async (text: string) => {
+    const salt = await bcryptjs.genSalt(10) // número de rondas
+    const hashed = await bcryptjs.hash(text, salt)
+    console.log(`Texto plano: ${text}`)
+    console.log(`Hash: ${hashed}`)
+    return hashed
+}
+//  hashText("172526")
+export { authservice, hashText }
