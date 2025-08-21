@@ -1,24 +1,53 @@
+// hooks/useLogin.ts
+import { useMutation } from "@tanstack/react-query";
+import { login } from "@/apis";
+import { AxiosError } from "axios";
 
-import { login } from "@/apis"
+interface usuario {
 
-const BugFunction = (error: any) => {
-    if (error.status === 401) {  // msg => usuario no econtrado
-        return { ok: false, message: "Incorrect credentials!" }
-    }
-
-}
-
-interface TypeErrror {
-    ok: boolean,
-    message: string | undefined
-}
-export const authenticateUser = async (usuario: string, password: string): Promise<TypeErrror | undefined> => {
-    try {
-        const userData = await login(usuario, password)
-        if (userData.status == 200) return userData
-
-    } catch (error) {
-        return BugFunction(error)
-    }
+    id: number;
+    usuario: string;
+    password: string;
+    nombre: string;
+    dni: number;
+    celular: number;
+    rol: string
 
 }
+interface TypeResponse {
+    ok: boolean;
+    message: string | undefined;
+    token?: string;
+    title?: string;
+    data?: usuario;
+}
+
+export const useLogin = () => {
+    return useMutation<
+        TypeResponse,
+        AxiosError,
+        { usuario: string; password: string }
+    >({
+        mutationFn: async ({ usuario, password }) => {
+            const userData = await login(usuario, password);
+
+            if (userData.success) {
+                return {
+                    ok: true,
+                    message: userData.message,
+                    token: userData.token,
+                    data: userData.data,
+                };
+            }
+            return { ok: false, message: userData.message };
+        },
+        onSuccess: (data) => {
+            if (data.ok && data.token) {
+                localStorage.setItem("token", data.token);
+            }
+        },
+        onError: (error) => {
+            console.error("Login error:", error.response?.data || error.message);
+        },
+    });
+};

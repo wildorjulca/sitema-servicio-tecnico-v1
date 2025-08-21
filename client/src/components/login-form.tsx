@@ -10,12 +10,12 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { authenticateUser } from "@/services/authService";
-import { useState, useTransition } from "react";
 import InfoErroMessage from "./alert-message/alerts";
 import Loader from "./sniper-carga/loader";
+import { useNavigate } from "react-router-dom";
+import { useLogin } from "@/services/authService";
 
-// Definir el esquema de validación con Zod
+// ✅ Esquema de validación con Zod
 const formSchema = z.object({
   username: z
     .string()
@@ -26,10 +26,9 @@ const formSchema = z.object({
 });
 
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
-  const [messageErrors, setmessageErrors] = useState<string | undefined>("");
-  const [isPending, startTransition] = useTransition();
+  const navigate = useNavigate();
+  const { mutate, isPending, data, error } = useLogin(); // 👈 uso isPending en lugar de isLoading
 
-  // Inicializar el formulario con validación
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,28 +37,22 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     },
   });
 
-  // Handler del submit
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    const { username, password } = values;
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    mutate(
+      { usuario: values.username, password: values.password },
+      {
+        onSuccess: (response) => {
+          if (!response.ok) return;
 
-    try {
-      // Realiza la operación asíncrona fuera de startTransition
-      const response = await authenticateUser(username, password);
+          // 🚀 Guardar token
+          localStorage.setItem("token", response.token || "");
 
-      // Maneja la actualización de estado dentro de startTransition
-      startTransition(() => {
-        if (!response?.ok) {
-          setmessageErrors(response?.message);
-          return;
-        }
-        setmessageErrors("");
-        console.log(response);
-      });
-    } catch (error) {
-      console.error("Unexpected error during submission:", error);
-      setmessageErrors("An unexpected error occurred.");
-    }
-  }
+          // 🔀 Redirigir
+          navigate("/dashboard");
+        },
+      }
+    );
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -69,7 +62,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Campo de Nombre de usuario */}
+            {/* Campo Usuario */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium mb-2">
                 Usuario
@@ -84,7 +77,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
               </p>
             </div>
 
-            {/* Campo de Contraseña */}
+            {/* Campo Contraseña */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium mb-2">
                 Contraseña
@@ -100,7 +93,11 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
               </p>
             </div>
 
-            {messageErrors && <InfoErroMessage title={messageErrors} />}
+            {/* Mensajes de error */}
+            {error && <InfoErroMessage title="Error inesperado" />}
+            {data && !data.ok && (
+              <InfoErroMessage title={data.message || "Error en el login"} />
+            )}
 
             {/* Botones */}
             <div className="space-y-3">
@@ -108,9 +105,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                 className="w-full flex items-center justify-center gap-2 bg-[#256093] dark:bg-gray-500"
                 disabled={isPending}
               >
-                {isPending && (
-                  <Loader /> // Puedes usar cualquier spinner
-                )}
+                {isPending && <Loader />}
                 Iniciar sesión
               </Button>
               <Button variant="outline" className="w-full">
