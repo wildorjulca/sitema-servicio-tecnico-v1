@@ -19,11 +19,15 @@ const addBrandCTRL = async (req: Request, res: Response) => {
 // ----------------------
 // Listar marcas
 // ----------------------
+
 const getAllBrandsCTRL = async (req: Request, res: Response) => {
-    const usuarioId = Number(req.params.usuarioId) || 0 // usuario logueado
-    const response = await listBrands(usuarioId)
-    res.status(response.status).json(response)
-}
+  const usuarioId = Number(req.params.usuarioId) || 0;
+  const pageIndex = Number(req.query.pageIndex) || 0; // opcional desde query
+  const pageSize = Number(req.query.pageSize) || 10;   // opcional desde query
+
+  const response = await listBrands(usuarioId, pageIndex, pageSize);
+  res.status(response.status).json(response);
+};
 
 // ----------------------
 // Actualizar marca
