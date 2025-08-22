@@ -5,7 +5,7 @@ import { instance } from "@/lib/axios"
 export interface Brand {
   id?: number
   nombre: string
-  usuarioId: number
+  usuarioId?: number
 }
 
 export interface BrandInit {
@@ -48,6 +48,7 @@ export const addBrandAPI = async ({ nombre, usuarioId }: BrandInit) => {
 // ----------------------
 export const editBrandAPI = async ({ id, nombre, usuarioId }: Brand) => {
   try {
+    console.log("➡️ editBrandAPI payload:", { id, nombre, usuarioId });
     const response = await instance.put(`/updateMarca`, { id, nombre, usuarioId });
     console.log("Marca actualizada:", response.data);
     return response.data;

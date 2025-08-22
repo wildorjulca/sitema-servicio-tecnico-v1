@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
+import { BrandType } from "@/interface";
 
 export function Marca() {
   const { user } = useUser();
@@ -33,11 +34,10 @@ export function Marca() {
 
   // Abrir modal para editar
   const openEditModal = (brand: BrandType) => {
-    setCurrentBrand(brand);
+    setCurrentBrand({ id: brand.id, nombre: brand.nombre, usuarioId });
     setBrandName(brand.nombre);
     setDialogOpen(true);
   };
-
   // Guardar cambios
   const handleSave = () => {
     if (!brandName.trim()) {
@@ -46,13 +46,23 @@ export function Marca() {
     }
 
     if (currentBrand) {
-      editBrand.mutate({ ...currentBrand, nombre: brandName, usuarioId });
+      // aseguramos que mandamos lo que pide la API
+      editBrand.mutate(
+        { id: currentBrand.id, nombre: brandName, usuarioId },
+        {
+          onSuccess: () => setDialogOpen(false),
+        }
+      );
     } else {
-      addBrand.mutate({ nombre: brandName, usuarioId });
+      addBrand.mutate(
+        { nombre: brandName, usuarioId },
+        {
+          onSuccess: () => setDialogOpen(false),
+        }
+      );
     }
-
-    setDialogOpen(false);
   };
+
 
   // Eliminar marca
   const handleDelete = (brand: BrandType) => {
