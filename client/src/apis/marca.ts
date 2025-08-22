@@ -3,9 +3,9 @@ import { instance } from "@/lib/axios"
 
 // Interfaces
 export interface Brand {
-  id?: number
+  id: number
   nombre: string
-  usuarioId?: number
+  usuarioId: number
 }
 
 export interface BrandInit {
@@ -16,18 +16,26 @@ export interface BrandInit {
 // ----------------------
 // Listar marcas
 // ----------------------
-export const fetchBrands = async (usuarioId: number) => {
+export const fetchBrands = async (
+  usuarioId: number,
+  pageIndex = 0,
+  pageSize = 10
+) => {
   try {
-    const response = await instance.get(`/getAll/${usuarioId}`);
-    const { data } = response.data;
+    const response = await instance.get(
+      `/getAll/${usuarioId}?pageIndex=${pageIndex}&pageSize=${pageSize}`
+    );
 
-    console.log("Marcas obtenidas:", data);
-    return { data };
+    // Asumiendo que la respuesta tiene la estructura { data: [...], total: X }
+    const { data, total } = response.data;
+
+    console.log("Marcas obtenidas:", { data, total });
+    return { data, total }; // Devolver tanto data como total
   } catch (error) {
     console.error("Error al obtener marcas:", error);
     throw error;
   }
-}
+};
 
 // ----------------------
 // Agregar marca

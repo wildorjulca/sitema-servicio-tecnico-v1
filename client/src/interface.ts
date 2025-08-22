@@ -9,7 +9,8 @@ export interface ClienteTypes{
 }
 // types.ts
 export interface BrandType {
-  id: number,
-  nombre: string,
-  usuarioId?: number,
+  id: number;
+  idMarca: number;  // 👈 obligatorio
+  nombre: string;
+  usuarioId: number;
 }
