@@ -38,9 +38,6 @@ export function Tipo_doc() {
     return (
       <div>
         Error al cargar tipos de documento: {error?.message || "Unknown error"}
-        {error?.response?.status === 404 && (
-          <p>El endpoint no se encuentra. Verifica la URL del API.</p>
-        )}
       </div>
     );
   }

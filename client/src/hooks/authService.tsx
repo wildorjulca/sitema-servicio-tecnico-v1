@@ -1,10 +1,9 @@
+
 import { useMutation } from "@tanstack/react-query";
 import { login } from "@/apis";
 import { AxiosError } from "axios";
 import { useUser } from "@/hooks/useUser";
 import { User } from "@/context/UserContext";
-
-
 
 interface TypeResponse {
   ok: boolean;
@@ -17,34 +16,34 @@ interface TypeResponse {
 export const useLogin = () => {
   const { setUser } = useUser();
 
-  return useMutation<TypeResponse, AxiosError, { usuario: string; password: string }>({
+  return useMutation<TypeResponse, AxiosError<{ message?: string }>, { usuario: string; password: string }>({
     mutationFn: async ({ usuario, password }) => {
       const userData = await login(usuario, password);
+      console.log("[useLogin] Respuesta del backend:", userData);
 
       if (userData.success) {
         return {
           ok: true,
           message: userData.message,
           token: userData.token,
-          data: userData.data,
+          data: {
+            ...userData.data,
+            usuarioId: userData.data.id, // Mapeamos id a usuarioId
+          },
         };
       }
       return { ok: false, message: userData.message };
     },
     onSuccess: (data) => {
       if (data.ok && data.token && data.data) {
-        // Guardar en UserContext
         setUser(data.data, data.token);
-
-        // Guardar en localStorage para persistencia
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.data));
-
         console.log("[useLogin] UserContext actualizado:", data.data);
       }
     },
     onError: (error) => {
-      console.error("[useLogin] Login error:", error.response?.data || error.message);
+      console.error("[useLogin] Login error:", error.response?.data?.message || error.message);
     },
   });
 };

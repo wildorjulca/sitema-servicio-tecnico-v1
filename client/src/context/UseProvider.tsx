@@ -1,3 +1,4 @@
+
 import { useState, useEffect, ReactNode } from "react";
 import { User, UserContext } from "./UserContext";
 
@@ -11,9 +12,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const storedToken = localStorage.getItem("token");
 
     if (storedUser && storedToken) {
-      setUserState(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      setUserState({ ...parsedUser, usuarioId: parsedUser.id });
       setToken(storedToken);
-      console.log("[UserProvider] cargado desde localStorage", JSON.parse(storedUser));
+      console.log("[UserProvider] cargado desde localStorage:", { ...parsedUser, usuarioId: parsedUser.id });
+    } else {
+      console.log("[UserProvider] No hay datos en localStorage");
     }
     setLoading(false);
   }, []);
@@ -31,7 +35,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setToken(undefined);
     localStorage.removeItem("user");
     localStorage.removeItem("token");
-    console.log("[UserProvider] clearUser llamado");
+    console.log("[UserProvider] clearUser llamado, localStorage limpio:", localStorage.getItem("user"), localStorage.getItem("token"));
   };
 
   return (
