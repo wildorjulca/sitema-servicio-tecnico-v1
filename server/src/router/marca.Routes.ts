@@ -2,7 +2,7 @@ import { Router } from "express"
 
 import { ReglasValidacionMarca } from "../validation/marcaValidation"
 import { validate } from "../middlewares/validation"
-import { addBrandCTRL, deleteBrandCTRL, getAllBrandsCTRL, updateBrandCTRL } from "../controller/marcaController"
+import { addBrandCTRL, deleteBrandCTRL, getAllBrandsCTRL, updateBrandCTRL } from "../controller/marca.Controller"
 
 const routerMarca = Router()
 

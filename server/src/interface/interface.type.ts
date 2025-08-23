@@ -6,8 +6,10 @@ export interface Category {
     esServicio?: number
 }
 // Equipos
-export interface Equipment {
-    nombreequipo: string
+export interface Equipo {
+    id?: number;
+    nombreequipo:string
+    usuarioId: number;
 }
 // Marcas
 export interface Brands {
