@@ -7,8 +7,10 @@ import SearchClientService from '@/pages/dashboard/servicio/search-client-exist/
 import { Marca } from '@/pages/dashboard/marca';
 import ProtectedRoute from './ProtectedRoute';
 import Error404 from './error404';
+import { Equipo } from '@/pages/dashboard/equipo';
+import { Tipo_doc } from '@/pages/dashboard/tipo_doc';
 
-const NotFound = () => <div><Error404/></div>;
+const NotFound = () => <div><Error404 /></div>;
 
 const AppRoutes = () => {
     return (
@@ -32,6 +34,8 @@ const AppRoutes = () => {
                     {/* Rutas hijas del Dashboard */}
                     <Route path="cliente" element={<ClientePage />} />
                     <Route path="marca" element={<Marca />} />
+                    <Route path="equipo" element={<Equipo />} />
+                    <Route path="tipo_doc" element={<Tipo_doc />} />
                     <Route path="settings" element={<div>Settings</div>} />
                     <Route path="servicio" element={<ServicioLayout />}>
                         <Route index element={<div>Listado de servicios</div>} />

@@ -48,7 +48,7 @@ const data = {
         {
             title: "Administracion",
             url: "#",
-            icon: ShieldCheck ,
+            icon: ShieldCheck,
             isActive: true,
             items: [
                 {
@@ -60,9 +60,13 @@ const data = {
                     url: "marca",
                 },
                 {
-                    title: "Settings",
-                    url: "#",
+                    title: "Equipo",
+                    url: "equipo",
                 },
+                {
+                    title: "Tipo Documento",
+                    url: "tipo_doc",
+                }
             ],
         },
         {
