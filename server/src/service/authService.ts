@@ -27,7 +27,7 @@ const authservice = async (usuario: string, password: string) => {
 
         // Autenticación exitosa
         return createResponse(200, true, "User authenticated successfully", {
-            id: item.idUsuario,
+            id: item.id,
             usuario: item.usuario,
             rol: item.rol,
             nombre: item.nombre,
