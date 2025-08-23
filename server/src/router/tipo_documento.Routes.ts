@@ -3,6 +3,6 @@ import { getAllTipoDocCTRL } from '../controller/tipoDocumento.Controller'
 
 const routerTipDocument = Router()
 
-routerTipDocument.post("/getAllDoc/:usuarioId", getAllTipoDocCTRL)
+routerTipDocument.get("/getAllDoc/:usuarioId", getAllTipoDocCTRL)
 
 export { routerTipDocument }
