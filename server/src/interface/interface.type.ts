@@ -26,6 +26,18 @@ export interface Document_Type {
     cant_digitos: number
 }
 
+// producto
+export interface Producto {
+  id?: number;
+  nombre: string;
+  descripcion?: string | null;
+  precio_compra: number;
+  precio_venta: number;
+  stock?: number;
+  categoria_id: number;
+  usuarioId: number;
+}
+
 // CLiente
 export interface Customer {
     idCliente?: string

@@ -91,8 +91,8 @@ VALUES(_idTecnico, _nombre, _dni, _celular, _usuario, _password);
 END
 
 
-----2025--------------
- ------login --------
+---- 2025--------------
+ ------ login --------
 
 DELIMITER $$
 
@@ -117,7 +117,7 @@ END$$
 DELIMITER ;
 
 
------------marca-----------------
+----------- marca -----------------
 
 
 DELIMITER //
@@ -227,7 +227,7 @@ END //
 DELIMITER ;
 
 
---------equipo------------
+-------- equipo ------------
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_equipo`(
     IN _accion VARCHAR(50),
@@ -316,5 +316,168 @@ BEGIN
     END IF;
 END;
 
+-------------- tipo documento -------------------
 
---------------tipo documento -------------------
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_tipo_documento`(  
+	IN _accion VARCHAR(50),
+    IN _id INT,
+    IN _nombre VARCHAR(100),
+    IN _pageIndex INT,
+    IN _pageSize INT,
+    IN _idUsuario INT
+)
+BEGIN
+    DECLARE _rol_id INT;
+    DECLARE _permiso_id INT;
+    DECLARE _offset INT;
+
+    -- Obtener el rol del usuario
+    SELECT rol_id INTO _rol_id FROM usuarios WHERE id = _idUsuario;
+    
+    -- Verificar si el usuario existe
+    IF _rol_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Usuario no encontrado';
+    END IF;
+
+    -- Verificar permisos
+    IF _accion = 'LISTAR_TIPO_DOC' THEN
+        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'LISTAR_TIPO_DOC';
+    ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acción no válida';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM rol_permisos 
+        WHERE rol_id = _rol_id AND permiso_id = _permiso_id
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acceso denegado: No tienes permiso para realizar esta acción';
+    END IF;
+
+    -- Listar marcas con paginación
+    IF _accion = 'LISTAR_TIPO_DOC' THEN
+        SET _offset = _pageIndex * _pageSize; -- Calcular OFFSET
+        SELECT SQL_CALC_FOUND_ROWS * 
+        FROM tipo_documento 
+        ORDER BY cod_tipo ASC -- Usar la columna correcta
+        LIMIT _pageSize OFFSET _offset;
+        SELECT FOUND_ROWS() AS total;
+    END IF;
+END
+
+
+-------- productos ---------
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_producto`(
+    IN _accion VARCHAR(50),
+    IN _id INT,
+    IN _nombre VARCHAR(100),
+    IN _pageIndex INT,
+    IN _pageSize INT,
+    IN _idUsuario INT
+)
+BEGIN
+    DECLARE _rol_id INT;
+    DECLARE _permiso_id INT;
+    DECLARE _offset INT;
+
+    -- Obtener el rol del usuario
+    SELECT rol_id INTO _rol_id FROM usuarios WHERE id = _idUsuario;
+    
+    -- Verificar si el usuario existe
+    IF _rol_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Usuario no encontrado';
+    END IF;
+
+    -- Verificar permisos
+    IF _accion = 'LISTAR_PRODUCTO' THEN
+        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'LISTAR_PRODUCTO';
+    ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acción no válida';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM rol_permisos 
+        WHERE rol_id = _rol_id AND permiso_id = _permiso_id
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acceso denegado: No tienes permiso para realizar esta acción';
+    END IF;
+
+    -- Listar productos con paginación y nombre de categoría
+    IF _accion = 'LISTAR_PRODUCTO' THEN
+        SET _offset = _pageIndex * _pageSize; -- Calcular OFFSET
+        SELECT p.*, c.descripcion  AS categoria_nombre
+        FROM productos p
+        INNER JOIN categoria c ON p.categoria_id = c.idCATEGORIA
+        ORDER BY p.id ASC
+        LIMIT _pageSize OFFSET _offset;
+
+        SELECT FOUND_ROWS() AS total;
+    END IF;
+END
+
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_producto_crud`(
+    IN _accion VARCHAR(50),
+    IN _id INT,
+    IN _nombre VARCHAR(150),
+    IN _descripcion TEXT,
+    IN _precio_compra DECIMAL(10,2),
+    IN _precio_venta DECIMAL(10,2),
+    IN _stock INT,
+    IN _categoria_id INT,
+    IN _idUsuario INT
+)
+BEGIN
+    DECLARE _rol_id INT;
+    DECLARE _permiso_id INT;
+
+    -- Obtener el rol del usuario
+    SELECT rol_id INTO _rol_id FROM usuarios WHERE id = _idUsuario;
+
+    -- Verificar si el usuario existe
+    IF _rol_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Usuario no encontrado';
+    END IF;
+
+    -- Verificar permisos
+    IF _accion = 'INSERTAR_PRODUCTO' THEN
+        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'INSERTAR_PRODUCTO';
+    ELSEIF _accion = 'ACTUALIZAR_PRODUCTO' THEN
+        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'ACTUALIZAR_PRODUCTO';
+    ELSEIF _accion = 'ELIMINAR_PRODUCTO' THEN
+        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'ELIMINAR_PRODUCTO';
+    ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acción no válida';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM rol_permisos 
+        WHERE rol_id = _rol_id AND permiso_id = _permiso_id
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acceso denegado: No tienes permiso para realizar esta acción';
+    END IF;
+
+    -- Ejecutar la acción correspondiente
+    IF _accion = 'INSERTAR_PRODUCTO' THEN
+        INSERT INTO productos (nombre, descripcion, precio_compra, precio_venta, stock, categoria_id)
+        VALUES (_nombre, _descripcion, _precio_compra, _precio_venta, _stock, _categoria_id);
+        SELECT LAST_INSERT_ID() AS id_insertado;
+
+    ELSEIF _accion = 'ACTUALIZAR_PRODUCTO' THEN
+        UPDATE productos
+        SET nombre = _nombre,
+            descripcion = _descripcion,
+            precio_compra = _precio_compra,
+            precio_venta = _precio_venta,
+            stock = _stock,
+            categoria_id = _categoria_id,
+            updated_at = NOW()
+        WHERE id = _id;
+        SELECT ROW_COUNT() AS filas_afectadas;
+
+    ELSEIF _accion = 'ELIMINAR_PRODUCTO' THEN
+        DELETE FROM productos WHERE id = _id;
+        SELECT ROW_COUNT() AS filas_afectadas;
+    END IF;
+END
+

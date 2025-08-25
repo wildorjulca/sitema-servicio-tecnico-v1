@@ -120,3 +120,30 @@ CREATE TABLE usuarios (
     FOREIGN KEY (rol_id) REFERENCES roles(id)
         ON DELETE RESTRICT ON UPDATE CASCADE
 );
+
+------- tabla productos --------
+
+CREATE TABLE productos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(150) NOT NULL,
+    descripcion TEXT,
+    precio_compra DECIMAL(10,2) NOT NULL,
+    precio_venta DECIMAL(10,2) NOT NULL,
+    stock INT DEFAULT 0,
+    categoria_id INT NOT NULL,
+    estado TINYINT DEFAULT 1, -- 1 = activo, 0 = inactivo
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (categoria_id) REFERENCES categoria(idCATEGORIA)
+        ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+------- producto imagen ----------
+
+CREATE TABLE producto_imagenes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    producto_id INT NOT NULL,
+    url VARCHAR(500) NOT NULL,
+    FOREIGN KEY (producto_id) REFERENCES productos(id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);

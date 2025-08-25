@@ -13,7 +13,7 @@ import { routerServicioEquipos } from './router/servicio_equiposRouter'
 import { routerTecnico } from './router/tecnicoRouter'
 import { routerLogin } from './router/authRouter'
 import { protectedRoute } from './router/protectedRoute'
-import { routerProducto } from './router/productoRouter'
+import { routerProducto } from './router/producto.Routes'
 const PORT = process.env.PORT || 3001
 const app = express()
 
