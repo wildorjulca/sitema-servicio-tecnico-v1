@@ -368,51 +368,42 @@ END
 -------- productos ---------
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_producto`(
-    IN _accion VARCHAR(50),
+    IN _accion VARCHAR(20),
     IN _id INT,
-    IN _nombre VARCHAR(100),
-    IN _pageIndex INT,
-    IN _pageSize INT,
-    IN _idUsuario INT
+    IN _buscar VARCHAR(100),
+    IN _pagina INT,
+    IN _limite INT,
+    IN _usuario_id INT
 )
 BEGIN
-    DECLARE _rol_id INT;
-    DECLARE _permiso_id INT;
     DECLARE _offset INT;
 
-    -- Obtener el rol del usuario
-    SELECT rol_id INTO _rol_id FROM usuarios WHERE id = _idUsuario;
-    
-    -- Verificar si el usuario existe
-    IF _rol_id IS NULL THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Usuario no encontrado';
+    -- Valores por defecto
+    IF _pagina IS NULL OR _pagina < 1 THEN
+        SET _pagina = 1;
+    END IF;
+    IF _limite IS NULL OR _limite < 1 THEN
+        SET _limite = 10;
     END IF;
 
-    -- Verificar permisos
+    -- Calcular offset para paginación
+    SET _offset = (_pagina - 1) * _limite;
+
     IF _accion = 'LISTAR_PRODUCTO' THEN
-        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'LISTAR_PRODUCTO';
-    ELSE
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acción no válida';
+        -- Usamos búsqueda si viene parámetro
+        SELECT 
+            COUNT(*) AS total
+        FROM productos
+        WHERE (_buscar IS NULL OR nombre LIKE CONCAT('%', _buscar, '%'));
+
+        -- Lista paginada
+        SELECT *
+        FROM productos
+        WHERE (_buscar IS NULL OR nombre LIKE CONCAT('%', _buscar, '%'))
+        ORDER BY id DESC
+        LIMIT _limite OFFSET _offset;
     END IF;
 
-    IF NOT EXISTS (
-        SELECT 1 FROM rol_permisos 
-        WHERE rol_id = _rol_id AND permiso_id = _permiso_id
-    ) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acceso denegado: No tienes permiso para realizar esta acción';
-    END IF;
-
-    -- Listar productos con paginación y nombre de categoría
-    IF _accion = 'LISTAR_PRODUCTO' THEN
-        SET _offset = _pageIndex * _pageSize; -- Calcular OFFSET
-        SELECT p.*, c.descripcion  AS categoria_nombre
-        FROM productos p
-        INNER JOIN categoria c ON p.categoria_id = c.idCATEGORIA
-        ORDER BY p.id ASC
-        LIMIT _pageSize OFFSET _offset;
-
-        SELECT FOUND_ROWS() AS total;
-    END IF;
 END
 
 
