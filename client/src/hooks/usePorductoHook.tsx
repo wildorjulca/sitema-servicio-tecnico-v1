@@ -1,0 +1,86 @@
+
+import { addProducto, deleteProducto, editProducto, fetchProductos, Producto, ProductoInit } from '@/apis/producto';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+
+// ----------------------
+// Hook para listar productos
+// ----------------------
+interface ProductoResponse {
+  data: Producto[];
+  total: number;
+}
+
+export const useProductos = (
+  usuarioId?: number,
+  pageIndex = 0,
+  pageSize = 10
+) => {
+  const query = useQuery<ProductoResponse, Error>({
+    queryKey: ["allProductos", usuarioId, pageIndex, pageSize],
+    queryFn: () => fetchProductos(usuarioId!, pageIndex, pageSize),
+    enabled: !!usuarioId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  if (query.isError) {
+    toast.error("Error al cargar productos");
+  }
+
+  return {
+    ...query,
+    data: query.data?.data || [],
+    total: query.data?.total || 0,
+  };
+};
+
+// ----------------------
+// Hook para agregar producto
+// ----------------------
+export const useAddProducto = (usuarioId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (producto: ProductoInit) => addProducto({ ...producto, usuarioId }),
+    onSuccess: () => {
+      toast.success('Producto agregado');
+      queryClient.invalidateQueries({ queryKey: ['allProductos', usuarioId] });
+    },
+    onError: () => {
+      toast.error('Error al agregar producto');
+    },
+  });
+};
+
+// ----------------------
+// Hook para editar producto
+// ----------------------
+export const useEditProducto = (usuarioId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (producto: Producto) => editProducto({ ...producto, usuarioId }),
+    onSuccess: () => {
+      toast.success('Producto actualizado');
+      queryClient.invalidateQueries({ queryKey: ['allProductos', usuarioId] });
+    },
+    onError: () => {
+      toast.error('Error al actualizar producto');
+    },
+  });
+};
+
+// ----------------------
+// Hook para eliminar producto
+// ----------------------
+export const useDeleteProducto = (usuarioId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => deleteProducto(id, usuarioId),
+    onSuccess: () => {
+      toast.success('Producto eliminado');
+      queryClient.invalidateQueries({ queryKey: ['allProductos', usuarioId] });
+    },
+    onError: () => {
+      toast.error('Error al eliminar producto');
+    },
+  });
+};

@@ -9,6 +9,7 @@ import ProtectedRoute from './ProtectedRoute';
 import Error404 from './error404';
 import { Equipo } from '@/pages/dashboard/equipo';
 import { Tipo_doc } from '@/pages/dashboard/tipo_doc';
+import Producto from '@/pages/dashboard/producto';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -36,6 +37,7 @@ const AppRoutes = () => {
                     <Route path="marca" element={<Marca />} />
                     <Route path="equipo" element={<Equipo />} />
                     <Route path="tipo_doc" element={<Tipo_doc />} />
+                    <Route path="producto" element={<Producto />} />
                     <Route path="settings" element={<div>Settings</div>} />
                     <Route path="servicio" element={<ServicioLayout />}>
                         <Route index element={<div>Listado de servicios</div>} />

@@ -14,3 +14,10 @@ export interface BrandType {
   nombre: string;
   usuarioId: number;
 }
+export type Producto = {
+  id: string;
+  nombre: string;
+  precio: number;
+  stock: number;
+  categoria?: string; // Optional field, adjust as needed
+};

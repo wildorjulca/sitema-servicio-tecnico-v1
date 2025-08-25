@@ -32,11 +32,7 @@ import {
 
 // This is sample data.
 const data = {
-    user: {
-        name: "Admin",
-        email: "m@example.com",
-        avatar: "/avatars/shadcn.jpg",
-    },
+
     teams: [
         {
             name: "Inforsystem Computec",
@@ -52,7 +48,7 @@ const data = {
             isActive: true,
             items: [
                 {
-                    title: "Lista Cliente",
+                    title: "Clientes",
                     url: "cliente",
                 },
                 {
@@ -66,6 +62,10 @@ const data = {
                 {
                     title: "Tipo Documento",
                     url: "tipo_doc",
+                },
+                {
+                    title: "Productos",
+                    url: "producto",
                 }
             ],
         },
