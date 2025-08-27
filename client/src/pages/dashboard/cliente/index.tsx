@@ -1,13 +1,13 @@
 import { DataTable } from "../ui/table-reutilizable";
 import { useUser } from "@/hooks/useUser";
 import { useState, useEffect } from "react";
-import { RolPag } from "@/interface";
-import { useRolHook } from "@/hooks/useRol";
+import { ClientePag } from "@/interface";
 import Loader from "@/components/sniper-carga/loader";
+import { useClienteHook } from "@/hooks/useCliente";
 
 
 
-export function Roles() {
+export function Cliente() {
   const { user } = useUser();
   const usuarioId = user?.id;
 
@@ -15,7 +15,7 @@ export function Roles() {
   const [pageSize, setPageSize] = useState(10);
   const [totalRows, setTotalRows] = useState(0);
 
-  const { data, total, isLoading, isError, error, refetch } = useRolHook(
+  const { data, total, isLoading, isError, error, refetch } = useClienteHook(
     usuarioId,
     pageIndex,
     pageSize
@@ -29,20 +29,25 @@ export function Roles() {
     }
   }, [pageIndex, pageSize, usuarioId, total, refetch]);
 
-  if (!usuarioId) return <div>Por favor inicia sesión para ver los tipos de documento</div>;
-  if (isLoading) return <div> <Loader/></div>;
+  if (!usuarioId) return <div>Por favor inicia sesión para ver los clientes</div>;
+  if (isLoading) return <div> <Loader /></div>;
   if (isError) {
     console.error("Error details:", error);
     return (
       <div>
-        Error al cargar tipos de documento: {error?.message || "Unknown error"}
+        Error al cargar los clientes: {error?.message || "Unknown error"}
       </div>
     );
   }
 
-  const mappedRol = data.map((tipo: RolPag) => ({
-    id: tipo.id,
-    tipo_rol: tipo.tipo_rol,
+  const mappedRol = data.map((tipo: ClientePag) => ({
+    id: tipo.idCliente,
+    nombre: tipo.nombre,
+    apellidos: tipo.apellidos,
+    tipo_doc_id: tipo.TIPO_DOCUMENTO_cod_tipo,
+    numero_doc: tipo.numero_documento,
+    direccion: tipo.direccion,
+    telefono: tipo.telefono,
   }));
 
   return (
@@ -50,10 +55,14 @@ export function Roles() {
       <DataTable
         data={mappedRol}
         columns={[
-          { accessorKey: "id", header: "Código" },
-          { accessorKey: "tipo_rol", header: "Tipo de Usuario" },
+          { accessorKey: "nombre", header: "Nombre" },
+          { accessorKey: "apellidos", header: "Apellidos" },
+          { accessorKey: "tipo_doc_id", header: "Tipo Doc" },
+          { accessorKey: "numero_doc", header: "Numero Doc" },
+          { accessorKey: "direccion", header: " Direccion" },
+          { accessorKey: "telefono", header: " N° Celular" },
         ]}
-        searchColumn="tipo_rol"
+        searchColumn="nombre"
         pageIndex={pageIndex}
         pageSize={pageSize}
         totalRows={totalRows}
@@ -61,9 +70,7 @@ export function Roles() {
         onPageSizeChange={(size) => setPageSize(size)}
       />
 
-
-      <p>  </p>
     </div>
-    
+
   );
 }

@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import Login from '@/pages/auth/Login';
-import ClientePage from '@/pages/dashboard/cliente/ClientePage';
 import ServicioLayout from '@/layouts/ServicioLayout';
 import SearchClientService from '@/pages/dashboard/servicio/search-client-exist/page';
 import { Marca } from '@/pages/dashboard/marca';
@@ -13,6 +12,7 @@ import Producto from '@/pages/dashboard/producto';
 import { Permiso } from '@/pages/dashboard/permisos';
 import { Roles } from '@/pages/dashboard/rol';
 import { Motivo_Ingreso } from '@/pages/dashboard/motivo_ingreso';
+import { Cliente } from '@/pages/dashboard/cliente';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -32,7 +32,7 @@ const AppRoutes = () => {
                     element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}
                 >
                     {/* Rutas hijas del Dashboard */}
-                    <Route path="cliente" element={<ClientePage />} />
+                    <Route path="cliente" element={<Cliente />} />
                     <Route path="marca" element={<Marca />} />
                     <Route path="equipo" element={<Equipo />} />
                     <Route path="tipo_doc" element={<Tipo_doc />} />
