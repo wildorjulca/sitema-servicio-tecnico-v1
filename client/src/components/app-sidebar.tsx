@@ -70,17 +70,17 @@ const data = {
             ],
         },
         {
-            title: "Asignar Roles",
+            title: "Autorización",
             url: "#",
             icon: Box,
             items: [
                 {
-                    title: "Genesis",
+                    title: "Roles Asignados",
                     url: "#",
                 },
                 {
-                    title: "Explorer",
-                    url: "#",
+                    title: "Rol",
+                    url: "roles",
                 },
                 {
                     title: "Permisos",

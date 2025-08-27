@@ -27,8 +27,21 @@ export interface Permiso {
   nombre: string;
   descripcion: number;
 }
+
 export interface PermisoPag {
   id: string;
   nombre: string;
   descripcion: number;
+}
+
+export interface Rol {
+  id: number;
+  tipo_rol: string;
+
+}
+
+export interface RolPag {
+  id: number;
+  tipo_rol: string;
+
 }

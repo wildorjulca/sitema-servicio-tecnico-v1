@@ -1,25 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useEffect } from 'react';
-import { fetchPermiso } from '@/apis/permiso';
-import { Permiso } from '@/interface';
+import {  Rol } from '@/interface';
+import { fetchRol } from '@/apis/rol';
 
 
 
 // Definir la interfaz para la respuesta del API
 interface TipoDocResponse {
-  data: Permiso[];
+  data: Rol[];
   total: number;
 }
 
-export const usePermisoHook = (
+export const useRolHook = (
   usuarioId?: number,
   pageIndex = 0,
   pageSize = 10
 ) => {
   const query = useQuery<TipoDocResponse, Error>({
-    queryKey: ["perms", usuarioId, pageIndex, pageSize], // Corregir typo en queryKey
-    queryFn: () => fetchPermiso(usuarioId!, pageIndex, pageSize),
+    queryKey: ["rolff", usuarioId, pageIndex, pageSize], // Corregir typo en queryKey
+    queryFn: () => fetchRol(usuarioId!, pageIndex, pageSize),
     enabled: !!usuarioId,
     staleTime: 2 * 60 * 1000, // 2 minutos
   });
@@ -27,7 +27,7 @@ export const usePermisoHook = (
   // Manejar errores con toast en useEffect para evitar múltiples disparos
   useEffect(() => {
     if (query.isError) {
-      toast.error(`Error al cargar los Permisos: ${query.error?.message || 'Unknown error'}`);
+      toast.error(`Error al cargar los roles: ${query.error?.message || 'Unknown error'}`);
     }
   }, [query.isError, query.error]);
 

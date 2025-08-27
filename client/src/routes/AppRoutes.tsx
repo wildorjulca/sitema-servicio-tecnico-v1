@@ -11,6 +11,7 @@ import { Equipo } from '@/pages/dashboard/equipo';
 import { Tipo_doc } from '@/pages/dashboard/tipo_doc';
 import Producto from '@/pages/dashboard/producto';
 import { Permiso } from '@/pages/dashboard/permisos';
+import { Roles } from '@/pages/dashboard/rol';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -41,6 +42,7 @@ const AppRoutes = () => {
                         <Route path="new" element={<SearchClientService />} />
                     </Route>
                     <Route path="permiso" element={<Permiso />} />
+                    <Route path="roles" element={<Roles />} />
  
                     {/* Ruta para cuando no exista una ruta hija */}
                     <Route path="*" element={<NotFound />} />
