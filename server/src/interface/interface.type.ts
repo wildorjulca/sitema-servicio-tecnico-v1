@@ -73,3 +73,10 @@ export interface Technical {
     usuario: string;
     password: string;
 }
+
+export interface MotivoIngreso {
+  id?: number;
+  descripcion: string;
+  precio_cobrar?: number | null;
+  usuarioId: number;
+}
