@@ -1,13 +1,10 @@
-import { useUser } from "@/hooks/useUser";
 import { ProductDialog } from "./ui/modal"
-import { DataTableDemo } from "./ui/table"
+import { TableProducto } from "./ui/table"
 
 const Producto = () => {
-      const { user } = useUser();
-      const usuarioId = user?.id;
     return (
         <div>
-            <DataTableDemo usuarioId={usuarioId}/>
+            <TableProducto/>
 
             <ProductDialog />
         </div>

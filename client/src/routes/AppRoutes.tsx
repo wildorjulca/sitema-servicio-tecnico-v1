@@ -10,6 +10,7 @@ import Error404 from './error404';
 import { Equipo } from '@/pages/dashboard/equipo';
 import { Tipo_doc } from '@/pages/dashboard/tipo_doc';
 import Producto from '@/pages/dashboard/producto';
+import { Permiso } from '@/pages/dashboard/permisos';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -26,11 +27,7 @@ const AppRoutes = () => {
                 {/* Rutas protegidas */}
                 <Route
                     path="/dashboard"
-                    element={
-                        <ProtectedRoute>
-                            <DashboardLayout />
-                        </ProtectedRoute>
-                    }
+                    element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}
                 >
                     {/* Rutas hijas del Dashboard */}
                     <Route path="cliente" element={<ClientePage />} />
@@ -43,7 +40,8 @@ const AppRoutes = () => {
                         <Route index element={<div>Listado de servicios</div>} />
                         <Route path="new" element={<SearchClientService />} />
                     </Route>
-
+                    <Route path="permiso" element={<Permiso />} />
+ 
                     {/* Ruta para cuando no exista una ruta hija */}
                     <Route path="*" element={<NotFound />} />
                 </Route>

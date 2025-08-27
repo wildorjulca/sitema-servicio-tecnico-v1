@@ -83,8 +83,8 @@ const data = {
                     url: "#",
                 },
                 {
-                    title: "Quantum",
-                    url: "#",
+                    title: "Permisos",
+                    url: "permiso",
                 },
             ],
         },

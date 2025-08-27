@@ -32,6 +32,7 @@ export const fetchProductos = async (usuarioId: number, pageIndex = 0, pageSize 
   try {
     const response = await instance.get(`/getAllProduc/${usuarioId}?pageIndex=${pageIndex}&pageSize=${pageSize}`);
     const { data, total } = response.data;
+    console.log("productos obtenidos:", { data, total });
     return { data, total };
   } catch (error) {
     console.error("Error al obtener productos:", error);

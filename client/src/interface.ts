@@ -21,3 +21,14 @@ export type Producto = {
   stock: number;
   categoria?: string; // Optional field, adjust as needed
 };
+
+export interface Permiso {
+  id: string;
+  nombre: string;
+  descripcion: number;
+}
+export interface PermisoPag {
+  id: string;
+  nombre: string;
+  descripcion: number;
+}
