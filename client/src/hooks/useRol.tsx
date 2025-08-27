@@ -21,7 +21,7 @@ export const useRolHook = (
     queryKey: ["rolff", usuarioId, pageIndex, pageSize], // Corregir typo en queryKey
     queryFn: () => fetchRol(usuarioId!, pageIndex, pageSize),
     enabled: !!usuarioId,
-    staleTime: 2 * 60 * 1000, // 2 minutos
+    staleTime: 5 * 60 * 1000, // 2 minutos
   });
 
   // Manejar errores con toast en useEffect para evitar múltiples disparos

@@ -44,4 +44,28 @@ export interface RolPag {
   id: number;
   tipo_rol: string;
 
+  
+}
+
+export interface MotivoIngreso {
+  usuarioId?:number;
+  id?:number;
+  idMotivo: number;
+  descripcion: string;
+  precio_cobrar: number;
+
+}
+
+export interface addMotivoIngreso{
+  usuarioId?:number;
+  descripcion: string;
+  precio_cobrar: number;
+
+}
+
+export interface MotivoIngresoPag {
+  idMotivo: number;
+  descripcion: string;
+  precio_cobrar: number;
+
 }

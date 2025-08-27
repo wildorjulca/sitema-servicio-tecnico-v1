@@ -64,6 +64,10 @@ const data = {
                     url: "tipo_doc",
                 },
                 {
+                    title: "Motivo Ingreso",
+                    url: "mot_ingreso",
+                },
+                {
                     title: "Productos",
                     url: "producto",
                 }

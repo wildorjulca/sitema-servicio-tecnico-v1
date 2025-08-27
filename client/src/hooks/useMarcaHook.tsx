@@ -20,7 +20,8 @@ export const useBrands = (
     queryKey: ["allBrands", usuarioId, pageIndex, pageSize],
     queryFn: () => fetchBrands(usuarioId!, pageIndex, pageSize),
     enabled: !!usuarioId,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+
   });
 
   if (query.isError) {

@@ -12,6 +12,7 @@ import { Tipo_doc } from '@/pages/dashboard/tipo_doc';
 import Producto from '@/pages/dashboard/producto';
 import { Permiso } from '@/pages/dashboard/permisos';
 import { Roles } from '@/pages/dashboard/rol';
+import { Motivo_Ingreso } from '@/pages/dashboard/motivo_ingreso';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -35,6 +36,7 @@ const AppRoutes = () => {
                     <Route path="marca" element={<Marca />} />
                     <Route path="equipo" element={<Equipo />} />
                     <Route path="tipo_doc" element={<Tipo_doc />} />
+                    <Route path="mot_ingreso" element={<Motivo_Ingreso />} />
                     <Route path="producto" element={<Producto />} />
                     <Route path="settings" element={<div>Settings</div>} />
                     <Route path="servicio" element={<ServicioLayout />}>
