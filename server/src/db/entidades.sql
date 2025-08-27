@@ -79,7 +79,8 @@ CREATE TABLE IF NOT EXISTS TECNICO (
   usuario VARCHAR(45) NOT NULL,
   password VARCHAR(45) NOT NULL,
   PRIMARY KEY (`idTecnico`)
-  );
+);
+
 
   -- Tabla roles
 CREATE TABLE roles (
