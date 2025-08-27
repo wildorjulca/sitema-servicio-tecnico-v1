@@ -15,6 +15,7 @@ import { routerLogin } from './router/authRouter'
 import { protectedRoute } from './router/protectedRoute'
 import { routerProducto } from './router/producto.Routes'
 import { routerPermisos } from './router/permiso.Routes'
+import { routerRol } from './router/rol.Routes'
 const PORT = process.env.PORT || 3001
 const app = express()
 
@@ -39,6 +40,8 @@ app.use("/api/servicio", routerTecnico)
 app.use("/api/servicio", routerLogin)
 app.use("/api/servicio", protectedRoute)
 app.use("/api/servicio", routerPermisos)
+app.use("/api/servicio", routerPermisos)
+app.use("/api/servicio", routerRol)
 
 
 

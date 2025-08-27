@@ -2,21 +2,21 @@ import { coneccion } from "../config/conexion"
 
 const cn = coneccion()
 
-const listPermisosSistema = async (
+const listRol = async (
     usuarioId: number,
     pageIndex = 0,
     pageSize = 10
 ) => {
-    console.log("Parámetros enviados a sp_permisos:", { usuarioId, pageIndex, pageSize });
+    console.log("Parámetros enviados a sp_roles:", { usuarioId, pageIndex, pageSize });
     try {
         const [results]: any = await cn
             .promise()
             .query(
-                "CALL sp_permisos(?, ?, ?, ?, ?, ?)",
-                ["LISTAR_PERMISO", null, null, pageIndex, pageSize, usuarioId]
+                "CALL sp_rol(?, ?, ?, ?, ?, ?)",
+                ["LISTAR_ROL", null, null, pageIndex, pageSize, usuarioId]
             );
 
-        console.log("Resultados de sp_permisos", { data: results[0], total: results[1][0].total });
+        console.log("Resultados de sp_rol", { data: results[0], total: results[1][0].total });
         return {
             status: 200,
             success: true,
@@ -24,7 +24,7 @@ const listPermisosSistema = async (
             total: results[1][0].total,
         };
     } catch (error: any) {
-        console.log("Error en listar rol:", error);
+        console.log("Error en listar roles:", error);
         return {
             status: 500,
             success: false,
@@ -35,4 +35,4 @@ const listPermisosSistema = async (
 };
 
 
-export { listPermisosSistema }
+export { listRol }
