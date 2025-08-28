@@ -60,6 +60,10 @@ const data = {
                     url: "equipo",
                 },
                 {
+                    title: "Categoria",
+                    url: "cat",
+                },
+                {
                     title: "Tipo Documento",
                     url: "tipo_doc",
                 },

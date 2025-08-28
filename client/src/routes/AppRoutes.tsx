@@ -13,6 +13,7 @@ import { Permiso } from '@/pages/dashboard/permisos';
 import { Roles } from '@/pages/dashboard/rol';
 import { Motivo_Ingreso } from '@/pages/dashboard/motivo_ingreso';
 import { Cliente } from '@/pages/dashboard/cliente';
+import { Categoria } from '@/pages/dashboard/categoria';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -35,6 +36,7 @@ const AppRoutes = () => {
                     <Route path="cliente" element={<Cliente />} />
                     <Route path="marca" element={<Marca />} />
                     <Route path="equipo" element={<Equipo />} />
+                    <Route path="cat" element={<Categoria />} />
                     <Route path="tipo_doc" element={<Tipo_doc />} />
                     <Route path="mot_ingreso" element={<Motivo_Ingreso />} />
                     <Route path="producto" element={<Producto />} />

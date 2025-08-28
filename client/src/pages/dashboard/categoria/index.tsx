@@ -1,24 +1,23 @@
 import { DataTable } from "../ui/table-reutilizable";
 import { useUser } from "@/hooks/useUser";
 import { useState, useEffect, useRef } from "react";
-import { MotivoIngresoPag } from "@/interface";
 import Loader from "@/components/sniper-carga/loader";
-import { useAddMotivoIngreso, useDeleteMotivoIngreso, useEditMotivoIngreso, useMotivoIngresoHook } from "@/hooks/useMotivoIngreso";
+import { useAddCatHook, useCatHook, useDeleteCatHook, useEditCatHook } from "@/hooks/useCategoria";
+import { CategoriaPag } from "@/interface";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEnterKey } from "@/utils/hotkeys";
 import toast from "react-hot-toast";
 
-interface Mot {
+export interface CategoriaPage {
   id: number;
   descripcion: string;
-  precio_cobrar: number;
+  esServicio: number;
   usuarioId?: number;
 }
 
-
-export function Motivo_Ingreso() {
+export function Categoria() {
   const { user } = useUser();
   const usuarioId = user?.id;
 
@@ -28,56 +27,56 @@ export function Motivo_Ingreso() {
   const [pageSize, setPageSize] = useState(10);
   const [totalRows, setTotalRows] = useState(0);
 
-  const { data, total, isLoading, isError, error, refetch } = useMotivoIngresoHook(
+  const { data, total, isLoading, isError, error, refetch } = useCatHook(
     usuarioId,
     pageIndex,
     pageSize
   );
 
-  const addBrand = useAddMotivoIngreso(usuarioId!);
-  const editBrand = useEditMotivoIngreso(usuarioId!);
-  const deleteBrand = useDeleteMotivoIngreso(usuarioId!);
+  const addBrand = useAddCatHook(usuarioId!);
+  const editBrand = useEditCatHook(usuarioId!);
+  const deleteBrand = useDeleteCatHook(usuarioId!);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentBrand, setCurrentBrand] = useState<Mot | null>(null);
+  const [currenCat, setCurrentCat] = useState<CategoriaPage | null>(null);
   const [descripcion, setDescripcion] = useState("");
-  const [precio_cobrar, setPrecio_cobrar] = useState("");
+  const [esServicio, setEsServicio] = useState<number>(0);
 
   // Activar Enter para guardar
   useEnterKey(handleSave, inputRef, dialogOpen);
 
   useEffect(() => {
     if (usuarioId && data) {
-      console.log("Datos de useTipoDocHook:", { data, total });
+      console.log("Datos de useCatHook:", { data, total });
       setTotalRows(total);
       refetch();
     }
   }, [pageIndex, pageSize, usuarioId, total, refetch]);
 
-  if (!usuarioId) return <div>Por favor inicia sesión para ver los motivos de Ingreso</div>;
+  if (!usuarioId) return <div>Por favor inicia sesión para ver las categorías</div>;
   if (isLoading) return <div> <Loader /></div>;
   if (isError) {
     console.error("Error details:", error);
     return (
       <div>
-        Error al cargar motivos de Ingreso: {error?.message || "Unknown error"}
+        Error al cargar las categorías: {error?.message || "Unknown error"}
       </div>
     );
   }
 
   // Abrir modal para agregar
   const openAddModal = () => {
-    setCurrentBrand(null);
+    setCurrentCat(null);
     setDescripcion("");
-    setPrecio_cobrar("");
+    setEsServicio(0);
     setDialogOpen(true);
   };
 
   // Abrir modal para editar
-  const openEditModal = (brand: Mot) => {
-    setCurrentBrand({ id: brand.id, descripcion: brand.descripcion, precio_cobrar: brand.precio_cobrar, usuarioId });
-    setDescripcion(descripcion);
-    setPrecio_cobrar(precio_cobrar);
+  const openEditModal = (brand: CategoriaPage) => {
+    setCurrentCat({ id: brand.id, descripcion: brand.descripcion, esServicio: brand.esServicio, usuarioId });
+    setDescripcion(brand.descripcion);
+    setEsServicio(brand.esServicio);
     setDialogOpen(true);
   };
 
@@ -88,67 +87,45 @@ export function Motivo_Ingreso() {
       return;
     }
 
-    if (currentBrand) {
+    if (currenCat) {
       editBrand.mutate(
-        { id: currentBrand.id, descripcion, precio_cobrar, usuarioId },
+        { id: currenCat.id, descripcion, esServicio, usuarioId },
         { onSuccess: () => setDialogOpen(false) }
       );
     } else {
       addBrand.mutate(
-        { descripcion,precio_cobrar, usuarioId },
+        { descripcion, esServicio, usuarioId },
         { onSuccess: () => setDialogOpen(false) }
       );
     }
   }
 
-  // Eliminar marca
-  const handleDelete = (brand: Mot) => {
+  // Eliminar categoría
+  const handleDelete = (brand: CategoriaPage) => {
     if (!brand.id) {
-      toast.error("No se puede eliminar: ID de la marca no definido");
+      toast.error("No se puede eliminar: ID de la categoría no definido");
       return;
     }
 
     deleteBrand.mutate(brand.id, {
-      onSuccess: () => toast.success("Marca eliminada"),
-      onError: () => toast.error("Error al eliminar la marca"),
+      onSuccess: () => toast.success("Categoría eliminada"),
+      onError: () => toast.error("Error al eliminar la categoría"),
     });
   };
 
-  // Mapear marcas para la tabla
-
-  const mappedRol = data.map((tipo: MotivoIngresoPag) => ({
-    id: tipo.idMotivo,
+  const mappedCat = data.map((tipo: CategoriaPag) => ({
+    id: tipo.idCATEGORIA,
     descripcion: tipo.descripcion,
-    precio_cobrar: tipo.precio_cobrar,
+    esServicio: tipo.esServicio,
   }));
 
   return (
     <div className="w-full">
       <DataTable
-        data={mappedRol}
+        data={mappedCat}
         columns={[
-          {
-            accessorKey: "descripcion",
-            header: "Motivos de Ingresos",
-          },
-          {
-            accessorKey: "precio_cobrar",
-            header: "Costo del Servicio",
-            cell: ({ row }) => {
-              const value = row.getValue("precio_cobrar");
-              return (
-                <span
-                  className={
-                    value === null
-                      ? "text-gray-400 italic" // Si está vacío, gris e itálico
-                      : "text-green-600 font-semibold" // Si tiene precio, verde
-                  }
-                >
-                  {value === null ? "Por definir" : `S/ ${value}`}
-                </span>
-              );
-            },
-          },
+          { accessorKey: "descripcion", header: "Categoría" },
+          { accessorKey: "esServicio", header: "Servicio Cod" },
         ]}
         searchColumn="descripcion"
         pageIndex={pageIndex}
@@ -159,33 +136,32 @@ export function Motivo_Ingreso() {
         onEdit={openEditModal}
         onDelete={handleDelete}
         onRowSelect={(row) => {
-          setCurrentBrand({ id: row.id, descripcion: row.descripcion , precio_cobrar: row.precio_cobrar});
+          setCurrentCat({ id: row.id, descripcion: row.descripcion, esServicio: row.esServicio });
           setDescripcion(row.descripcion);
+          setEsServicio(row.esServicio);
         }}
-        actions={<Button onClick={openAddModal}>Agregar Motivo</Button>}
+        actions={<Button onClick={openAddModal}>Agregar Categoría</Button>}
       />
-
 
       {/* ----------------- MODAL ----------------- */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{currentBrand ? "Editar Motivo Ingreso" : "Agregar Motivo Ingreso"}</DialogTitle>
+            <DialogTitle>{currenCat ? "Editar Categoría" : "Agregar Categoría"}</DialogTitle>
           </DialogHeader>
 
           <Input
             ref={inputRef}
-            placeholder="Nombre del Motivo Ingreso"
+            placeholder="Nombre de la Categoría"
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
             className="mb-4"
           />
           <Input
-            ref={inputRef}
             type="number"
-            placeholder="precio a cobrar"
-            value={precio_cobrar}
-            onChange={(e) => setPrecio_cobrar(e.target.value)}
+            placeholder="Servicio (0 = No, 1 = Sí)"
+            value={esServicio}
+            onChange={(e) => setEsServicio(Number(e.target.value))}
             className="mb-4"
           />
 
@@ -194,12 +170,11 @@ export function Motivo_Ingreso() {
               Cancelar
             </Button>
             <Button onClick={handleSave}>
-              {currentBrand ? "Actualizar" : "Agregar"}
+              {currenCat ? "Actualizar" : "Agregar"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-
   );
 }

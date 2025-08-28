@@ -91,3 +91,22 @@ export interface ClientePag {
   telefono: number
 
 }
+
+export interface Categoria {
+  usuarioId?: number;
+  id?: number;
+  idCATEGORIA: number,
+  descripcion: string,
+  esServicio: number
+}
+export interface CategoriaPag {
+  idCATEGORIA: number,
+  descripcion: string,
+  esServicio: number
+}
+export interface CatAdd {
+  usuarioId?: number;
+  descripcion: string;
+  esServicio: number;
+
+}
