@@ -2,13 +2,15 @@
 
 //Categoria
 export interface Category {
+    id?: number,
+    usuarioId: number,
     descripcion: string,
-    esServicio?: number
+    esServicio?: number | null
 }
 // Equipos
 export interface Equipo {
     id?: number;
-    nombreequipo:string
+    nombreequipo: string
     usuarioId: number;
 }
 // Marcas
@@ -28,14 +30,14 @@ export interface Document_Type {
 
 // producto
 export interface Producto {
-  id?: number;
-  nombre: string;
-  descripcion?: string | null;
-  precio_compra: number;
-  precio_venta: number;
-  stock?: number;
-  categoria_id: number;
-  usuarioId: number;
+    id?: number;
+    nombre: string;
+    descripcion?: string | null;
+    precio_compra: number;
+    precio_venta: number;
+    stock?: number;
+    categoria_id: number;
+    usuarioId: number;
 }
 
 // CLiente
@@ -75,8 +77,21 @@ export interface Technical {
 }
 
 export interface MotivoIngreso {
-  id?: number;
-  descripcion: string;
-  precio_cobrar?: number | null;
-  usuarioId: number;
+    id?: number;
+    descripcion: string;
+    precio_cobrar?: number | null;
+    usuarioId: number;
+}
+
+
+export interface Cliente {
+    idCliente?:number
+    usuarioId?: number
+    id?: number;              // Identificador único (PK)
+    nombre: string;          // Nombre del cliente
+    apellidos: string;        // Apellido del cliente
+    numero_documento: string;             // Documento de identidad (8 dígitos si es DNI)
+    telefono: string;        // Teléfono del cliente
+    direccion: string;       // Dirección de domicilio
+    cod_tipo:number
 }

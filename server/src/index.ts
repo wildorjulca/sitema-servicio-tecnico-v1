@@ -3,7 +3,6 @@ import express from 'express'
 import cors from 'cors'
 import 'dotenv/config'
 import cookieParser from 'cookie-parser'
-import { router } from './router/categoriaRouter'
 import { routerEquipo } from './router/equipo.Routes'
 import { routerMarca } from './router/marca.Routes'
 import { routerTipDocument } from './router/tipo_documento.Routes'
@@ -16,6 +15,7 @@ import { protectedRoute } from './router/protectedRoute'
 import { routerProducto } from './router/producto.Routes'
 import { routerPermisos } from './router/permiso.Routes'
 import { routerRol } from './router/rol.Routes'
+import { routerCat } from './router/categoria.Routes'
 const PORT = process.env.PORT || 3001
 const app = express()
 
@@ -28,7 +28,7 @@ app.use(cors({
     credentials: true
 }))
 // RUTAS DE LOS ENPOINTS
-app.use("/api/servicio", router)
+app.use("/api/servicio", routerCat)
 app.use("/api/servicio", routerProducto)
 app.use("/api/servicio", routerEquipo)
 app.use("/api/servicio", routerMarca)
