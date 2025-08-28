@@ -4,22 +4,17 @@ import {
     BookOpen,
     Box,
     Frame,
-    Map,
-    PieChart,
     Settings,
     Settings2,
     ShieldCheck,
     Wrench,
 } from "lucide-react"
 
-// import { NavMain } from "@/components/nav-main"
 import { NavMain } from "./nav-main"
 import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "./nav-user"
 import { TeamSwitcher } from "./team-switcher"
 
-// import { NavUser } from "@/components/nav-user"
-// import { TeamSwitcher } from "@/components/team-switcher"
 import {
     Sidebar,
     SidebarContent,
@@ -163,17 +158,7 @@ const data = {
             name: "Design Engineering",
             url: "#",
             icon: Frame,
-        },
-        {
-            name: "Sales & Marketing",
-            url: "#",
-            icon: PieChart,
-        },
-        {
-            name: "Travel",
-            url: "#",
-            icon: Map,
-        },
+        }
     ],
 }
 

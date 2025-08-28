@@ -1,4 +1,4 @@
-import { LoginForm } from '@/components/login-form'
+import { LoginForm } from '@/pages/auth/ui/login-form'
 const Login = () => {
     return (
         <div className='degra'>

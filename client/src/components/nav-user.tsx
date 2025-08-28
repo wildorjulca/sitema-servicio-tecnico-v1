@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/sidebar"
 import { useUser } from "@/hooks/useUser"
 import { useLogout } from "@/routes/logout"
+import { Link } from "react-router-dom"
 
 export function NavUser() {
   const { user } = useUser();
@@ -77,7 +78,9 @@ export function NavUser() {
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <BadgeCheck />
-                Account
+                <Link to={"perfil"}>
+                  Mi Cuenta
+                </Link>
               </DropdownMenuItem>
 
               <DropdownMenuItem>
@@ -85,6 +88,7 @@ export function NavUser() {
                 Notificaciones
               </DropdownMenuItem>
             </DropdownMenuGroup>
+
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout}>
               <LogOut />
