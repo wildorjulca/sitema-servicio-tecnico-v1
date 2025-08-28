@@ -725,5 +725,223 @@ BEGIN
 END
 
 
+-- cleinte ----------------
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_cliente_crud`(
+    IN _accion VARCHAR(50),
+    IN _idCliente INT,
+    IN _nombre VARCHAR(75),
+    IN _apellidos VARCHAR(75),
+    IN _cod_tipo CHAR(3),
+    IN _numero_documento CHAR(11),
+    IN _direccion VARCHAR(75),
+    IN _telefono VARCHAR(45),
+    IN _idUsuario INT
+)
+BEGIN
+    DECLARE _rol_id INT;
+    DECLARE _permiso_id INT;
+
+    -- Obtener el rol del usuario
+    SELECT rol_id INTO _rol_id FROM usuarios WHERE id = _idUsuario;
+    
+    -- Verificar si el usuario existe
+    IF _rol_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Usuario no encontrado';
+    END IF;
+
+    -- Verificar permisos según la acción
+    IF _accion = 'INSERTAR_CLIENTE' THEN
+        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'INSERTAR_CLIENTE';
+    ELSEIF _accion = 'ACTUALIZAR_CLIENTE' THEN
+        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'ACTUALIZAR_CLIENTE';
+    ELSEIF _accion = 'ELIMINAR_CLIENTE' THEN
+        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'ELIMINAR_CLIENTE';
+    ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acción no válida';
+    END IF;
+
+    -- Validar que el rol tenga el permiso
+    IF NOT EXISTS (
+        SELECT 1 FROM rol_permisos 
+        WHERE rol_id = _rol_id AND permiso_id = _permiso_id
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acceso denegado: No tienes permiso para realizar esta acción';
+    END IF;
+
+    -- Ejecutar acción
+    IF _accion = 'INSERTAR_CLIENTE' THEN
+        INSERT INTO cliente (nombre, apellidos, TIPO_DOCUMENTO_cod_tipo, numero_documento, direccion, telefono) 
+        VALUES (_nombre, _apellidos, _cod_tipo, _numero_documento, _direccion, _telefono);
+        SELECT LAST_INSERT_ID() AS id_insertado;
+
+    ELSEIF _accion = 'ACTUALIZAR_CLIENTE' THEN
+        UPDATE cliente 
+        SET nombre = _nombre,
+            apellidos = _apellidos,
+            TIPO_DOCUMENTO_cod_tipo = _cod_tipo,
+            numero_documento = _numero_documento,
+            direccion = _direccion,
+            telefono = _telefono
+        WHERE idCliente = _idCliente;
+        SELECT ROW_COUNT() AS filas_afectadas;
+
+    ELSEIF _accion = 'ELIMINAR_CLIENTE' THEN
+        DELETE FROM cliente WHERE idCliente = _idCliente;
+        SELECT ROW_COUNT() AS filas_afectadas;
+    END IF;
+END
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_cliente`(
+    IN _accion VARCHAR(50),
+    IN _id INT,
+    IN _nombre VARCHAR(100),
+    IN _pageIndex INT,
+    IN _pageSize INT,
+    IN _idUsuario INT
+)
+BEGIN
+    DECLARE _rol_id INT;
+    DECLARE _permiso_id INT;
+    DECLARE _offset INT;
+
+    -- Obtener el rol del usuario
+    SELECT rol_id INTO _rol_id FROM usuarios WHERE id = _idUsuario;
+    
+    -- Verificar si el usuario existe
+    IF _rol_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Usuario no encontrado';
+    END IF;
+
+    -- Verificar permisos
+    IF _accion = 'LISTAR_CLIENTE' THEN
+        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'LISTAR_CLIENTE';
+    ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acción no válida';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM rol_permisos 
+        WHERE rol_id = _rol_id AND permiso_id = _permiso_id
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acceso denegado: No tienes permiso para realizar esta acción';
+    END IF;
+
+    -- Listar marcas con paginación
+    IF _accion = 'LISTAR_CLIENTE' THEN
+        SET _offset = _pageIndex * _pageSize; -- Calcular OFFSET
+        SELECT SQL_CALC_FOUND_ROWS * 
+        FROM cliente
+        ORDER BY idCliente ASC -- Usar la columna correcta
+        LIMIT _pageSize OFFSET _offset;
+        SELECT FOUND_ROWS() AS total;
+    END IF;
+END
+
+
+-- categoria ------
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_categoria_crud`(
+    IN _accion VARCHAR(50),
+    IN _id INT,
+    IN _descripcion VARCHAR(100),
+    IN _esServicio DOUBLE,
+    IN _idUsuario INT
+)
+BEGIN
+    DECLARE _rol_id INT;
+    DECLARE _permiso_id INT;
+
+    -- Obtener el rol del usuario
+    SELECT rol_id INTO _rol_id FROM usuarios WHERE id = _idUsuario;
+    
+    -- Verificar si el usuario existe
+    IF _rol_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Usuario no encontrado';
+    END IF;
+
+    -- Verificar permisos según la acción
+    IF _accion = 'INSERTAR_CATEGORIA' THEN
+        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'INSERTAR_CATEGORIA';
+    ELSEIF _accion = 'ACTUALIZAR_CATEGORIA' THEN
+        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'ACTUALIZAR_CATEGORIA';
+    ELSEIF _accion = 'ELIMINAR_CATEGORIA' THEN
+        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'ELIMINAR_CATEGORIA';
+    ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acción no válida';
+    END IF;
+
+    -- Validar que el rol tenga el permiso
+    IF NOT EXISTS (
+        SELECT 1 FROM rol_permisos 
+        WHERE rol_id = _rol_id AND permiso_id = _permiso_id
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acceso denegado: No tienes permiso para realizar esta acción';
+    END IF;
+
+    -- Ejecutar acción
+    IF _accion = 'INSERTAR_CATEGORIA' THEN
+        INSERT INTO categoria (descripcion, esServicio) 
+        VALUES (_descripcion, _esServicio);
+        SELECT LAST_INSERT_ID() AS id_insertado;
+
+    ELSEIF _accion = 'ACTUALIZAR_CATEGORIA' THEN
+        UPDATE categoria 
+        SET descripcion = _descripcion,
+            esServicio = _esServicio
+        WHERE idCATEGORIA = _id;
+        SELECT ROW_COUNT() AS filas_afectadas;
+
+    ELSEIF _accion = 'ELIMINAR_CATEGORIA' THEN
+        DELETE FROM categoria WHERE idCATEGORIA = _id;
+        SELECT ROW_COUNT() AS filas_afectadas;
+    END IF;
+END
+
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_categoria`(
+    IN _accion VARCHAR(50),
+    IN _id INT,
+    IN _nombre VARCHAR(100),
+    IN _pageIndex INT,
+    IN _pageSize INT,
+    IN _idUsuario INT
+)
+BEGIN
+    DECLARE _rol_id INT;
+    DECLARE _permiso_id INT;
+    DECLARE _offset INT;
+
+    -- Obtener el rol del usuario
+    SELECT rol_id INTO _rol_id FROM usuarios WHERE id = _idUsuario;
+    
+    -- Verificar si el usuario existe
+    IF _rol_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Usuario no encontrado';
+    END IF;
+
+    -- Verificar permisos
+    IF _accion = 'LISTAR_CATEGORIA' THEN
+        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'LISTAR_CATEGORIA';
+    ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acción no válida';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM rol_permisos 
+        WHERE rol_id = _rol_id AND permiso_id = _permiso_id
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acceso denegado: No tienes permiso para realizar esta acción';
+    END IF;
+
+    -- Listar marcas con paginación
+    IF _accion = 'LISTAR_CATEGORIA' THEN
+        SET _offset = _pageIndex * _pageSize; -- Calcular OFFSET
+        SELECT SQL_CALC_FOUND_ROWS * 
+        FROM categoria 
+        ORDER BY  idCATEGORIA ASC -- Usar la columna correcta
+        LIMIT _pageSize OFFSET _offset;
+        SELECT FOUND_ROWS() AS total;
+    END IF;
+END
 
