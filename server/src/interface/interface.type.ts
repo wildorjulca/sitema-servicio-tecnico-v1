@@ -89,9 +89,9 @@ export interface Cliente {
     usuarioId?: number
     id?: number;              // Identificador único (PK)
     nombre: string;          // Nombre del cliente
-    apellidos: string;        // Apellido del cliente
+    apellidos: string;    
+    tipo_doc_id:number;    // Apellido del cliente
     numero_documento: string;             // Documento de identidad (8 dígitos si es DNI)
     telefono: string;        // Teléfono del cliente
     direccion: string;       // Dirección de domicilio
-    cod_tipo:number
 }

@@ -732,7 +732,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_cliente_crud`(
     IN _idCliente INT,
     IN _nombre VARCHAR(75),
     IN _apellidos VARCHAR(75),
-    IN _cod_tipo CHAR(3),
+    IN _tipo_doc_id INT,
     IN _numero_documento CHAR(11),
     IN _direccion VARCHAR(75),
     IN _telefono VARCHAR(45),
@@ -771,26 +771,29 @@ BEGIN
 
     -- Ejecutar acción
     IF _accion = 'INSERTAR_CLIENTE' THEN
-        INSERT INTO cliente (nombre, apellidos, TIPO_DOCUMENTO_cod_tipo, numero_documento, direccion, telefono) 
-        VALUES (_nombre, _apellidos, _cod_tipo, _numero_documento, _direccion, _telefono);
+        INSERT INTO cliente (nombre, apellidos, tipo_doc_id, numero_documento, direccion, telefono) 
+        VALUES (_nombre, _apellidos, _tipo_doc_id, _numero_documento, _direccion, _telefono);
+
         SELECT LAST_INSERT_ID() AS id_insertado;
 
     ELSEIF _accion = 'ACTUALIZAR_CLIENTE' THEN
         UPDATE cliente 
         SET nombre = _nombre,
             apellidos = _apellidos,
-            TIPO_DOCUMENTO_cod_tipo = _cod_tipo,
+            tipo_doc_id = _tipo_doc_id,
             numero_documento = _numero_documento,
             direccion = _direccion,
             telefono = _telefono
         WHERE idCliente = _idCliente;
+
         SELECT ROW_COUNT() AS filas_afectadas;
 
     ELSEIF _accion = 'ELIMINAR_CLIENTE' THEN
         DELETE FROM cliente WHERE idCliente = _idCliente;
         SELECT ROW_COUNT() AS filas_afectadas;
     END IF;
-END
+END;
+
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_cliente`(
     IN _accion VARCHAR(50),

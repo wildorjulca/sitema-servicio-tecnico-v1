@@ -22,7 +22,7 @@ const addClienteCTRL = async (req: Request, res: Response) => {
     const cliente: Cliente = {
         nombre: req.body.nombre,
         apellidos: req.body.apellidos,
-        cod_tipo: req.body.cod_tipo,
+        tipo_doc_id: req.body.tipo_doc_id,
         numero_documento: req.body.numero_documento,
         direccion: req.body.direccion,
         telefono: req.body.telefono,
@@ -38,10 +38,10 @@ const addClienteCTRL = async (req: Request, res: Response) => {
 // ----------------------
 const updateClienteCTRL = async (req: Request, res: Response) => {
     const clienteAcc: Cliente = {
-        idCliente: Number(req.body.id),
+        idCliente: Number(req.body.idCliente),
         nombre: req.body.nombre,
         apellidos: req.body.apellidos,
-        cod_tipo: req.body.cod_tipo,
+        tipo_doc_id: req.body.tipo_doc_id,
         numero_documento: req.body.numero_documento,
         direccion: req.body.direccion,
         telefono: req.body.telefono,

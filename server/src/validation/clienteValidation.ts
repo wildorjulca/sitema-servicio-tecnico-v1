@@ -8,7 +8,7 @@ const ReglasValidacionCliente = [
         .isLength({ max: 75 })
         .withMessage("El nombre debe tener máximo 75 caracteres."),
 
-    body("TIPO_DOCUMENTO_cod_tipo")
+    body("tipo_doc_id")
         .notEmpty()
         .withMessage("Seleccione un tipo de documento."),
 

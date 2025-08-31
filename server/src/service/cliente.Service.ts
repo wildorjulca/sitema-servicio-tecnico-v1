@@ -45,7 +45,7 @@ const createCliente = async (cliente: Cliente) => {
       null, // idCliente null porque se genera automáticamente
       cliente.nombre,
       cliente.apellidos,
-      cliente.cod_tipo,
+      cliente.tipo_doc_id,
       cliente.numero_documento,
       cliente.direccion,
       cliente.telefono,
@@ -86,7 +86,7 @@ const updateCliente = async (cliente: Cliente) => {
       cliente.idCliente,
       cliente.nombre,
       cliente.apellidos,
-      cliente.cod_tipo,
+      cliente.tipo_doc_id,
       cliente.numero_documento,
       cliente.direccion,
       cliente.telefono,
