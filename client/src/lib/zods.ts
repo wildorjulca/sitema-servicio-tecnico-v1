@@ -6,20 +6,27 @@ export const clienteSchema = z.object({
         .min(1, { message: "El nombre es obligatorio." })
         .max(75, { message: "El nombre debe tener máximo 75 caracteres." }),
 
-    TIPO_DOCUMENTO_cod_tipo: z.string()
+    apellidos: z.string()
+        .min(1, { message: "El apellido es obligatorio." })
+        .max(75, { message: "El apellido debe tener máximo 75 caracteres." }),
+
+    tipo_doc_id: z.string()
         .min(1, { message: "Seleccione un tipo de documento." }),
 
     numero_documento: z.string()
-        .min(1, { message: "El número de documento es obligatorio." })
+        .regex(/^\d+$/, { message: "El número de documento debe contener solo números." })
+        .min(8, { message: "El número de documento debe tener mínimo 8 caracteres." })
         .max(11, { message: "El número de documento debe tener máximo 11 caracteres." }),
 
     direccion: z.string()
-        .max(75, { message: "La dirección debe tener máximo 75 caracteres." }),
+        .max(75, { message: "La dirección debe tener máximo 75 caracteres." })
+        .optional(),
 
     telefono: z.string()
-        .max(45, { message: "El teléfono debe tener máximo 45 caracteres." }),
+        .regex(/^\d+$/, { message: "El teléfono debe contener solo números." })
+        .max(15, { message: "El teléfono debe tener máximo 15 caracteres." })
+        .optional(),
 });
-
 
 export const servicioSchema = z.object({
     MOTIVO_INGRESO_idMOTIVO_INGRESO: z.string()

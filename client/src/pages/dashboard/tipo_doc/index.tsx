@@ -2,12 +2,7 @@ import { DataTable } from "../ui/table-reutilizable";
 import { useUser } from "@/hooks/useUser";
 import { useState, useEffect } from "react";
 import { useTipoDocHook } from "@/hooks/useTipoDoc";
-
-interface TipoDoc {
-  cod_tipo: string;
-  nombre_tipo: string;
-  cant_digitos: number;
-}
+import { TipoDoc } from "@/apis";
 
 export function Tipo_doc() {
   const { user } = useUser();
@@ -43,7 +38,8 @@ export function Tipo_doc() {
   }
 
   const mappedTiposDoc = data.map((tipo: TipoDoc) => ({
-    id: tipo.cod_tipo,
+    id: tipo.id_tipo,
+    cod_tipo: tipo.cod_tipo,
     nombre: tipo.nombre_tipo,
     cant_digitos: tipo.cant_digitos,
   }));
@@ -54,7 +50,7 @@ export function Tipo_doc() {
         data={mappedTiposDoc}
         columns={[
           { accessorKey: "nombre", header: "Nombre" },
-          { accessorKey: "id", header: "Código" },
+          { accessorKey: "cod_tipo", header: "Código" },
           { accessorKey: "cant_digitos", header: "Cantidad de Dígitos" },
         ]}
         searchColumn="nombre"

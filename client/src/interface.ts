@@ -70,26 +70,39 @@ export interface MotivoIngresoPag {
 
 }
 
-export interface Cliente {
-  idCliente: number,
-  nombre: string,
-  apellidos: string,
-  TIPO_DOCUMENTO_cod_tipo: number,
-  numero_documento: number,
-  direccion: string,
-  telefono: number
-
+// interface.ts
+export interface Clientes {
+  id: number;
+  idCliente: number;
+  nombre: string;
+  apellidos: string;
+  tipo_doc_id: number;
+  numero_documento: number;
+  direccion: string;
+  telefono: number;
+  usuario_id: number;
 }
 
-export interface ClientePag {
-  idCliente: number,
-  nombre: string,
-  apellidos: string,
-  TIPO_DOCUMENTO_cod_tipo: number,
-  numero_documento: number,
-  direccion: string,
-  telefono: number
+export interface ClienteFront {
+  idCliente: number;
+  nombre: string;
+  apellidos: string;
+  tipo_doc_id: number;
+  numero_documento: number;
+  direccion: string;
+  telefono: number;
+  usuarioId: number;
+}
 
+export interface ClienteEdit {
+  idCliente?: number;
+  nombre: string;
+  apellidos: string;
+  tipo_doc_id: number;
+  numero_documento: number;
+  direccion: string;
+  telefono?: number;
+  usuarioId: number;
 }
 
 export interface Categoria {

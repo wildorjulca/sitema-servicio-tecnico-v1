@@ -1,7 +1,8 @@
 import { instance } from "@/lib/axios";
 
 // Definir la interfaz para los tipos de documento
-interface TipoDoc {
+export interface TipoDoc {
+  id_tipo:number,
   cod_tipo: string;
   nombre_tipo: string;
   cant_digitos: number;
