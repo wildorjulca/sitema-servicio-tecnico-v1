@@ -16,6 +16,7 @@
     import { Categoria } from '@/pages/dashboard/categoria';
 import Panel from '@/pages/dashboard';
 import Perfil from '@/pages/dashboard/user-info';
+import Documentacion from '@/pages/dashboard/document/documentacion';
 
     const NotFound = () => <div><Error404 /></div>;
 
@@ -56,6 +57,10 @@ import Perfil from '@/pages/dashboard/user-info';
 
                         
                         <Route path="perfil" element={<Perfil />} />
+
+
+                        <Route path="documentacion" element={<Documentacion />} />
+
     
                         {/* Ruta para cuando no exista una ruta hija */}
                         <Route path="*" element={<NotFound />} />

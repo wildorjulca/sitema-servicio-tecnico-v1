@@ -92,26 +92,14 @@ const data = {
             ],
         },
         {
-            title: "Documentation",
+            title: "Documentación",
             url: "#",
             icon: BookOpen,
             items: [
-                {
-                    title: "Introduction",
-                    url: "#",
-                },
-                {
-                    title: "Get Started",
-                    url: "#",
-                },
-                {
-                    title: "Tutorials",
-                    url: "#",
-                },
-                {
-                    title: "Changelog",
-                    url: "#",
-                },
+                { title: "Introducción", url: "documentacion" },
+                { title: "Clientes", url: "/docs/clientes" },
+                { title: "Reparaciones", url: "/docs/reparaciones" },
+                { title: "Reportes", url: "/docs/reportes" },
             ],
         },
         {

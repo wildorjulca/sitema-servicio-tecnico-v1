@@ -1,4 +1,3 @@
-import { ProductDialog } from "./ui/modal"
 import { TableProducto } from "./ui/table"
 
 const Producto = () => {
@@ -6,7 +5,7 @@ const Producto = () => {
         <div>
             <TableProducto/>
 
-            <ProductDialog />
+            {/* <ProductDialog /> */}
         </div>
     )
 }
