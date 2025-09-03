@@ -112,7 +112,7 @@ BEGIN
     INNER JOIN roles r ON u.rol_id = r.id
     WHERE u.usuario = _usuario
     LIMIT 1;
-END$$
+END
 
 DELIMITER ;
 
@@ -271,6 +271,7 @@ BEGIN
     END IF;
 END;
 
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_equipo_crud`(
     IN _accion VARCHAR(50),
     IN _id INT,
@@ -315,6 +316,7 @@ BEGIN
         SELECT ROW_COUNT() AS filas_afectadas;
     END IF;
 END;
+DELIMITER
 
 -------------- tipo documento -------------------
 

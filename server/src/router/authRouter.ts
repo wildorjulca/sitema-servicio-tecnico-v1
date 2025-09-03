@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { authLoginCTRL } from "../controller/authController";
+import { authLoginCTRL } from "../controller/auth.Controller";
 import { authRequired } from "../middlewares/verifyToken";
 
 const routerLogin = Router()

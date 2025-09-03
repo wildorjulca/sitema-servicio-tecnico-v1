@@ -49,5 +49,5 @@ const hashText = async (text: string) => {
     console.log(`Hash: ${hashed}`)
     return hashed
 }
-//  hashText("172526")
+//  hashText("elver1234")
 export { authservice, hashText }
