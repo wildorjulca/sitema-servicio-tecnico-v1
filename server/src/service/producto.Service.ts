@@ -7,7 +7,6 @@ const cn = coneccion()
 // listar producto 
 
 const listProduct = async (usuarioId: number, pageIndex = 0, pageSize = 10) => {
-    console.log("Parámetros enviados a sp_producto:", { usuarioId, pageIndex, pageSize });
     try {
         const [results]: any = await cn
             .promise()
@@ -16,12 +15,14 @@ const listProduct = async (usuarioId: number, pageIndex = 0, pageSize = 10) => {
                 ["LISTAR_PRODUCTO", null, null, pageIndex, pageSize, usuarioId]
             );
 
-        console.log("Resultados de sp_producto:", { data: results[0], total: results[1][0].total });
+        const data = results;
+        const total = data.length > 0 ? data[0].total : 0;
+
         return {
             status: 200,
             success: true,
-            data: results[0],
-            total: results[1][0].total,
+            data,
+            total,
         };
     } catch (error: any) {
         console.log("Error en listar productos:", error);
@@ -32,8 +33,8 @@ const listProduct = async (usuarioId: number, pageIndex = 0, pageSize = 10) => {
             error: error.sqlMessage || error.message,
         };
     }
+};
 
-}
 
 // Insertar producto
 const createProduct = async (product: Producto) => {

@@ -25,7 +25,7 @@ export const coneccion = () => {
             host: 'localhost',
             user: 'root',
             port: 3306,
-            password: '',
+            password: '172526',
             database: 'db_servicio',
             waitForConnections: true,
             connectionLimit: 10,

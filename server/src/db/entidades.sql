@@ -25,26 +25,27 @@ CREATE TABLE EQUIPO (
 
 -- ENTIDAD DE LA TABLA DEL TIPO DE DOCUMENTO
 CREATE TABLE IF NOT EXISTS TIPO_DOCUMENTO (
-  cod_tipo CHAR(3) NOT NULL,
+  id_tipo INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  cod_tipo CHAR(3) NOT NULL UNIQUE,
   nombre_tipo VARCHAR(45) NOT NULL UNIQUE,
-  cant_digitos INT NOT NULL,
-  PRIMARY KEY (cod_tipo)
-)
+  cant_digitos INT NOT NULL
+);
 
 -- ENTIDAD DE LA TABLA DEL CLIENTE
 CREATE TABLE IF NOT EXISTS CLIENTE (
-  idCliente CHAR(36) NOT NULL, 
-  nombre VARCHAR(75) NOT NULL, 
-  TIPO_DOCUMENTO_cod_tipo CHAR(3) NOT NULL, 
-  numero_documento CHAR(11) NOT NULL UNIQUE, 
-  direccion VARCHAR(75) NULL, 
-  telefono VARCHAR(45) NULL, 
+  idCliente INT NOT NULL AUTO_INCREMENT,
+  nombre VARCHAR(75) NOT NULL,
+  apellidos VARCHAR(75) NOT NULL,
+  tipo_doc_id INT NOT NULL,
+  numero_documento CHAR(15) NOT NULL UNIQUE,
+  direccion VARCHAR(75) NULL,
+  telefono VARCHAR(45) NULL,
   PRIMARY KEY (idCliente),
-    FOREIGN KEY (TIPO_DOCUMENTO_cod_tipo) 
-    REFERENCES TIPO_DOCUMENTO (cod_tipo)
-    ON DELETE NO ACTION  -- Si se intenta eliminar un tipo de documento en uso, no se permite
-    ON UPDATE NO ACTION  -- Si se actualiza un tipo de documento, no afecta a CLIENTE
-) 
+  CONSTRAINT fk_cliente_tipodoc
+    FOREIGN KEY (tipo_doc_id) REFERENCES TIPO_DOCUMENTO (id_tipo)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
+);
 
 -- ENTIDAD DE LA TABLA DEL MOTIVO DE INGRESO
 CREATE TABLE IF NOT EXISTS MOTIVO_INGRESO (
