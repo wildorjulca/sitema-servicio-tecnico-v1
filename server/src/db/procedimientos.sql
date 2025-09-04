@@ -950,3 +950,56 @@ BEGIN
     END IF;
 END
 
+-- usuarios --------------------------------
+
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_user`(
+    IN _accion VARCHAR(50),
+    IN _id INT,
+    IN _nombre VARCHAR(100),
+    IN _pageIndex INT,
+    IN _pageSize INT,
+    IN _idUsuario INT
+)
+BEGIN
+    DECLARE _rol_id INT;
+    DECLARE _permiso_id INT;
+    DECLARE _offset INT;
+
+    -- Obtener el rol del usuario
+    SELECT rol_id INTO _rol_id FROM usuarios WHERE id = _idUsuario;
+    
+    -- Verificar si el usuario existe
+    IF _rol_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Usuario no encontrado';
+    END IF;
+
+    -- Verificar permisos
+    IF _accion = 'LISTAR_USERS' THEN
+        SELECT id INTO _permiso_id FROM permisos WHERE nombre = 'LISTAR_USERS';
+    ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acción no válida';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM rol_permisos 
+        WHERE rol_id = _rol_id AND permiso_id = _permiso_id
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Acceso denegado: No tienes permiso para realizar esta acción';
+    END IF;
+
+    -- Listar marcas con paginación
+    IF _accion = 'LISTAR_USERS' THEN
+        SET _offset = _pageIndex * _pageSize; -- Calcular OFFSET
+        SELECT SQL_CALC_FOUND_ROWS * 
+        FROM usuarios 
+        ORDER BY id ASC -- Usar la columna correcta
+        LIMIT _pageSize OFFSET _offset;
+        SELECT FOUND_ROWS() AS total;
+    END IF;
+END
+
+
+-- --------------------------
+
+

@@ -6,18 +6,16 @@ import { Producto } from "../interface";
 // ----------------------
 // Listar productos
 // ----------------------
-const getAllProductoCTRL = async (req: Request, res: Response) => {
-  try {
-    const usuarioId = Number(req.params.usuarioId) || 0;
-    const pageIndex = Number(req.query.pageIndex) || 0; // opcional
-    const pageSize = Number(req.query.pageSize) || 10;  // opcional
 
-    const response = await listProduct(usuarioId, pageIndex, pageSize);
-    res.status(response.status).json(response);
-  } catch (error) {
-    res.status(500).json({ status: 500, success: false, message: "Error al listar productos", error });
-  }
+const getAllProductoCTRL = async (req: Request, res: Response) => {
+  const usuarioId = Number(req.params.usuarioId) || 0;
+  const pageIndex = Number(req.query.pageIndex) || 0; // opcional desde query
+  const pageSize = Number(req.query.pageSize) || 10;   // opcional desde query
+
+  const response = await listProduct(usuarioId, pageIndex, pageSize);
+  res.status(response.status).json(response);
 };
+
 
 // ----------------------
 // Registrar producto
