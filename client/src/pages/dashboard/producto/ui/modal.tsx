@@ -1,10 +1,11 @@
+// components/ProductDialog.tsx
 "use client"
 
 import * as React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
 import { z } from "zod"
+import { Check, ChevronsUpDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -21,13 +22,25 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
+import { Productos } from "@/interface"
+import { cn } from "@/lib/utils"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
-// -----------------------
 // Schema Zod para productos
-// -----------------------
 const ProductSchema = z.object({
   nombre: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
   descripcion: z.string().optional(),
@@ -39,45 +52,90 @@ const ProductSchema = z.object({
 
 type ProductFormValues = z.infer<typeof ProductSchema>
 
-export function ProductDialog() {
-  const [open, setOpen] = React.useState(false)
+interface Categoria {
+  idCATEGORIA: number;
+  descripcion: string;
+  esServicio: number;
+}
+
+interface ProductDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  product?: Productos | null;
+  onSubmit: (data: ProductFormValues) => void;
+  categorias: Categoria[];
+}
+
+export function ProductDialog({
+  open,
+  onOpenChange,
+  product,
+  onSubmit,
+  categorias
+}: ProductDialogProps) {
+  const [comboboxOpen, setComboboxOpen] = React.useState(false)
+  const [searchValue, setSearchValue] = React.useState("")
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(ProductSchema),
     defaultValues: {
       nombre: "",
       descripcion: "",
-      precio_compra: 0,
-      precio_venta: 0,
-      stock: 0,
+      precio_compra: 1,
+      precio_venta: 1,
+      stock: 1,
       categoria_id: 1,
     },
   })
 
-  const onSubmit = (data: ProductFormValues) => {
-    toast("Producto enviado", {
-      description: (
-        <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    })
-    setOpen(false)
-    form.reset()
+  // Reset form cuando el producto cambia
+  React.useEffect(() => {
+    if (product && open) {
+      form.reset({
+        nombre: product.nombre || "",
+        descripcion: product.descripcion || "",
+        precio_compra: product.precio_compra || 1,
+        precio_venta: product.precio_venta || 1,
+        stock: product.stock || 1,
+        categoria_id: product.categoria_id || 1,
+      })
+    } else if (open) {
+      form.reset({
+        nombre: "",
+        descripcion: "",
+        precio_compra: 1,
+        precio_venta: 1,
+        stock: 1,
+        categoria_id: categorias[0]?.idCATEGORIA || 1,
+      })
+    }
+  }, [product, form, open, categorias])
+
+  const handleFormSubmit = (data: ProductFormValues) => {
+    onSubmit(data);
   }
 
+  // Filtrar categorías basado en la búsqueda
+  const filteredCategorias = categorias.filter(cat =>
+    cat.descripcion.toLowerCase().includes(searchValue.toLowerCase())
+  )
+
+  // Obtener el nombre de la categoría seleccionada
+  const selectedCategoria = categorias.find(
+    cat => cat.idCATEGORIA === form.watch("categoria_id")
+  )?.descripcion || "Seleccionar categoría";
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>Agregar Producto</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Nuevo Producto</DialogTitle>
+          <DialogTitle>
+            {product ? "Editar Producto" : "Nuevo Producto"}
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
             {/* Nombre */}
             <FormField
               control={form.control}
@@ -102,7 +160,13 @@ export function ProductDialog() {
                   <FormItem>
                     <FormLabel>Precio Compra</FormLabel>
                     <FormControl>
-                      <Input type="number" step="1" {...field} />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        {...field}
+                        onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -115,7 +179,13 @@ export function ProductDialog() {
                   <FormItem>
                     <FormLabel>Precio Venta</FormLabel>
                     <FormControl>
-                      <Input type="number" step="1" {...field} />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        {...field}
+                        onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -132,21 +202,82 @@ export function ProductDialog() {
                   <FormItem>
                     <FormLabel>Stock</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Input
+                        type="number"
+                        min="0"
+                        {...field}
+                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="categoria_id"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col justify-end">
                     <FormLabel>Categoría</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
+                    <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              "w-full justify-between",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {selectedCategoria}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput
+                            placeholder="Buscar categoría..."
+                            value={searchValue}
+                            onValueChange={(value) => {
+                              setSearchValue(value);
+                              // Forzar re-render
+                              setFilteredCategorias(categorias.filter(cat =>
+                                cat.descripcion.toLowerCase().includes(value.toLowerCase())
+                              ))
+                            }}
+                          />
+                          <CommandList>
+                            <CommandEmpty>No se encontraron categorías.</CommandEmpty>
+                            <CommandGroup>
+                              {filteredCategorias.map((categoria) => (
+                                <CommandItem
+                                  key={categoria.idCATEGORIA}
+                                  value={categoria.descripcion} // Mantener descripción para búsqueda
+                                  onSelect={() => {
+                                    form.setValue("categoria_id", categoria.idCATEGORIA, { shouldValidate: true })
+                                    setSearchValue("")
+                                    setComboboxOpen(false)
+                                  }}
+                                >
+                                  {categoria.descripcion}
+                                  <Check
+                                    className={cn(
+                                      "ml-auto",
+                                      categoria.idCATEGORIA === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -161,7 +292,11 @@ export function ProductDialog() {
                 <FormItem>
                   <FormLabel>Descripción</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Detalles del producto" {...field} />
+                    <Textarea
+                      placeholder="Detalles del producto"
+                      {...field}
+                      value={field.value || ""}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -169,11 +304,11 @@ export function ProductDialog() {
             />
 
             <Button type="submit" className="w-full">
-              Guardar Producto
+              {product ? "Actualizar" : "Guardar"} Producto
             </Button>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

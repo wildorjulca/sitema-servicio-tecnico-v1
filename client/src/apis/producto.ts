@@ -55,7 +55,7 @@ export const fetchProductos = async (
 // ----------------------
 export const addProducto = async (producto: ProductoInit) => {
   try {
-    const response = await instance.post("/productos", producto);
+    const response = await instance.post("/productoAdd", producto);
     return response.data;
   } catch (error) {
     console.error("Error al agregar producto:", error);
@@ -68,7 +68,7 @@ export const addProducto = async (producto: ProductoInit) => {
 // ----------------------
 export const editProducto = async (producto: Producto) => {
   try {
-    const response = await instance.put(`/productos/${producto.id}`, producto);
+    const response = await instance.put(`/productoUpadte`, producto);
     return response.data;
   } catch (error) {
     console.error("Error al actualizar producto:", error);
@@ -81,7 +81,7 @@ export const editProducto = async (producto: Producto) => {
 // ----------------------
 export const deleteProducto = async (id: number, usuarioId: number) => {
   try {
-    const response = await instance.delete(`/productos/${id}`, { data: { usuarioId } });
+    const response = await instance.delete(`/productosDelete/${id}`, { data: { usuarioId } });
     return response.data;
   } catch (error) {
     console.error("Error al eliminar producto:", error);

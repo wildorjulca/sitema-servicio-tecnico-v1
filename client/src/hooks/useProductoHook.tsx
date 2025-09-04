@@ -27,7 +27,7 @@ export const useProductosHook = (
 
   useEffect(() => {
     if (query.isError) {
-      toast.error(`Error al cargar los Permisos: ${query.error?.message || 'Unknown error'}`);
+      toast.error(`Error al cargar los Productos: ${query.error?.message || 'Unknown error'}`);
     }
   }, [query.isError, query.error]);
 
