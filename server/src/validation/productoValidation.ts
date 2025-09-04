@@ -27,7 +27,8 @@ export const ReglasValidacionProducto = [
     .withMessage("El precio de venta debe ser mayor a 0."),
 
   body("stock")
-    .optional()
+    .notEmpty()
+    .withMessage("El stock es obligatorio y mayor a 1.")
     .isInt({ min: 0 })
     .withMessage("El stock debe ser un número entero mayor o igual a 0."),
 

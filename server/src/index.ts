@@ -17,6 +17,7 @@ import { routerPermisos } from './router/permiso.Routes'
 import { routerRol } from './router/rol.Routes'
 import { routerCat } from './router/categoria.Routes'
 import { routerUsuario } from './router/ususario.Routes'
+import routerImg from './router/images.Routes'
 const PORT = process.env.PORT || 3001
 const app = express()
 
@@ -44,6 +45,7 @@ app.use("/api/servicio", routerPermisos)
 app.use("/api/servicio", routerPermisos)
 app.use("/api/servicio", routerRol)
 app.use("/api/servicio", routerUsuario)
+app.use("/api/servicio", routerImg)
 
 
 

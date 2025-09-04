@@ -1,21 +1,3 @@
-// conexion.ts
-// import mysql from 'mysql2';
-
-// export const coneccion = () => {
-//     const cn = mysql.createConnection({
-//         host: 'localhost',
-//         user: 'root',
-//         port: 3306,
-//         password: '',
-//         database: 'db_servicio',
-//         waitForConnections: true,
-//         connectionLimit: 10,
-//         queueLimit: 0,
-//         charset: 'utf8mb4' // Ajusta según sea necesario
-//     });
-//     return cn;
-// };
-
 
 import mysql from 'mysql2';
 

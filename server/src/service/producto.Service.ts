@@ -6,34 +6,6 @@ const cn = coneccion()
 
 // listar producto 
 
-// const listProduct = async (usuarioId: number, pageIndex = 0, pageSize = 10) => {
-//     try {
-//         const [results]: any = await cn
-//             .promise()
-//             .query(
-//                 "CALL sp_producto(?, ?, ?, ?, ?,?)",
-//                 ["LISTAR_PRODUCTO", null, null, pageIndex, pageSize, usuarioId]
-//             );
-
-//         const data = results;
-//         const total = data.length > 0 ? data[0].total : 0;
-
-//         return {
-//             status: 200,
-//             success: true,
-//             data,
-//             total,
-//         };
-//     } catch (error: any) {
-//         console.log("Error en listar productos:", error);
-//         return {
-//             status: 500,
-//             success: false,
-//             mensaje: "Error en la base de datos",
-//             error: error.sqlMessage || error.message,
-//         };
-//     }
-// };
 const listProduct = async (
     usuarioId: number,
     pageIndex = 0,
