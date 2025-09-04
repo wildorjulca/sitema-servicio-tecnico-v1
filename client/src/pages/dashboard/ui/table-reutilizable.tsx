@@ -205,6 +205,7 @@ export function DataTable<T extends { id: string | number }>({
                       <Trash className="h-4 w-4 mr-1" /> Eliminar
                     </Button>
                   )}
+                  
                 </div>
               )}
             </div>

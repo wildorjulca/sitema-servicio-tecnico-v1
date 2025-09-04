@@ -3,12 +3,13 @@ import { useUser } from "@/hooks/useUser";
 import { useState, useEffect } from "react";
 import { useProductosHook } from "@/hooks/useProductoHook";
 import { Productos } from "@/interface";
-import { DataTable } from "../ui/table-reutilizable";
 import { useAddProducto, useDeleteProducto, useEditProducto } from "@/hooks/useProductoHook";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { ProductDialog } from "./ui/modal";
 import { useCatHook } from "@/hooks/useCategoria";
+import { DataTableDetalle } from "../ui/table-producto";
+import { Navigate } from "react-router-dom";
 
 export function Producto() {
     const { user } = useUser();
@@ -111,7 +112,7 @@ export function Producto() {
 
     return (
         <div className="w-full">
-            <DataTable
+            <DataTableDetalle
                 data={mappedProduct}
                 columns={[
                     { accessorKey: "nombre", header: "Nombre" },
@@ -130,6 +131,11 @@ export function Producto() {
                 onPageSizeChange={(size) => setPageSize(size)}
                 onEdit={openEditModal}
                 onDelete={handleDelete}
+                onView={(product) => {
+                    // Navegar a la página de detalle
+                    Navigate(`/productos/detalle/${product.id}`);
+                }}
+                viewRoute="/productos/detalle"
                 actions={<Button onClick={openAddModal}>Agregar Producto</Button>}
             />
 

@@ -5,7 +5,6 @@ import * as React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Check, ChevronsUpDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -25,20 +24,13 @@ import {
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Productos } from "@/interface"
-import { cn } from "@/lib/utils"
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 // Schema Zod para productos
 const ProductSchema = z.object({
@@ -73,8 +65,6 @@ export function ProductDialog({
   onSubmit,
   categorias
 }: ProductDialogProps) {
-  const [comboboxOpen, setComboboxOpen] = React.useState(false)
-  const [searchValue, setSearchValue] = React.useState("")
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(ProductSchema),
@@ -114,16 +104,6 @@ export function ProductDialog({
   const handleFormSubmit = (data: ProductFormValues) => {
     onSubmit(data);
   }
-
-  // Filtrar categorías basado en la búsqueda
-  const filteredCategorias = categorias.filter(cat =>
-    cat.descripcion.toLowerCase().includes(searchValue.toLowerCase())
-  )
-
-  // Obtener el nombre de la categoría seleccionada
-  const selectedCategoria = categorias.find(
-    cat => cat.idCATEGORIA === form.watch("categoria_id")
-  )?.descripcion || "Seleccionar categoría";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -218,66 +198,29 @@ export function ProductDialog({
                 control={form.control}
                 name="categoria_id"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col justify-end">
+                  <FormItem>
                     <FormLabel>Categoría</FormLabel>
-                    <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              "w-full justify-between",
-                              !field.value && "text-muted-foreground"
-                            )}
+                    <Select
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      defaultValue={field.value?.toString()}
+                      value={field.value?.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar categoría" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categorias.map((categoria) => (
+                          <SelectItem
+                            key={categoria.idCATEGORIA}
+                            value={categoria.idCATEGORIA.toString()}
                           >
-                            {selectedCategoria}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder="Buscar categoría..."
-                            value={searchValue}
-                            onValueChange={(value) => {
-                              setSearchValue(value);
-                              // Forzar re-render
-                              setFilteredCategorias(categorias.filter(cat =>
-                                cat.descripcion.toLowerCase().includes(value.toLowerCase())
-                              ))
-                            }}
-                          />
-                          <CommandList>
-                            <CommandEmpty>No se encontraron categorías.</CommandEmpty>
-                            <CommandGroup>
-                              {filteredCategorias.map((categoria) => (
-                                <CommandItem
-                                  key={categoria.idCATEGORIA}
-                                  value={categoria.descripcion} // Mantener descripción para búsqueda
-                                  onSelect={() => {
-                                    form.setValue("categoria_id", categoria.idCATEGORIA, { shouldValidate: true })
-                                    setSearchValue("")
-                                    setComboboxOpen(false)
-                                  }}
-                                >
-                                  {categoria.descripcion}
-                                  <Check
-                                    className={cn(
-                                      "ml-auto",
-                                      categoria.idCATEGORIA === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                            {categoria.descripcion}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
