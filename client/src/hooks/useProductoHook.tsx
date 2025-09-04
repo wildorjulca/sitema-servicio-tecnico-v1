@@ -1,17 +1,19 @@
 
 import { addProducto, deleteProducto, editProducto, fetchProductos, Producto, ProductoInit } from '@/apis/producto';
+import { Productos } from '@/interface';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 
 // ----------------------
 // Hook para listar productos
 // ----------------------
 interface ProductoResponse {
-  data: Producto[];
+  data: Productos[];
   total: number;
 }
 
-export const useProductos = (
+export const useProductosHook = (
   usuarioId?: number,
   pageIndex = 0,
   pageSize = 10
@@ -20,12 +22,14 @@ export const useProductos = (
     queryKey: ["allProductos", usuarioId, pageIndex, pageSize],
     queryFn: () => fetchProductos(usuarioId!, pageIndex, pageSize),
     enabled: !!usuarioId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
   });
 
-  if (query.isError) {
-    toast.error("Error al cargar productos");
-  }
+  useEffect(() => {
+    if (query.isError) {
+      toast.error(`Error al cargar los Permisos: ${query.error?.message || 'Unknown error'}`);
+    }
+  }, [query.isError, query.error]);
 
   return {
     ...query,
@@ -33,6 +37,8 @@ export const useProductos = (
     total: query.data?.total || 0,
   };
 };
+
+
 
 // ----------------------
 // Hook para agregar producto

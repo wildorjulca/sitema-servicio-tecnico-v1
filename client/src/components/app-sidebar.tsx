@@ -69,7 +69,12 @@ const data = {
                 {
                     title: "Productos",
                     url: "producto",
+                },
+                {
+                    title: "Usuarios",
+                    url: "users",
                 }
+
             ],
         },
         {

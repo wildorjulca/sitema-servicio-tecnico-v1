@@ -1,3 +1,4 @@
+import { Productos } from "@/interface"
 import { instance } from "@/lib/axios"
 
 
@@ -23,22 +24,31 @@ export interface ProductoInit {
   usuarioId: number
 }
 
-
 // ----------------------
 // Listar productos
 // ----------------------
-// ----------------------
-export const fetchProductos = async (usuarioId: number, pageIndex = 0, pageSize = 10) => {
+
+export const fetchProductos = async (
+  usuarioId: number,
+  pageIndex = 0,
+  pageSize = 10
+) => {
   try {
-    const response = await instance.get(`/getAllProduc/${usuarioId}?pageIndex=${pageIndex}&pageSize=${pageSize}`);
+    const response = await instance.get<{
+      data: Productos[];
+      total: number;
+    }>(`/getAllProduc/${usuarioId}?pageIndex=${pageIndex}&pageSize=${pageSize}`);
+
     const { data, total } = response.data;
-    console.log("productos obtenidos:", { data, total });
+
+    console.log("productos:", { data, total });
     return { data, total };
   } catch (error) {
     console.error("Error al obtener productos:", error);
     throw error;
   }
 };
+
 
 // ----------------------
 // Agregar producto

@@ -14,12 +14,16 @@ export interface BrandType {
   nombre: string;
   usuarioId: number;
 }
-export type Producto = {
-  id: string;
+export type Productos = {
+  id: number;
   nombre: string;
-  precio: number;
-  stock: number;
-  categoria?: string; // Optional field, adjust as needed
+  descripcion: string;
+  precio_compra: number;
+  precio_venta: number;
+  stock:number,
+  categoria_id:number,
+  estado:number,
+
 };
 
 export interface Permiso {
