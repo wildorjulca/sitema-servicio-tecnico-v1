@@ -90,3 +90,18 @@ export const useDeleteProducto = (usuarioId: number) => {
     },
   });
 };
+
+
+
+// hooks/useProductoHook.ts (añadir esta función)
+
+export const useProductoById = (usuarioId: number, productId: string | undefined) => {
+  const { data: productosData, isLoading, isError } = useProductosHook(usuarioId, 0, 1000); // Obtener todos los productos
+  
+  return {
+    data: productosData?.find((p: Productos) => p.id === parseInt(productId || '')),
+    isLoading,
+    isError,
+    refetch: () => {} // No necesitamos refetch para este caso
+  };
+};

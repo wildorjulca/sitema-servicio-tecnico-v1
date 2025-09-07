@@ -17,7 +17,9 @@ import Panel from '@/pages/dashboard';
 import Perfil from '@/pages/dashboard/user-info';
 import Documentacion from '@/pages/dashboard/document/documentacion';
 import { Usuarios } from '@/pages/dashboard/usuarios';
-import { Producto } from '@/pages/dashboard/producto';
+import { Producto } from '@/pages/dashboard/producto/ui';
+import { DetalleProducto } from '@/pages/dashboard/producto/ui/detalleProducto';
+import { ProductLayout } from '@/pages/dashboard/producto/outlet';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -47,7 +49,12 @@ const AppRoutes = () => {
                     <Route path="cat" element={<Categoria />} />
                     <Route path="tipo_doc" element={<Tipo_doc />} />
                     <Route path="mot_ingreso" element={<Motivo_Ingreso />} />
-                    <Route path="producto" element={<Producto />} />
+                    
+                    <Route path="producto" element={<ProductLayout />}>
+                        <Route index element={<Producto />} />
+                        <Route path="inf/:id" element={<DetalleProducto />} />
+                    </Route>
+
                     <Route path="users" element={<Usuarios />} />
                     <Route path="settings" element={<div>Settings</div>} />
                     <Route path="servicio" element={<ServicioLayout />}>

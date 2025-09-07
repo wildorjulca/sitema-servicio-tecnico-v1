@@ -6,15 +6,15 @@ import { Productos } from "@/interface";
 import { useAddProducto, useDeleteProducto, useEditProducto } from "@/hooks/useProductoHook";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
-import { ProductDialog } from "./ui/modal";
+import { ProductDialog } from "./modal";
 import { useCatHook } from "@/hooks/useCategoria";
-import { DataTableDetalle } from "../ui/table-producto";
-import { Navigate } from "react-router-dom";
+import { DataTableDetalle } from "../../ui/table-producto";
+import { useNavigate } from "react-router-dom";
 
 export function Producto() {
     const { user } = useUser();
     const usuarioId = user?.id;
-
+    const navigate = useNavigate();
     // Paginación
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(10);
@@ -133,9 +133,8 @@ export function Producto() {
                 onDelete={handleDelete}
                 onView={(product) => {
                     // Navegar a la página de detalle
-                    Navigate(`/productos/detalle/${product.id}`);
+                    navigate(`/dashboard/producto/inf/${product.id}`);
                 }}
-                viewRoute="/productos/detalle"
                 actions={<Button onClick={openAddModal}>Agregar Producto</Button>}
             />
 
@@ -148,6 +147,8 @@ export function Producto() {
                     categorias={categoriasArray} // ✅ Pasar array asegurado
                 />
             )}
+
+
         </div>
     );
 }
