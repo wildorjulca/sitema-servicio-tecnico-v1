@@ -78,6 +78,21 @@ const data = {
             ],
         },
         {
+            title: "Servicio",
+            url: "#",
+            icon: Settings2,
+            items: [
+                {
+                    title: "listado del servicio",
+                    url: "list",
+                },
+                {
+                    title: "Nuevo servicio",
+                    url: "new",
+                },
+            ],
+        },
+        {
             title: "Autorización",
             url: "#",
             icon: Box,
@@ -130,21 +145,7 @@ const data = {
                 },
             ],
         },
-        {
-            title: "Servicio",
-            url: "#",
-            icon: Settings2,
-            items: [
-                {
-                    title: "listado del servicio",
-                    url: "servicio",
-                },
-                {
-                    title: "Nuevo servicio",
-                    url: "servicio/nuevo",
-                },
-            ],
-        },
+
     ],
     projects: [
         {

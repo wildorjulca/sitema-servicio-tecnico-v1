@@ -1,8 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import Login from '@/pages/auth/Login';
-import ServicioLayout from '@/layouts/ServicioLayout';
-import SearchClientService from '@/pages/dashboard/servicio/search-client-exist/page';
+import ServicioLayout from '@/pages/dashboard/servicio/ServicioLayout';
 import { Marca } from '@/pages/dashboard/marca';
 import ProtectedRoute from './ProtectedRoute';
 import Error404 from './error404';
@@ -20,6 +19,8 @@ import { Usuarios } from '@/pages/dashboard/usuarios';
 import { Producto } from '@/pages/dashboard/producto/ui';
 import { DetalleProducto } from '@/pages/dashboard/producto/ui/detalleProducto';
 import { ProductLayout } from '@/pages/dashboard/producto/outlet';
+import Listar_Servicio from '@/pages/dashboard/servicio/pages/Listar_Servicio';
+import New_Service from '@/pages/dashboard/servicio/pages/New_service';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -49,7 +50,7 @@ const AppRoutes = () => {
                     <Route path="cat" element={<Categoria />} />
                     <Route path="tipo_doc" element={<Tipo_doc />} />
                     <Route path="mot_ingreso" element={<Motivo_Ingreso />} />
-                    
+
                     <Route path="producto" element={<ProductLayout />}>
                         <Route index element={<Producto />} />
                         <Route path="inf/:id" element={<DetalleProducto />} />
@@ -57,10 +58,14 @@ const AppRoutes = () => {
 
                     <Route path="users" element={<Usuarios />} />
                     <Route path="settings" element={<div>Settings</div>} />
+
                     <Route path="servicio" element={<ServicioLayout />}>
-                        <Route index element={<div>Listado de servicios</div>} />
-                        <Route path="new" element={<SearchClientService />} />
                     </Route>
+                    <Route path="list" element={<Listar_Servicio />} />
+
+                    <Route path="new" element={<New_Service />} />
+
+
                     <Route path="permiso" element={<Permiso />} />
                     <Route path="roles" element={<Roles />} />
 

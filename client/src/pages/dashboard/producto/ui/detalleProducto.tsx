@@ -75,7 +75,7 @@ export function DetalleProducto() {
 
   return (
     <div className="container mx-auto p-6">
-      <Button variant="outline" onClick={() => navigate("/producto")} className="mb-6">
+      <Button variant="outline" onClick={() => navigate("/dashboard/producto")} className="mb-6">
         <ArrowLeft className="mr-2 h-4 w-4" /> Volver al listado
       </Button>
 
@@ -119,7 +119,7 @@ export function DetalleProducto() {
             </div>
             <div>
               <h4 className="font-medium text-gray-500">Categoría</h4>
-              <p>{producto.categoria_nombre || "Sin categoría"}</p>
+              <p>{producto.categoria_id || "Sin categoría"}</p>
             </div>
             <div>
               <h4 className="font-medium text-gray-500">Estado</h4>
