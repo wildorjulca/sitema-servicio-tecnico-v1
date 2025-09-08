@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts"
 import { Plus } from "lucide-react"
+import { Link } from "react-router-dom"
 
 const data = [
   { name: "En reparación", value: 8 },
@@ -59,9 +60,12 @@ export default function Panel() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Estado de servicios</CardTitle>
-          <Button size="sm" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" /> Nuevo servicio
-          </Button>
+          <Link to={'/dashboard/new'}>
+            <Button size="sm" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" /> Nuevo servicio
+            </Button>
+          </Link>
+
         </CardHeader>
         <CardContent className="h-72">
           <ResponsiveContainer width="100%" height="100%">
