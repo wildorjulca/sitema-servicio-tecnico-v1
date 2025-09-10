@@ -150,3 +150,62 @@ CREATE TABLE producto_imagenes (
     FOREIGN KEY (producto_id) REFERENCES productos(id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+
+CREATE TABLE `SERVICIO` (
+    `idservicio` BIGINT NOT NULL AUTO_INCREMENT,
+    `fechaingreso` DATETIME NOT NULL,
+    `MOTIVO_INGRESO_idMOTIVO_INGRESO` BIGINT NOT NULL,
+    `descripcion_motivo` VARCHAR(95) NULL,
+    `observacion` VARCHAR(150) NULL,
+    `diagnostico` VARCHAR(150) NULL,
+    `solucion` VARCHAR(150) NULL,
+    `precio` DOUBLE NOT NULL DEFAULT 0.0,
+    `TECNICO_idTecnicoRecibe` INT NOT NULL,
+    `TECNICO_idTecnicoSoluciona` INT NOT NULL,
+    `fechaentrega` DATETIME NULL,
+    `preciorepuestos` DOUBLE NOT NULL DEFAULT 0.0,
+    `estado` INT NULL DEFAULT 1,
+    `precioTotal` DOUBLE NULL DEFAULT 0.0,
+    `SERVICIO_EQUIPOS_idservicioequipos` INT NOT NULL,
+    `CLIENTE_idCliente` INT NOT NULL,
+    PRIMARY KEY (`idservicio`),
+
+    -- Índices para mejorar el rendimiento de las consultas que involucran claves foráneas
+    INDEX `idx_MOTIVO_INGRESO` (`MOTIVO_INGRESO_idMOTIVO_INGRESO`),
+    INDEX `idx_TECNICO_idTecnicoRecibe` (`TECNICO_idTecnicoRecibe`),
+    INDEX `idx_TECNICO_idTecnicoSoluciona` (`TECNICO_idTecnicoSoluciona`),
+    INDEX `idx_SERVICIO_EQUIPOS` (`SERVICIO_EQUIPOS_idservicioequipos`),
+    INDEX `idx_CLIENTE` (`CLIENTE_idCliente`),
+
+    -- Relaciones con llaves foráneas
+    CONSTRAINT `fk_SERVICIO_MOTIVO_INGRESO`
+        FOREIGN KEY (`MOTIVO_INGRESO_idMOTIVO_INGRESO`)
+        REFERENCES `MOTIVO_INGRESO` (`idMOTIVO_INGRESO`)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION,
+
+    CONSTRAINT `fk_SERVICIO_TECNICO_RECIBE`
+        FOREIGN KEY (`TECNICO_idTecnicoRecibe`)
+        REFERENCES `TECNICO` (`idTecnico`)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION,
+
+    CONSTRAINT `fk_SERVICIO_TECNICO_SOLUCIONA`
+        FOREIGN KEY (`TECNICO_idTecnicoSoluciona`)
+        REFERENCES `TECNICO` (`idTecnico`)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION,
+
+    CONSTRAINT `fk_SERVICIO_SERVICIO_EQUIPOS`
+        FOREIGN KEY (`SERVICIO_EQUIPOS_idservicioequipos`)
+        REFERENCES `SERVICIO_EQUIPOS` (`idservicioequipos`)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION,
+
+    CONSTRAINT `fk_SERVICIO_CLIENTE`
+        FOREIGN KEY (`CLIENTE_idCliente`)
+        REFERENCES `CLIENTE` (`idCliente`)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION
+) ENGINE=InnoDB;

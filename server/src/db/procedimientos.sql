@@ -1000,6 +1000,52 @@ BEGIN
 END
 
 
--- --------------------------
+-- tabla servicio  --------------------------
 
 
+CREATE TABLE SERVICIO (
+    idServicio BIGINT NOT NULL AUTO_INCREMENT,
+    codigoSeguimiento VARCHAR(7) NOT NULL UNIQUE, -- código único para cada servicio hecho
+    fechaIngreso DATETIME NOT NULL,
+    motivo_ingreso_id INT NOT NULL, 
+    descripcion_motivo VARCHAR(95) NULL,
+    observacion VARCHAR(150) NULL,
+    diagnostico VARCHAR(150) NULL,
+    solucion VARCHAR(150) NULL,
+    precio DOUBLE NOT NULL DEFAULT 0.0,
+    usuario_recibe_id INT NOT NULL,     
+    usuario_soluciona_id INT NULL,      
+    fechaEntrega DATETIME NULL,
+    precioRepuestos DOUBLE NOT NULL DEFAULT 0.0,
+    estado TINYINT NULL DEFAULT 1,      -- 1=Reserpcionado, 2=En diagnóstico, 3=En reparación, 4=Finalizado, 5=Entregado
+    precioTotal DOUBLE NULL DEFAULT 0.0,
+    servicio_equipos_id INT NOT NULL, 
+    cliente_id INT NOT NULL,          
+    PRIMARY KEY (idServicio),
+
+    -- Índices
+    INDEX idx_codigoSeguimiento (codigoSeguimiento),
+    INDEX idx_estado (estado),
+    INDEX idx_cliente (cliente_id),
+
+    -- Relaciones
+    CONSTRAINT fk_servicio_motivo
+        FOREIGN KEY (motivo_ingreso_id)
+        REFERENCES MOTIVO_INGRESO (idMotivo),
+
+    CONSTRAINT fk_servicio_usuario_recibe
+        FOREIGN KEY (usuario_recibe_id)
+        REFERENCES usuarios (id),
+
+    CONSTRAINT fk_servicio_usuario_soluciona
+        FOREIGN KEY (usuario_soluciona_id)
+        REFERENCES usuarios (id),
+
+    CONSTRAINT fk_servicio_equipo
+        FOREIGN KEY (servicio_equipos_id)
+        REFERENCES SERVICIO_EQUIPOS (idServicioEquipos),
+
+    CONSTRAINT fk_servicio_cliente
+        FOREIGN KEY (cliente_id)
+        REFERENCES CLIENTE (idCliente)
+) ENGINE=InnoDB;
