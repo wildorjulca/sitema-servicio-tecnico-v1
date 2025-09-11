@@ -79,3 +79,41 @@ export const deleteBrandAPI = async (id: number, usuarioId: number) => {
     throw error;
   }
 }
+
+
+
+export const AllMarcaCbo = async (usuarioId: number) => {
+  try {
+    const response = await instance.get(
+      `/getAll/${usuarioId}` // Sin parámetros de paginación
+    );
+
+    // Asumiendo que la respuesta tiene la estructura { data: [...], total: X }
+    const { data } = response.data;
+
+    console.log("Todas las marcas obtenidas:", data);
+    return data; // Devolver solo el array de datos
+  } catch (error) {
+    console.error("Error al obtener todas las marcas:", error);
+    throw error;
+  }
+};
+
+
+// ----------------------
+// Listar marca sin paginacion
+// ----------------------
+export const fetchMarca = async (
+) => {
+  try {
+    const response = await instance.get(`/getMarca`);
+
+    const { data } = response.data;
+
+    console.log("Marcas obtenidas:", { data });
+    return { data }; // Devolver tanto data como total
+  } catch (error) {
+    console.error("Error al obtener marcas:", error);
+    throw error;
+  }
+};

@@ -83,6 +83,10 @@ const data = {
             icon: Settings2,
             items: [
                 {
+                    title: "Servicio Equipos",
+                    url: "serv_e",
+                },
+                {
                     title: "listado del servicio",
                     url: "list",
                 },

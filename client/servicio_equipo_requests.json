@@ -1,0 +1,4 @@
+{
+ "listar servicio equipo con filtros":"GET /servicio-equipo/1?pageIndex=0&pageSize=10&filtroMarca=Lenovo"
+}
+

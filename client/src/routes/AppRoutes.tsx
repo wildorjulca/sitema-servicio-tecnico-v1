@@ -21,6 +21,7 @@ import { DetalleProducto } from '@/pages/dashboard/producto/ui/detalleProducto';
 import { ProductLayout } from '@/pages/dashboard/producto/outlet';
 import Listar_Servicio from '@/pages/dashboard/servicio/pages/Listar_Servicio';
 import New_Service from '@/pages/dashboard/servicio/pages/New_service';
+import Servicio_Equipos from '@/pages/servicio_equipos';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -57,10 +58,12 @@ const AppRoutes = () => {
                     </Route>
 
                     <Route path="users" element={<Usuarios />} />
-                    <Route path="settings" element={<div>Settings</div>} />
+                        <Route path="settings" element={<div>Settings</div>} />
 
                     <Route path="servicio" element={<ServicioLayout />}>
+
                     </Route>
+                    <Route path="serv_e" element={<Servicio_Equipos />} />
                     <Route path="list" element={<Listar_Servicio />} />
 
                     <Route path="new" element={<New_Service />} />

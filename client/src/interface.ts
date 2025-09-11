@@ -127,3 +127,15 @@ export interface CatAdd {
   esServicio: number;
 
 }
+
+
+export interface ServicioEquipo {
+  idServicioEquipos: number;
+  EQUIPO_idEquipo: number;
+  nombre_equipo: string;
+  MARCA_idMarca: number;
+  nombre_marca: string;
+  modelo: string;
+  serie: string;
+  codigo_barras: string;
+}

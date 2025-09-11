@@ -1,4 +1,4 @@
-import { addBrandAPI, Brand, deleteBrandAPI, editBrandAPI, fetchBrands } from '@/apis';
+import { addBrandAPI, Brand, deleteBrandAPI, editBrandAPI, fetchBrands, fetchMarca } from '@/apis';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
@@ -20,7 +20,6 @@ export const useBrands = (
     queryKey: ["allBrands", usuarioId, pageIndex, pageSize],
     queryFn: () => fetchBrands(usuarioId!, pageIndex, pageSize),
     enabled: !!usuarioId,
-    staleTime: 5 * 60 * 1000,
 
   });
 
@@ -96,4 +95,23 @@ export const useDeleteBrand = (usuarioId: number) => {
       toast.error('Error al eliminar marca');
     },
   });
+};
+
+
+
+export const useMarcas = () => {
+  const query = useQuery({
+    queryKey: ["marcas"], // Key única para el cache
+    queryFn: fetchMarca,   // Función que llama a la API
+  });
+
+  if (query.isError) {
+    toast.error("Error al cargar marcas sin pag");
+  }
+
+
+  return {
+    ...query,
+    data: query.data?.data || [], // Extrae el array de datos
+  };
 };
