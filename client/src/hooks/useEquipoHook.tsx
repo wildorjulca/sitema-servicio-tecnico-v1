@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { addEquiposApi, deleteEquiposApi, editEquiposApi, Equipo, fetchEquiposApi } from '@/apis';
+import { addEquiposApi, deleteEquiposApi, editEquiposApi, Equipo, fetchEquipoCbo, fetchEquiposApi } from '@/apis';
 import toast from 'react-hot-toast';
 import { AxiosError } from 'axios'; // Importar AxiosError
 
@@ -84,4 +84,21 @@ export const useDeleteEquipoHook = (usuarioId: number) => {
       toast.error(error.response?.data?.mensaje || 'Error al eliminar equipo');
     },
   });
+};
+
+
+export const useEquiposCboHook = () => {
+  const query = useQuery({
+    queryKey: ["equipo"], // Key única para el cache
+    queryFn: fetchEquipoCbo,   // Función que llama a la API
+  });
+
+  if (query.isError) {
+    toast.error("Error al cargar equipos sin pag");
+  }
+
+  return {
+    ...query,
+    data: query.data?.data || [], // Extrae el array de datos
+  };
 };

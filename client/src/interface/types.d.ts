@@ -37,3 +37,14 @@ export interface Servicio {
     SERVICIO_EQUIPOS_idservicio?: number; // Opcional
     CLIENTE_idCliente: number; // Obligatorio
 }
+
+
+export interface ServicioEquipo {
+    idServicioEquipos?: number;
+    EQUIPO_idEquipo: number;
+    MARCA_idMarca: number;
+    modelo?: string;
+    serie?: string;
+    codigo_barras?: string;
+    usuarioId: number;
+}

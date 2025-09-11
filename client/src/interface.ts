@@ -20,9 +20,9 @@ export type Productos = {
   descripcion: string;
   precio_compra: number;
   precio_venta: number;
-  stock:number,
-  categoria_id:number,
-  estado:number,
+  stock: number,
+  categoria_id: number,
+  estado: number,
 
 };
 
@@ -130,6 +130,19 @@ export interface CatAdd {
 
 
 export interface ServicioEquipo {
+  usuarioId: number,
+  idServicioEquipos: number;
+  EQUIPO_idEquipo: number;
+  MARCA_idMarca: number;
+  nombre_equipo?: string;
+  nombre_marca?: string;
+  modelo?: string;
+  serie?: string;
+  codigo_barras?: string;
+}
+
+export interface ServicioEquipos {
+  usuarioId: number,
   idServicioEquipos: number;
   EQUIPO_idEquipo: number;
   nombre_equipo: string;
@@ -139,3 +152,4 @@ export interface ServicioEquipo {
   serie: string;
   codigo_barras: string;
 }
+

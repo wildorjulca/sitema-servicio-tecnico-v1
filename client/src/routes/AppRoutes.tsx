@@ -21,7 +21,7 @@ import { DetalleProducto } from '@/pages/dashboard/producto/ui/detalleProducto';
 import { ProductLayout } from '@/pages/dashboard/producto/outlet';
 import Listar_Servicio from '@/pages/dashboard/servicio/pages/Listar_Servicio';
 import New_Service from '@/pages/dashboard/servicio/pages/New_service';
-import Servicio_Equipos from '@/pages/servicio_equipos';
+import Servicio_Equipos from '@/pages/dashboard/servicio_equipos';
 
 const NotFound = () => <div><Error404 /></div>;
 

@@ -70,3 +70,21 @@ export const deleteEquiposApi = async (id: number, usuarioId: number) => {
     throw error;
   }
 };
+
+
+
+
+export const fetchEquipoCbo = async (
+) => {
+  try {
+    const response = await instance.get(`/getEq`);
+
+    const { data } = response.data;
+
+    console.log("equipos obtenidas:", { data });
+    return { data }; // Devolver tanto data como total
+  } catch (error) {
+    console.error("Error al obtener equipos:", error);
+    throw error;
+  }
+};
