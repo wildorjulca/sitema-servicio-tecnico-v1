@@ -1,6 +1,8 @@
 import { coneccion } from "../config/conexion";
+import { ServicioEquipo } from "../interface";
 
 const cn = coneccion();
+
 
 const listServicio_equipo = async (
     usuarioId: number,
@@ -37,4 +39,127 @@ const listServicio_equipo = async (
         };
     }
 };
-export { listServicio_equipo };
+
+
+// Insertar servicio equipo
+const createServicioEquipo = async (servicioEquipo: ServicioEquipo) => {
+    if (!servicioEquipo.EQUIPO_idEquipo || !servicioEquipo.MARCA_idMarca) {
+        return {
+            status: 400,
+            success: false,
+            mensaje: "EQUIPO_idEquipo y MARCA_idMarca son obligatorios",
+        };
+    }
+
+    try {
+        const [rows]: any = await cn.promise().query("CALL sp_servicio_equipos_crud(?, ?, ?, ?, ?, ?, ?, ?)", [
+            "INSERTAR_SERVICIO_EQUIPO",
+            null,
+            servicioEquipo.EQUIPO_idEquipo,
+            servicioEquipo.MARCA_idMarca,
+            servicioEquipo.modelo || null,
+            servicioEquipo.serie || null,
+            servicioEquipo.codigo_barras || null,
+            servicioEquipo.usuarioId,
+        ]);
+
+        const idInsertado = rows[0][0]?.id_insertado;
+
+        return {
+            status: 201,
+            success: true,
+            mensaje: "Servicio equipo creado correctamente",
+            data: { id: idInsertado },
+        };
+    } catch (error: any) {
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error en la base de datos",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
+
+// Actualizar servicio equipo
+const updateServicioEquipo = async (servicioEquipo: ServicioEquipo) => {
+    if (!servicioEquipo.idServicioEquipos) {
+        return {
+            status: 400,
+            success: false,
+            mensaje: "El idServicioEquipos es obligatorio",
+        };
+    }
+
+    try {
+        const [rows]: any = await cn.promise().query("CALL sp_servicio_equipos_crud(?, ?, ?, ?, ?, ?, ?, ?)", [
+            "ACTUALIZAR_SERVICIO_EQUIPO",
+            servicioEquipo.idServicioEquipos,
+            servicioEquipo.EQUIPO_idEquipo,
+            servicioEquipo.MARCA_idMarca,
+            servicioEquipo.modelo || null,
+            servicioEquipo.serie || null,
+            servicioEquipo.codigo_barras || null,
+            servicioEquipo.usuarioId,
+        ]);
+
+        const filasAfectadas = rows[0][0]?.filas_afectadas || 0;
+
+        return {
+            status: 200,
+            success: true,
+            mensaje: filasAfectadas > 0 ? "Servicio equipo actualizado" : "No se encontró el servicio equipo",
+            data: { filasAfectadas },
+        };
+    } catch (error: any) {
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error en la base de datos",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
+
+// Eliminar servicio equipo
+const deleteServicioEquipo = async (idServicioEquipos: number, usuarioId: number) => {
+    if (!idServicioEquipos) {
+        return {
+            status: 400,
+            success: false,
+            mensaje: "El idServicioEquipos es obligatorio",
+        };
+    }
+
+    try {
+        const [rows]: any = await cn.promise().query("CALL sp_servicio_equipos_crud(?, ?, ?, ?, ?, ?, ?, ?)", [
+            "ELIMINAR_SERVICIO_EQUIPO",
+            idServicioEquipos,
+            null,
+            null,
+            null,
+            null,
+            null,
+            usuarioId,
+        ]);
+
+        const filasAfectadas = rows[0][0]?.filas_afectadas || 0;
+
+        return {
+            status: 200,
+            success: true,
+            mensaje: filasAfectadas > 0 ? "Servicio equipo eliminado" : "No se encontró el servicio equipo",
+            data: { filasAfectadas },
+        };
+    } catch (error: any) {
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error en la base de datos",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
+
+
+export { listServicio_equipo, createServicioEquipo, updateServicioEquipo, deleteServicioEquipo };

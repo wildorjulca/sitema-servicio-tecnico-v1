@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Equipo } from "../interface";
-import { createEquipo, deleteEquipo, listEquipos, updateEquipo } from "../service/equipo.Service";
+import { createEquipo, deleteEquipo, listAllEquipos, listEquipos, updateEquipo } from "../service/equipo.Service";
 
 // ----------------------
 // Crear equipo
@@ -52,4 +52,10 @@ const deleteEquipoCTRL = async (req: Request, res: Response) => {
     res.status(response.status).json(response);
 };
 
-export { addEquipoCTRL, getAllEquiposCTRL, updateEquipoCTRL, deleteEquipoCTRL };
+
+const ListEquipoCboCTRL = async (req: Request, res: Response) => {
+    const response = await listAllEquipos()
+    res.status(response.status).json(response)
+}
+
+export { addEquipoCTRL, getAllEquiposCTRL, updateEquipoCTRL, deleteEquipoCTRL ,ListEquipoCboCTRL};

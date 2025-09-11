@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { ReglasValidacionEquipo } from "../validation/equipoValidation";
 import { validate } from "../middlewares/validation";
-import { addEquipoCTRL, deleteEquipoCTRL, getAllEquiposCTRL, updateEquipoCTRL } from "../controller/equipo.Controller";
+import { addEquipoCTRL, deleteEquipoCTRL, getAllEquiposCTRL, ListEquipoCboCTRL, updateEquipoCTRL } from "../controller/equipo.Controller";
 
 const routerEquipo = Router();
 
@@ -11,6 +11,7 @@ routerEquipo.post("/addEquipo", ReglasValidacionEquipo, validate, addEquipoCTRL)
 // Listar equipos
 // Puedes pasar usuarioId por params o extraerlo del token en middleware
 routerEquipo.get("/getEquipo/:usuarioId", getAllEquiposCTRL);
+routerEquipo.get("/getEq", ListEquipoCboCTRL);
 
 // Actualizar equipo
 routerEquipo.put("/updateEquipo", ReglasValidacionEquipo, validate, updateEquipoCTRL);

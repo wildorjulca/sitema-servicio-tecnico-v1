@@ -95,3 +95,14 @@ export interface Cliente {
     telefono: string;        // Teléfono del cliente
     direccion: string;       // Dirección de domicilio
 }
+
+
+export interface ServicioEquipo {
+    idServicioEquipos?: number;
+    EQUIPO_idEquipo: number;
+    MARCA_idMarca: number;
+    modelo?: string;
+    serie?: string;
+    codigo_barras?: string;
+    usuarioId: number;
+}
