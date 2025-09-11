@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { Brands } from "../interface"
-import { createBrand, deleteBrand, listBrands, updateBrand } from "../service/marca.Service"
+import { createBrand, deleteBrand, listAllBrands, listBrands, updateBrand } from "../service/marca.Service"
 
 
 // ----------------------
@@ -54,4 +54,10 @@ const deleteBrandCTRL = async (req: Request, res: Response) => {
     res.status(response.status).json(response)
 }
 
-export { addBrandCTRL, getAllBrandsCTRL, updateBrandCTRL, deleteBrandCTRL }
+
+const ListMarcaCboCTRL = async (req: Request, res: Response) => {
+    const response = await listAllBrands()
+    res.status(response.status).json(response)
+}
+
+export { addBrandCTRL, getAllBrandsCTRL, updateBrandCTRL, deleteBrandCTRL, ListMarcaCboCTRL }

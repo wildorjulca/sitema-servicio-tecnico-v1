@@ -151,4 +151,34 @@ const deleteBrand = async (id: number, usuarioId: number) => {
   }
 };
 
-export { listBrands, createBrand, updateBrand, deleteBrand };
+
+
+
+const listAllBrands = async () => {
+  console.log("Ejecutando sp_listar_marcas sin parámetros");
+  
+  try {
+    const [results]: any = await cn
+      .promise()
+      .query("CALL sp_listar_marcas()"); // Sin parámetros
+
+    console.log("Resultados de sp_listar_marcas:", { data: results[0] });
+    
+    return {
+      status: 200,
+      success: true,
+      data: results[0],
+      total: results[0].length,
+    };
+  } catch (error: any) {
+    console.log("Error en listAllBrands:", error);
+    return {
+      status: 500,
+      success: false,
+      mensaje: "Error en la base de datos",
+      error: error.sqlMessage || error.message,
+    };
+  }
+};
+
+export { listBrands, createBrand, updateBrand, deleteBrand , listAllBrands};
