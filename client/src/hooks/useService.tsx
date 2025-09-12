@@ -2,41 +2,48 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useEffect } from 'react';
 import { ServicioEquipo } from '@/interface';
-import { addServicioEquipoAPI, deleteServicioEquipoAPI, editServicioEquipoAPI, fetchServ_equipo } from '@/apis/servicio_equipo';
+import { addServicioEquipoAPI, deleteServicioEquipoAPI, editServicioEquipoAPI } from '@/apis/servicio_equipo';
 import { fetchMarca } from '@/apis';
+import { Servicio } from '@/interface/types';
+import { fetchService } from '@/apis/servicio';
 
 // Definir la interfaz para la respuesta del API
-interface Servicio_e {
-  data: ServicioEquipo[];
-  total: number;
-}
 
-export const useServicioEquipoHook = (
+
+export const useServicioHook = (
   usuarioId?: number,
   pageIndex = 0,
   pageSize = 10,
   filtros?: {
-    filtroMarca?: number; // Cambiado de string a number
-
+    estadoId?: number;
+    clienteId?: number;
   }
 ) => {
-  const query = useQuery<Servicio_e, Error>({
-    queryKey: ["serEq", usuarioId, pageIndex, pageSize, filtros?.filtroMarca], // Eliminados filtros no usados
+  const query = useQuery<{ data: Servicio[]; total: number }, Error>({
+    queryKey: [
+      "reparaciones",
+      usuarioId,
+      pageIndex,
+      pageSize,
+      filtros?.estadoId,
+      filtros?.clienteId
+    ],
     queryFn: () =>
-      fetchServ_equipo(
+      fetchService(
         usuarioId!,
         pageIndex,
         pageSize,
-        filtros?.filtroMarca, // Solo enviamos este filtro
+        filtros?.estadoId,    // Filtro por estado
+        filtros?.clienteId    // Filtro por cliente
       ),
     enabled: !!usuarioId,
-    staleTime: 0, // fuerza refetch inmediato
-    placeholderData: (prev) => prev, // equivalente a keepPreviousData
+    staleTime: 0,
+    placeholderData: (prev) => prev,
   });
 
   useEffect(() => {
     if (query.isError) {
-      toast.error(`Error al cargar servicio-equipo: ${query.error?.message || 'Unknown error'}`);
+      toast.error(`Error al cargar servicios: ${query.error?.message || 'Unknown error'}`);
     }
   }, [query.isError, query.error]);
 
@@ -48,9 +55,8 @@ export const useServicioEquipoHook = (
 };
 
 
-
 // ----------------------
-// Hook para servicio
+// Hook para servicio equipos
 // ----------------------
 
 export const useAddServicioEqHook = (usuarioId: number) => {

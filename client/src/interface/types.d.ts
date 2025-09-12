@@ -1,43 +1,43 @@
 
-// export interface Servicio {
-//     idservicio: bigint; // Primary Key
-//     fechaingreso: Date;
-//     MOTIVO_INGRESO_idMOTIVO_INGRESO: bigint;
-//     descripcion_motivo?: string; // Opcional
-//     observacion?: string; // Opcional
-//     diagnostico?: string; // Opcional
-//     solucion?: string; // Opcional
-//     precio: number;
-//     TECNICO_idTecnicoRecibe?: number; // Opcional
-//     TECNICO_idTecnicoSoluciona?: number; // Opcional
-//     fechaentrega?: Date; // Opcional
-//     presupuestos?: number; // Opcional
-//     estado: number;
-//     precioTotal?: number; // Opcional
-//     SERVICIO_EQUIPOS_idservicio: number; // Opcional
-//     CLIENTE_idCliente: number;
-// }
-
-
 export interface Servicio {
-    idservicio: bigint; // Primary Key
-    fechaingreso: Date;
-    MOTIVO_INGRESO_idMOTIVO_INGRESO: bigint;
-    descripcion_motivo?: string; // Opcional
-    observacion?: string; // Opcional
-    diagnostico?: string; // Opcional
-    solucion?: string; // Opcional
-    precio?: number; // Opcional
-    TECNICO_idTecnicoRecibe: number; // Obligatorio (corrigiendo el tipo)
-    TECNICO_idTecnicoSoluciona?: number; // Opcional
-    fechaentrega?: Date; // Opcional
-    presupuestos?: number; // Opcional
-    estado?: number; // Opcional
-    precioTotal?: number; // Opcional
-    SERVICIO_EQUIPOS_idservicio?: number; // Opcional
-    CLIENTE_idCliente: number; // Obligatorio
+    idServicio: number;
+    codigoSeguimiento: string;
+    fechaIngreso: Date;
+    motivo_ingreso_id: number;
+    motivo_ingreso: string;
+    descripcion_motivo: string;
+    observacion: string;
+    diagnostico: string;
+    solucion: string;
+    precio: number;
+    usuario_recibe_id: number;
+    usuario_recibe: string;
+    usuario_soluciona_id: number;
+    usuario_soluciona: string;
+    fechaEntrega: Date;
+    precioRepuestos: number;
+    estado_id: number;
+    estado: string;
+    precioTotal: number;
+    servicio_equipos_id: number;
+    equipo: string;
+    MARCA_idMarca: number;
+    marca: string;
+    modelo: string;
+    serie: string;
+    codigo_barras: string;
+    cliente_id: number;
+    cliente: string;
 }
 
+export interface ServicioResponse {
+    status: number;
+    success: boolean;
+    data: Servicio[];
+    total: number;
+    mensaje?: string;
+    error?: string;
+}
 
 export interface ServicioEquipo {
     idServicioEquipos?: number;
