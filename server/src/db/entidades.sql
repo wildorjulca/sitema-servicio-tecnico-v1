@@ -152,60 +152,47 @@ CREATE TABLE producto_imagenes (
 );
 
 
-CREATE TABLE `SERVICIO` (
-    `idservicio` BIGINT NOT NULL AUTO_INCREMENT,
-    `fechaingreso` DATETIME NOT NULL,
-    `MOTIVO_INGRESO_idMOTIVO_INGRESO` BIGINT NOT NULL,
-    `descripcion_motivo` VARCHAR(95) NULL,
-    `observacion` VARCHAR(150) NULL,
-    `diagnostico` VARCHAR(150) NULL,
-    `solucion` VARCHAR(150) NULL,
-    `precio` DOUBLE NOT NULL DEFAULT 0.0,
-    `TECNICO_idTecnicoRecibe` INT NOT NULL,
-    `TECNICO_idTecnicoSoluciona` INT NOT NULL,
-    `fechaentrega` DATETIME NULL,
-    `preciorepuestos` DOUBLE NOT NULL DEFAULT 0.0,
-    `estado` INT NULL DEFAULT 1,
-    `precioTotal` DOUBLE NULL DEFAULT 0.0,
-    `SERVICIO_EQUIPOS_idservicioequipos` INT NOT NULL,
-    `CLIENTE_idCliente` INT NOT NULL,
-    PRIMARY KEY (`idservicio`),
+CREATE TABLE `servicio` (
+  `idServicio` bigint NOT NULL AUTO_INCREMENT,
+  `codigoSeguimiento` varchar(7) NOT NULL,
+  `fechaIngreso` datetime NOT NULL,
+  `motivo_ingreso_id` int NOT NULL,
+  `descripcion_motivo` varchar(95) DEFAULT NULL,
+  `observacion` varchar(150) DEFAULT NULL,
+  `diagnostico` varchar(150) DEFAULT NULL,
+  `solucion` varchar(150) DEFAULT NULL,
+  `precio` double NOT NULL DEFAULT '0',
+  `usuario_recibe_id` int NOT NULL,
+  `usuario_soluciona_id` int DEFAULT NULL,
+  `fechaEntrega` datetime DEFAULT NULL,
+  `precioRepuestos` double NOT NULL DEFAULT '0',
+  `estado_id` int DEFAULT NULL,
+  `precioTotal` double DEFAULT '0',
+  `servicio_equipos_id` int NOT NULL,
+  `cliente_id` int NOT NULL,
+  PRIMARY KEY (`idServicio`),
+  UNIQUE KEY `codigoSeguimiento` (`codigoSeguimiento`),
+  KEY `idx_codigoSeguimiento` (`codigoSeguimiento`),
+  KEY `idx_cliente` (`cliente_id`),
+  KEY `fk_servicio_motivo` (`motivo_ingreso_id`),
+  KEY `fk_servicio_usuario_recibe` (`usuario_recibe_id`),
+  KEY `fk_servicio_usuario_soluciona` (`usuario_soluciona_id`),
+  KEY `fk_servicio_equipo` (`servicio_equipos_id`),
+  KEY `fk_servicio_estado` (`estado_id`),
+  CONSTRAINT `fk_servicio_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `cliente` (`idCliente`),
+  CONSTRAINT `fk_servicio_equipo` FOREIGN KEY (`servicio_equipos_id`) REFERENCES `servicio_equipos` (`idServicioEquipos`),
+  CONSTRAINT `fk_servicio_estado` FOREIGN KEY (`estado_id`) REFERENCES `estado_servicio` (`idEstado`),
+  CONSTRAINT `fk_servicio_motivo` FOREIGN KEY (`motivo_ingreso_id`) REFERENCES `motivo_ingreso` (`idMotivo`),
+  CONSTRAINT `fk_servicio_usuario_recibe` FOREIGN KEY (`usuario_recibe_id`) REFERENCES `usuarios` (`id`),
+  CONSTRAINT `fk_servicio_usuario_soluciona` FOREIGN KEY (`usuario_soluciona_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 
-    -- Índices para mejorar el rendimiento de las consultas que involucran claves foráneas
-    INDEX `idx_MOTIVO_INGRESO` (`MOTIVO_INGRESO_idMOTIVO_INGRESO`),
-    INDEX `idx_TECNICO_idTecnicoRecibe` (`TECNICO_idTecnicoRecibe`),
-    INDEX `idx_TECNICO_idTecnicoSoluciona` (`TECNICO_idTecnicoSoluciona`),
-    INDEX `idx_SERVICIO_EQUIPOS` (`SERVICIO_EQUIPOS_idservicioequipos`),
-    INDEX `idx_CLIENTE` (`CLIENTE_idCliente`),
 
-    -- Relaciones con llaves foráneas
-    CONSTRAINT `fk_SERVICIO_MOTIVO_INGRESO`
-        FOREIGN KEY (`MOTIVO_INGRESO_idMOTIVO_INGRESO`)
-        REFERENCES `MOTIVO_INGRESO` (`idMOTIVO_INGRESO`)
-        ON DELETE NO ACTION
-        ON UPDATE NO ACTION,
+-- estado para servicio -----
 
-    CONSTRAINT `fk_SERVICIO_TECNICO_RECIBE`
-        FOREIGN KEY (`TECNICO_idTecnicoRecibe`)
-        REFERENCES `TECNICO` (`idTecnico`)
-        ON DELETE NO ACTION
-        ON UPDATE NO ACTION,
-
-    CONSTRAINT `fk_SERVICIO_TECNICO_SOLUCIONA`
-        FOREIGN KEY (`TECNICO_idTecnicoSoluciona`)
-        REFERENCES `TECNICO` (`idTecnico`)
-        ON DELETE NO ACTION
-        ON UPDATE NO ACTION,
-
-    CONSTRAINT `fk_SERVICIO_SERVICIO_EQUIPOS`
-        FOREIGN KEY (`SERVICIO_EQUIPOS_idservicioequipos`)
-        REFERENCES `SERVICIO_EQUIPOS` (`idservicioequipos`)
-        ON DELETE NO ACTION
-        ON UPDATE NO ACTION,
-
-    CONSTRAINT `fk_SERVICIO_CLIENTE`
-        FOREIGN KEY (`CLIENTE_idCliente`)
-        REFERENCES `CLIENTE` (`idCliente`)
-        ON DELETE NO ACTION
-        ON UPDATE NO ACTION
-) ENGINE=InnoDB;
+CREATE TABLE estado_servicio (
+  idEstado INT NOT NULL AUTO_INCREMENT,
+  nombre VARCHAR(50) NOT NULL,
+  descripcion VARCHAR(100) DEFAULT NULL,
+  PRIMARY KEY (idEstado)
+);
