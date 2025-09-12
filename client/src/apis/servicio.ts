@@ -1,5 +1,5 @@
 import { ServicioEquipo } from "@/interface";
-import { Servicio } from "@/interface/types";
+import {  Servicio } from "@/interface/types";
 import { instance } from "@/lib/axios";
 
 // ----------------------
@@ -33,6 +33,23 @@ export const fetchService = async (
   };
 };
 
+// ----------------------
+// listar estados del servicio
+// ----------------------
+
+
+export const fetchEstadoServ = async (
+) => {
+  try {
+    const response = await instance.get(`/getEstado`);
+    const { data } = response.data;
+    console.log("estados obtenidos:", { data });
+    return { data };
+  } catch (error) {
+    console.error("Error al obtener los estados:", error);
+    throw error;
+  };
+};
 // ----------------------
 // agregar servicio equipos
 // ----------------------

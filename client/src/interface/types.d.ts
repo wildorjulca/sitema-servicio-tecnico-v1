@@ -39,6 +39,13 @@ export interface ServicioResponse {
     error?: string;
 }
 
+export interface Estado {
+    idEstado: number,
+    nombre: string,
+    descripcion: string
+
+}
+
 export interface ServicioEquipo {
     idServicioEquipos?: number;
     EQUIPO_idEquipo: number;

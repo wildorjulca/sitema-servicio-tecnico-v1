@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 import { ServicioEquipo } from '@/interface';
 import { addServicioEquipoAPI, deleteServicioEquipoAPI, editServicioEquipoAPI } from '@/apis/servicio_equipo';
 import { fetchMarca } from '@/apis';
-import { Servicio } from '@/interface/types';
-import { fetchService } from '@/apis/servicio';
+import { Estado, Servicio } from '@/interface/types';
+import { fetchEstadoServ, fetchService } from '@/apis/servicio';
 
 // Definir la interfaz para la respuesta del API
 
@@ -54,6 +54,25 @@ export const useServicioHook = (
   };
 };
 
+// ----------------------
+// Hook para listar estados del servicio pediente , etc
+// ----------------------
+export const useEstadoHook = () => {
+  const query = useQuery<{ data: Estado[]}, Error>({
+    queryKey: ["estado"],
+    queryFn: () =>
+      fetchEstadoServ(),
+  });
+
+  if (query.isError) {
+    toast.error("Error al cargar los estados");
+  }
+
+  return {
+    ...query,
+    data: query.data?.data || [],
+  };
+};
 
 // ----------------------
 // Hook para servicio equipos

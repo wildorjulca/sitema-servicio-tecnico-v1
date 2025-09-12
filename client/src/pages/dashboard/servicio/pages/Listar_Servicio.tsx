@@ -2,16 +2,10 @@ import { useUser } from "@/hooks/useUser";
 import { useState, useEffect } from "react";
 import Loader from "@/components/sniper-carga/loader";
 import { DataTable } from "../../ui/table-reutilizable";
-import { useServicioHook } from "@/hooks/useService";
+import { useEstadoHook, useServicioHook } from "@/hooks/useService";
 import { Servicio } from "@/interface/types";
-import { CellContext } from "@tanstack/react-table";
-interface ServicioMapeado {
-
-  precioTotal: string;
-  estado: string;
-}
-
-type TableCellProps<T> = CellContext<T, unknown>;
+import { SelectWithCheckbox } from "@/components/chexbox/SelectWithCheckbox";
+import { Button } from "@/components/ui/button";
 
 export default function Listar_Servicio() {
   const { user } = useUser();
@@ -19,7 +13,9 @@ export default function Listar_Servicio() {
 
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
+  const [filtros, setFiltros] = useState<{ estadoId?: number; clienteId?: number }>({});
   const [totalRows, setTotalRows] = useState(0);
+
   const columns = [
     { accessorKey: "cod", header: "Código" },
     { accessorKey: "cliente", header: "Cliente" },
@@ -33,7 +29,7 @@ export default function Listar_Servicio() {
     {
       accessorKey: "precioTotal",
       header: "Precio Total",
-      cell: ({ getValue }: TableCellProps<ServicioMapeado>) => (
+      cell: ({ getValue }: any) => (
         <span className="text-green-700 font-semibold font-sans">
           {getValue() as string}
         </span>
@@ -42,7 +38,7 @@ export default function Listar_Servicio() {
     {
       accessorKey: "estado",
       header: "Estado",
-      cell: ({ getValue }: TableCellProps<ServicioMapeado>) => {
+      cell: ({ getValue }: any) => {
         const estado = getValue() as string;
         let className = "px-2 py-1 rounded-full text-xs font-medium";
 
@@ -71,27 +67,49 @@ export default function Listar_Servicio() {
       }
     }
   ];
-  const { data, total, isLoading, isError, error, refetch } = useServicioHook(
+
+  // Pasar el objeto de filtros correctamente
+  const { data, total, isLoading, isError, error } = useServicioHook(
     usuarioId,
     pageIndex,
-    pageSize
+    pageSize,
+    filtros  // Ahora pasamos el objeto completo de filtros
   );
+
+  const { data: estados, isLoading: isLoadingEstados } = useEstadoHook();
+
+  const estadosOptions = estados.map(est => ({
+    value: est.idEstado,
+    label: est.nombre
+  }));
 
   useEffect(() => {
     if (usuarioId && data) {
-      console.log("Datos de useTipoDocHook:", { data, total });
+      console.log("Datos de listar servicio:", { data, total });
       setTotalRows(total);
-      refetch();
     }
-  }, [pageIndex, pageSize, usuarioId, total, refetch]);
+  }, [data, total, usuarioId]);
 
-  if (!usuarioId) return <div>Por favor inicia sesión para ver los tipos de documento</div>;
-  if (isLoading) return <div> <Loader /></div>;
+  const handleFiltroEstadoChange = (value: number | null) => {
+    setPageIndex(0); // Resetear a la primera página al cambiar filtros
+    setFiltros(prev => ({
+      ...prev,
+      estadoId: value || undefined // Si es null, lo convertimos a undefined
+    }));
+  };
+
+  const handleClearFilters = () => {
+    setPageIndex(0);
+    setFiltros({});
+  };
+
+  if (!usuarioId) return <div>Por favor inicia sesión para ver los servicios</div>;
+  if (isLoadingEstados || isLoading) return <div><Loader /></div>;
   if (isError) {
     console.error("Error details:", error);
     return (
-      <div>
-        Error al cargar tipos de documento: {error?.message || "Unknown error"}
+      <div className="p-4 bg-red-100 text-red-700 rounded-md">
+        Error al cargar servicios: {error?.message || "Error desconocido"}
       </div>
     );
   }
@@ -109,11 +127,11 @@ export default function Listar_Servicio() {
     precio: ser.precio,
     usuarioRecibe: ser.usuario_recibe,
     usuarioSoluciona: ser.usuario_soluciona,
-    fechaEntrega: new Date(ser.fechaEntrega).toLocaleDateString(),
+    fechaEntrega: ser.fechaEntrega ? new Date(ser.fechaEntrega).toLocaleDateString() : 'N/A',
     precioRepuestos: ser.precioRepuestos,
     estado: ser.estado,
     estadoId: ser.estado_id,
-    precioTotal: `S/. ${ser.precioTotal.toFixed(2)}`,
+    precioTotal: `S/. ${ser.precioTotal?.toFixed(2) || '0.00'}`,
     equipo: ser.equipo,
     marca: ser.marca,
     modelo: ser.modelo,
@@ -128,7 +146,39 @@ export default function Listar_Servicio() {
   }));
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-4 p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Listado de Servicios</h1>
+        <div className="flex items-center space-x-4">
+          <span className="text-sm text-gray-600">
+            Mostrando {MapedService.length} de {totalRows} servicios
+          </span>
+        </div>
+      </div>
+
+      {/* --- Filtros --- */}
+
+      <div className="grid grid-cols-2 md:grid-cols-12 gap-4 items-end">
+        <div className="md:col-span-4">
+          <SelectWithCheckbox
+            value={filtros.estadoId || null}
+            onValueChange={handleFiltroEstadoChange}
+            options={estadosOptions}
+            placeholder="Seleccionar el Estado"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <Button variant={"outline"}
+            onClick={handleClearFilters}
+          >
+            Limpiar Filtros
+          </Button>
+        </div>
+      </div>
+
+
+
       <DataTable
         data={MapedService}
         columns={columns}
@@ -139,10 +189,6 @@ export default function Listar_Servicio() {
         onPageChange={(newPage) => setPageIndex(newPage)}
         onPageSizeChange={(size) => setPageSize(size)}
       />
-
-
-      <p>  </p>
     </div>
-
   );
 }
