@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { createServicioEquipo, deleteServicioEquipo, listServicio_equipo, updateServicioEquipo } from "../service/servicio_equipos.Service";
 import { ServicioEquipo } from "../interface";
-import { listServicio } from "../service/servicio.Service";
+import { listEstadoServ, listServicio } from "../service/servicio.Service";
 
 
 const getAllServicioCTRL = async (req: Request, res: Response) => {
@@ -21,6 +21,11 @@ const getAllServicioCTRL = async (req: Request, res: Response) => {
     clienteId
   );
 
+  res.status(response.status).json(response);
+};
+
+const getEstadoCTRL = async (req: Request, res: Response) => {
+  const response = await listEstadoServ();
   res.status(response.status).json(response);
 };
 
@@ -47,4 +52,4 @@ const deleteServicioEquipoCTRL = async (req: Request, res: Response) => {
 
 
 
-export { getAllServicioCTRL, createServicioEquipoCTRL, updateServicioEquipoCTRL, deleteServicioEquipoCTRL };
+export { getAllServicioCTRL, createServicioEquipoCTRL, updateServicioEquipoCTRL, deleteServicioEquipoCTRL,getEstadoCTRL };

@@ -11,12 +11,12 @@ const listServicio = async (
     estadoId: number | null = null,
     clienteId: number | null = null
 ) => {
-    console.log("Parámetros enviados a sp_servicio_listar:", { 
-        usuarioId, 
-        pageIndex, 
-        pageSize, 
-        estadoId, 
-        clienteId 
+    console.log("Parámetros enviados a sp_servicio_listar:", {
+        usuarioId,
+        pageIndex,
+        pageSize,
+        estadoId,
+        clienteId
     });
 
     try {
@@ -27,9 +27,9 @@ const listServicio = async (
                 [usuarioId, pageIndex, pageSize, estadoId, clienteId]
             );
 
-        console.log("Resultados de sp_servicio_listar:", { 
-            data: results[0], 
-            total: results[1][0].total 
+        console.log("Resultados de sp_servicio_listar:", {
+            data: results[0],
+            total: results[1][0].total
         });
 
         return {
@@ -59,6 +59,34 @@ const listServicio = async (
     }
 };
 
+const listEstadoServ = async () => {
+    try {
+        const [results]: any = await cn
+            .promise()
+            .query(
+                "CALL sp_listar_estados_service"
+            );
+
+        console.log("Resultados de sp_listar_estados_service:", {
+            data: results[0],
+        });
+
+        return {
+            status: 200,
+            success: true,
+            data: results[0],
+        };
+    } catch (error: any) {
+        console.error("Error en listar servicios:", error);
+
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error en la base de datos",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
 // Insertar servicio equipo
 const createServicio = async (servicioEquipo: ServicioEquipo) => {
     if (!servicioEquipo.EQUIPO_idEquipo || !servicioEquipo.MARCA_idMarca) {
@@ -180,4 +208,4 @@ const deleteServicio = async (idServicioEquipos: number, usuarioId: number) => {
 };
 
 
-export { listServicio, createServicio, updateServicio, deleteServicio };
+export { listServicio, createServicio, updateServicio, deleteServicio ,listEstadoServ};
