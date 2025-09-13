@@ -1,15 +1,17 @@
 import { useUser } from "@/hooks/useUser";
 import { useState, useEffect } from "react";
 import Loader from "@/components/sniper-carga/loader";
-import { DataTable } from "../../ui/table-reutilizable";
 import { useEstadoHook, useServicioHook } from "@/hooks/useService";
 import { Servicio } from "@/interface/types";
 import { SelectWithCheckbox } from "@/components/chexbox/SelectWithCheckbox";
 import { Button } from "@/components/ui/button";
+import { DataTableDetalle } from "../../ui/table-producto";
+import { useNavigate } from "react-router-dom";
 
 export default function Listar_Servicio() {
   const { user } = useUser();
   const usuarioId = user?.id;
+  const navigate = useNavigate();
 
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -98,6 +100,15 @@ export default function Listar_Servicio() {
     }));
   };
 
+  const openEditModal = () => {
+    alert("hola")
+  }
+  const handleDelete = () => {
+    alert("hola")
+  }
+  const openAddModal = () => {
+    alert("hola")
+  }
   const handleClearFilters = () => {
     setPageIndex(0);
     setFiltros({});
@@ -177,9 +188,7 @@ export default function Listar_Servicio() {
         </div>
       </div>
 
-
-
-      <DataTable
+      <DataTableDetalle
         data={MapedService}
         columns={columns}
         searchColumn="cliente"
@@ -188,6 +197,14 @@ export default function Listar_Servicio() {
         totalRows={totalRows}
         onPageChange={(newPage) => setPageIndex(newPage)}
         onPageSizeChange={(size) => setPageSize(size)}
+
+        onEdit={openEditModal}
+        onDelete={handleDelete}
+        onView={(servicio) => {
+          // Navegar a la página de detalle
+          navigate(`/dashboard/list/dex/${servicio.id}`);
+        }}
+        actions={<Button onClick={openAddModal}>Agregar servicio</Button>}
       />
     </div>
   );

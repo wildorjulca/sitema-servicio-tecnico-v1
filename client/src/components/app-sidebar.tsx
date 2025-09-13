@@ -47,6 +47,14 @@ const data = {
                     url: "cliente",
                 },
                 {
+                    title: "Productos",
+                    url: "producto",
+                },
+                {
+                    title: "Usuarios",
+                    url: "users",
+                },
+                {
                     title: "Marca",
                     url: "marca",
                 },
@@ -67,12 +75,8 @@ const data = {
                     url: "mot_ingreso",
                 },
                 {
-                    title: "Productos",
-                    url: "producto",
-                },
-                {
-                    title: "Usuarios",
-                    url: "users",
+                    title: "Estados",
+                    url: "estado",
                 }
 
             ],

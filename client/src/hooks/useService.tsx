@@ -159,3 +159,19 @@ export const useMarcas = () => {
     data: query.data?.data || [], // Extrae el array de datos
   };
 };
+
+
+
+
+// hooks/para detalles del servicio completo (añadir esta función)
+
+export const useServiceyId = (usuarioId: number, idServicio: string | undefined) => {
+  const { data: serviceData, isLoading, isError } = useServicioHook(usuarioId, 0, 1000); // Obtener todos los productos
+  
+  return {
+    data: serviceData?.find((p: Servicio) => p.idServicio=== parseInt(idServicio || '')),
+    isLoading,
+    isError,
+    refetch: () => {} // No necesitamos refetch para este caso
+  };
+};
