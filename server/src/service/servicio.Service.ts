@@ -121,6 +121,35 @@ const buscarClienteServ = async (
     }
 };
 
+const obtenerEquiposPorCliente = async (cliente_id: number) => {
+    try {
+        const [results]: any = await cn
+            .promise()
+            .query(
+                "CALL sp_obtener_equipos_por_cliente(?)",
+                [cliente_id]
+            );
+
+        console.log("Resultados de sp_obtener_equipos_por_cliente:", { data: results[0] });
+
+        return {
+            status: 200,
+            success: true,
+            data: results[0],
+            total: results[0]?.length || 0,
+        };
+    } catch (error: any) {
+        console.error("Error en obtener equipos por cliente:", error);
+
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error en la base de datos",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
+
 const registrarServicioBasico = async (
     fechaIngreso: string,
     motivo_ingreso_id: number,
@@ -237,4 +266,4 @@ const entregarServicioCliente = async (
 
 
 
-export { listServicio, registrarServicioBasico, listEstadoServ, buscarClienteServ,actualizarServicioReparacion,entregarServicioCliente };
+export { listServicio, listEstadoServ, buscarClienteServ, obtenerEquiposPorCliente, registrarServicioBasico, actualizarServicioReparacion, entregarServicioCliente };

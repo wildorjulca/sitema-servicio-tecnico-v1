@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { createServicioEquipo, updateServicioEquipo } from "../service/servicio_equipos.Service";
 import { ServicioEquipo } from "../interface";
-import { actualizarServicioReparacion, buscarClienteServ, entregarServicioCliente, listEstadoServ, listServicio, registrarServicioBasico } from "../service/servicio.Service";
+import { actualizarServicioReparacion, buscarClienteServ, entregarServicioCliente, listEstadoServ, listServicio, obtenerEquiposPorCliente, registrarServicioBasico } from "../service/servicio.Service";
 
 
 const getAllServicioCTRL = async (req: Request, res: Response) => {
@@ -21,12 +21,13 @@ const getAllServicioCTRL = async (req: Request, res: Response) => {
     clienteId
   );
 
-  res.status(response.status).json(response);
+  res.status(response.status).json(response); return
 };
 
 const getEstadoCTRL = async (req: Request, res: Response) => {
   const response = await listEstadoServ();
   res.status(response.status).json(response);
+  return
 };
 
 const buscarClienteServicioCTRL = async (req: Request, res: Response) => {
@@ -48,6 +49,51 @@ const buscarClienteServicioCTRL = async (req: Request, res: Response) => {
       mensaje: "Error interno del servidor",
       error: error.message
     });
+    return
+  }
+};
+
+const obtenerEquiposPorClienteCTRL = async (req: Request, res: Response) => {
+  try {
+    const { cliente_id } = req.query;
+
+    if (!cliente_id || isNaN(Number(cliente_id))) {
+      res.status(400).json({
+        status: 400,
+        success: false,
+        mensaje: "El parámetro 'cliente_id' es requerido y debe ser un número válido"
+      });
+      return
+    }
+
+    const response = await obtenerEquiposPorCliente(Number(cliente_id));
+
+    if (response.success) {
+      res.status(response.status).json({
+        success: true,
+        data: response.data,
+        total: response.total,
+        mensaje: "Equipos del cliente obtenidos exitosamente"
+      });
+      return
+    } else {
+      res.status(response.status).json({
+        success: false,
+        mensaje: response.mensaje,
+        error: response.error
+      });
+      return
+    }
+  } catch (error: any) {
+    console.error("Error en controlador obtenerEquiposPorClienteCTRL:", error);
+
+    res.status(500).json({
+      status: 500,
+      success: false,
+      mensaje: "Error interno del servidor",
+      error: error.message
+    });
+    return
   }
 };
 
@@ -71,6 +117,7 @@ const registrarServicioBasicoCTRL = async (req: Request, res: Response) => {
         success: false,
         mensaje: "Todos los campos obligatorios son requeridos"
       });
+      return
     }
 
     const response = await registrarServicioBasico(
@@ -94,6 +141,7 @@ const registrarServicioBasicoCTRL = async (req: Request, res: Response) => {
       mensaje: "Error interno del servidor",
       error: error.message
     });
+    return
   }
 };
 
@@ -117,6 +165,7 @@ const actualizarServicioReparacionCTRL = async (req: Request, res: Response) => 
         success: false,
         mensaje: "Campos obligatorios faltantes: servicio_id, diagnostico, solucion, usuario_soluciona_id, estado_id"
       });
+      return
     }
 
     // Validar que el estado sea válido (2 o 3)
@@ -126,6 +175,7 @@ const actualizarServicioReparacionCTRL = async (req: Request, res: Response) => 
         success: false,
         mensaje: "Estado inválido. Use 2 para 'En reparación' o 3 para 'Reparado'"
       });
+      return
     }
 
     const response = await actualizarServicioReparacion(
@@ -149,10 +199,10 @@ const actualizarServicioReparacionCTRL = async (req: Request, res: Response) => 
       mensaje: "Error interno del servidor",
       error: error.message
     });
+    return
   }
 };
 
-// También puedes agregar el controlador para la entrega si quieres
 const entregarServicioCTRL = async (req: Request, res: Response) => {
   try {
     const { servicio_id, usuario_entrega_id } = req.body;
@@ -163,6 +213,7 @@ const entregarServicioCTRL = async (req: Request, res: Response) => {
         success: false,
         mensaje: "Campos obligatorios faltantes: servicio_id, usuario_entrega_id"
       });
+      return
     }
 
     const response = await entregarServicioCliente(
@@ -181,6 +232,7 @@ const entregarServicioCTRL = async (req: Request, res: Response) => {
       mensaje: "Error interno del servidor",
       error: error.message
     });
+    return
   }
 };
 
@@ -189,4 +241,4 @@ const entregarServicioCTRL = async (req: Request, res: Response) => {
 
 
 
-export { getAllServicioCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, actualizarServicioReparacionCTRL, entregarServicioCTRL }
+export { getAllServicioCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL, actualizarServicioReparacionCTRL, entregarServicioCTRL }
