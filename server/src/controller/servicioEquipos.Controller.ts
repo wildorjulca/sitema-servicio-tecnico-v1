@@ -20,6 +20,7 @@ const getAllServicioEquipoCTRL = async (req: Request, res: Response) => {
 
   res.status(response.status).json(response);
 };
+
 const createServicioEquipoCTRL = async (req: Request, res: Response) => {
   const servicioEquipo: ServicioEquipo = req.body;
   const response = await createServicioEquipo(servicioEquipo);

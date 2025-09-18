@@ -1,0 +1,48 @@
+ http: //localhost:3005/api/servicio/registro-basico
+{
+    "fechaIngreso": "2024-01-15 10:30:00",
+    "motivo_ingreso_id": 5,
+    "descripcion_motivo": "Equipo esta hast las guebas",
+    "observacion": "El cliente menciona que no le hace manteniminto hace timepo",
+    "usuario_recibe_id": 2,
+    "servicio_equipos_id": 1,
+    "cliente_id": 4
+},
+
+PUT http: //localhost:3005/api/servicio/actualizar-reparacion
+{
+    "servicio_id": 1,
+    "diagnostico": "Pantalla rota",
+    "solucion": "Reemplazar pantalla",
+    "precio_mano_obra": 50.00,
+    "usuario_soluciona_id": 5,
+    "estado_id": 2,
+    "repuestos": []
+}
+
+{
+    "servicio_id": 1,
+    "diagnostico": "Pantalla rota y batería defectuosa",
+    "solucion": "Reemplazar pantalla y batería",
+    "precio_mano_obra": 80.00,
+    "usuario_soluciona_id": 5,
+    "estado_id": 3,
+    "repuestos": [
+        {
+            "producto_id": 5,
+            "cantidad": 1,
+            "precio_unitario": 120.00
+        },
+        {
+            "producto_id": 8,
+            "cantidad": 1,
+            "precio_unitario": 60.00
+        }
+    ]
+}
+
+PUT http: //localhost:3005/api/servicio/entregar-servicio
+{
+    "servicio_id": 1,
+    "usuario_entrega_id": 3
+}

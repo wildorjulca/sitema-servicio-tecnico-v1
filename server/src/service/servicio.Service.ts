@@ -87,77 +87,31 @@ const listEstadoServ = async () => {
         };
     }
 };
-// Insertar servicio equipo
-const createServicio = async (servicioEquipo: ServicioEquipo) => {
-    if (!servicioEquipo.EQUIPO_idEquipo || !servicioEquipo.MARCA_idMarca) {
-        return {
-            status: 400,
-            success: false,
-            mensaje: "EQUIPO_idEquipo y MARCA_idMarca son obligatorios",
-        };
-    }
+
+const buscarClienteServ = async (
+    filtro: string
+) => {
+    console.log("Parámetros enviados a sp_buscar_cliente_servicio:", { filtro });
 
     try {
-        const [rows]: any = await cn.promise().query("CALL sp_servicio_equipos_crud(?, ?, ?, ?, ?, ?, ?, ?)", [
-            "INSERTAR_SERVICIO_EQUIPO",
-            null,
-            servicioEquipo.EQUIPO_idEquipo,
-            servicioEquipo.MARCA_idMarca,
-            servicioEquipo.modelo || null,
-            servicioEquipo.serie || null,
-            servicioEquipo.codigo_barras || null,
-            servicioEquipo.usuarioId,
-        ]);
+        const [results]: any = await cn
+            .promise()
+            .query(
+                "CALL sp_buscar_cliente_servicio(?)",
+                [filtro]
+            );
 
-        const idInsertado = rows[0][0]?.id_insertado;
-
-        return {
-            status: 201,
-            success: true,
-            mensaje: "Servicio equipo creado correctamente",
-            data: { id: idInsertado },
-        };
-    } catch (error: any) {
-        return {
-            status: 500,
-            success: false,
-            mensaje: "Error en la base de datos",
-            error: error.sqlMessage || error.message,
-        };
-    }
-};
-
-// Actualizar servicio equipo
-const updateServicio = async (servicioEquipo: ServicioEquipo) => {
-    if (!servicioEquipo.idServicioEquipos) {
-        return {
-            status: 400,
-            success: false,
-            mensaje: "El idServicioEquipos es obligatorio",
-        };
-    }
-
-    try {
-        const [rows]: any = await cn.promise().query("CALL sp_servicio_equipos_crud(?, ?, ?, ?, ?, ?, ?, ?)", [
-            "ACTUALIZAR_SERVICIO_EQUIPO",
-            servicioEquipo.idServicioEquipos,
-            servicioEquipo.EQUIPO_idEquipo,
-            servicioEquipo.MARCA_idMarca,
-            servicioEquipo.modelo || null,
-            servicioEquipo.serie || null,
-            servicioEquipo.codigo_barras || null,
-            servicioEquipo.usuarioId,
-        ]);
-
-        const filasAfectadas = rows[0][0]?.filas_afectadas || 0;
+        console.log("Resultados de sp_buscar_cliente_servicio:", { data: results[0] });
 
         return {
             status: 200,
             success: true,
-            mensaje: filasAfectadas > 0 ? "Servicio equipo actualizado" : "No se encontró el servicio equipo",
-            data: { filasAfectadas },
+            data: results[0],
+            total: results[0]?.length || 0,
         };
     } catch (error: any) {
+        console.error("Error en buscar cliente servicio:", error);
+
         return {
             status: 500,
             success: false,
@@ -167,37 +121,111 @@ const updateServicio = async (servicioEquipo: ServicioEquipo) => {
     }
 };
 
-// Eliminar servicio equipo
-const deleteServicio = async (idServicioEquipos: number, usuarioId: number) => {
-    if (!idServicioEquipos) {
-        return {
-            status: 400,
-            success: false,
-            mensaje: "El idServicioEquipos es obligatorio",
-        };
-    }
-
+const registrarServicioBasico = async (
+    fechaIngreso: string,
+    motivo_ingreso_id: number,
+    descripcion_motivo: string,
+    observacion: string,
+    usuario_recibe_id: number,
+    servicio_equipos_id: number,
+    cliente_id: number
+) => {
     try {
-        const [rows]: any = await cn.promise().query("CALL sp_servicio_equipos_crud(?, ?, ?, ?, ?, ?, ?, ?)", [
-            "ELIMINAR_SERVICIO_EQUIPO",
-            idServicioEquipos,
-            null,
-            null,
-            null,
-            null,
-            null,
-            usuarioId,
-        ]);
+        const [results]: any = await cn
+            .promise()
+            .query(
+                "CALL sp_registrar_servicio_basico(?, ?, ?, ?, ?, ?, ?)",
+                [fechaIngreso, motivo_ingreso_id, descripcion_motivo, observacion, usuario_recibe_id, servicio_equipos_id, cliente_id]
+            );
 
-        const filasAfectadas = rows[0][0]?.filas_afectadas || 0;
+        const servicioId = results[0][0].id_servicio_generado;
+        const codigoSeguimiento = results[0][0].codigo_seguimiento;
 
         return {
             status: 200,
             success: true,
-            mensaje: filasAfectadas > 0 ? "Servicio equipo eliminado" : "No se encontró el servicio equipo",
-            data: { filasAfectadas },
+            data: {
+                id_servicio: servicioId,
+                codigo_seguimiento: codigoSeguimiento
+            },
+            mensaje: "Servicio registrado exitosamente"
         };
     } catch (error: any) {
+        console.error("Error en registrar servicio básico:", error);
+
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error en la base de datos",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
+
+const actualizarServicioReparacion = async (
+    servicio_id: number,
+    diagnostico: string,
+    solucion: string,
+    precio_mano_obra: number,
+    usuario_soluciona_id: number,
+    estado_id: number,
+    repuestos: Array<{
+        producto_id: number;
+        cantidad: number;
+        precio_unitario: number;
+    }> = []
+) => {
+    try {
+        const repuestosJSON = JSON.stringify(repuestos);
+
+        const [results]: any = await cn
+            .promise()
+            .query(
+                "CALL sp_actualizar_servicio_reparacion(?, ?, ?, ?, ?, ?, ?)",
+                [servicio_id, diagnostico, solucion, precio_mano_obra, usuario_soluciona_id, estado_id, repuestosJSON]
+            );
+
+        return {
+            status: 200,
+            success: true,
+            data: results[0][0],
+            mensaje: estado_id === 2
+                ? "Servicio actualizado a 'En reparación'"
+                : "Servicio marcado como 'Reparado'"
+        };
+    } catch (error: any) {
+        console.error("Error en actualizar servicio reparación:", error);
+
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error en la base de datos",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
+
+const entregarServicioCliente = async (
+    servicio_id: number,
+    usuario_entrega_id: number
+) => {
+    try {
+        const [results]: any = await cn
+            .promise()
+            .query(
+                "CALL sp_entregar_servicio_cliente(?, ?)",
+                [servicio_id, usuario_entrega_id]
+            );
+
+        return {
+            status: 200,
+            success: true,
+            data: results[0][0],
+            mensaje: "Servicio entregado exitosamente al cliente"
+        };
+    } catch (error: any) {
+        console.error("Error en entregar servicio:", error);
+
         return {
             status: 500,
             success: false,
@@ -208,4 +236,5 @@ const deleteServicio = async (idServicioEquipos: number, usuarioId: number) => {
 };
 
 
-export { listServicio, createServicio, updateServicio, deleteServicio ,listEstadoServ};
+
+export { listServicio, registrarServicioBasico, listEstadoServ, buscarClienteServ,actualizarServicioReparacion,entregarServicioCliente };

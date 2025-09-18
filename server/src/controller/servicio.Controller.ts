@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { createServicioEquipo, deleteServicioEquipo, listServicio_equipo, updateServicioEquipo } from "../service/servicio_equipos.Service";
+import { createServicioEquipo, updateServicioEquipo } from "../service/servicio_equipos.Service";
 import { ServicioEquipo } from "../interface";
-import { listEstadoServ, listServicio } from "../service/servicio.Service";
+import { actualizarServicioReparacion, buscarClienteServ, entregarServicioCliente, listEstadoServ, listServicio, registrarServicioBasico } from "../service/servicio.Service";
 
 
 const getAllServicioCTRL = async (req: Request, res: Response) => {
@@ -29,27 +29,164 @@ const getEstadoCTRL = async (req: Request, res: Response) => {
   res.status(response.status).json(response);
 };
 
-const createServicioEquipoCTRL = async (req: Request, res: Response) => {
-  const servicioEquipo: ServicioEquipo = req.body;
-  const response = await createServicioEquipo(servicioEquipo);
-  res.status(response.status).json(response);
+const buscarClienteServicioCTRL = async (req: Request, res: Response) => {
+  try {
+    // Obtener el filtro de búsqueda
+    const filtro = req.query.filtro ? String(req.query.filtro) : '';
+
+    const response = await buscarClienteServ(filtro);
+
+    // Devolver la respuesta
+    res.status(response.status).json(response);
+
+  } catch (error: any) {
+    console.error("Error en controlador buscarClienteServicioCTRL:", error);
+
+    res.status(500).json({
+      status: 500,
+      success: false,
+      mensaje: "Error interno del servidor",
+      error: error.message
+    });
+  }
 };
 
-const updateServicioEquipoCTRL = async (req: Request, res: Response) => {
-  const servicioEquipo: ServicioEquipo = req.body;
-  const response = await updateServicioEquipo(servicioEquipo);
-  res.status(response.status).json(response);
+const registrarServicioBasicoCTRL = async (req: Request, res: Response) => {
+  try {
+    const {
+      fechaIngreso,
+      motivo_ingreso_id,
+      descripcion_motivo,
+      observacion,
+      usuario_recibe_id,
+      servicio_equipos_id,
+      cliente_id
+    } = req.body;
+
+    // Validar campos obligatorios
+    if (!fechaIngreso || !motivo_ingreso_id || !descripcion_motivo ||
+      !usuario_recibe_id || !servicio_equipos_id || !cliente_id) {
+      res.status(400).json({
+        status: 400,
+        success: false,
+        mensaje: "Todos los campos obligatorios son requeridos"
+      });
+    }
+
+    const response = await registrarServicioBasico(
+      fechaIngreso,
+      motivo_ingreso_id,
+      descripcion_motivo,
+      observacion || '',
+      usuario_recibe_id,
+      servicio_equipos_id,
+      cliente_id
+    );
+
+    res.status(response.status).json(response);
+
+  } catch (error: any) {
+    console.error("Error en controlador registrarServicioBasicoCTRL:", error);
+
+    res.status(500).json({
+      status: 500,
+      success: false,
+      mensaje: "Error interno del servidor",
+      error: error.message
+    });
+  }
 };
 
-const deleteServicioEquipoCTRL = async (req: Request, res: Response) => {
-  const idServicioEquipos = Number(req.params.idServicioEquipos);
-  const usuarioId = Number(req.body.usuarioId);
+const actualizarServicioReparacionCTRL = async (req: Request, res: Response) => {
+  try {
+    const {
+      servicio_id,
+      diagnostico,
+      solucion,
+      precio_mano_obra,
+      usuario_soluciona_id,
+      estado_id,
+      repuestos
+    } = req.body;
 
-  const response = await deleteServicioEquipo(idServicioEquipos, usuarioId);
-  res.status(response.status).json(response);
+    // Validar campos obligatorios
+    if (!servicio_id || !diagnostico || !solucion ||
+      !usuario_soluciona_id || !estado_id) {
+      res.status(400).json({
+        status: 400,
+        success: false,
+        mensaje: "Campos obligatorios faltantes: servicio_id, diagnostico, solucion, usuario_soluciona_id, estado_id"
+      });
+    }
+
+    // Validar que el estado sea válido (2 o 3)
+    if (estado_id !== 2 && estado_id !== 3) {
+      res.status(400).json({
+        status: 400,
+        success: false,
+        mensaje: "Estado inválido. Use 2 para 'En reparación' o 3 para 'Reparado'"
+      });
+    }
+
+    const response = await actualizarServicioReparacion(
+      servicio_id,
+      diagnostico,
+      solucion,
+      precio_mano_obra || 0,
+      usuario_soluciona_id,
+      estado_id,
+      repuestos || []
+    );
+
+    res.status(response.status).json(response);
+
+  } catch (error: any) {
+    console.error("Error en controlador actualizarServicioReparacionCTRL:", error);
+
+    res.status(500).json({
+      status: 500,
+      success: false,
+      mensaje: "Error interno del servidor",
+      error: error.message
+    });
+  }
+};
+
+// También puedes agregar el controlador para la entrega si quieres
+const entregarServicioCTRL = async (req: Request, res: Response) => {
+  try {
+    const { servicio_id, usuario_entrega_id } = req.body;
+
+    if (!servicio_id || !usuario_entrega_id) {
+      res.status(400).json({
+        status: 400,
+        success: false,
+        mensaje: "Campos obligatorios faltantes: servicio_id, usuario_entrega_id"
+      });
+    }
+
+    const response = await entregarServicioCliente(
+      servicio_id,
+      usuario_entrega_id
+    );
+
+    res.status(response.status).json(response);
+
+  } catch (error: any) {
+    console.error("Error en controlador entregarServicioCTRL:", error);
+
+    res.status(500).json({
+      status: 500,
+      success: false,
+      mensaje: "Error interno del servidor",
+      error: error.message
+    });
+  }
 };
 
 
 
 
-export { getAllServicioCTRL, createServicioEquipoCTRL, updateServicioEquipoCTRL, deleteServicioEquipoCTRL,getEstadoCTRL };
+
+
+export { getAllServicioCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, actualizarServicioReparacionCTRL, entregarServicioCTRL }
