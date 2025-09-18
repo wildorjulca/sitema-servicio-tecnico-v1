@@ -77,6 +77,10 @@ const data = {
                 {
                     title: "Estados",
                     url: "estado",
+                },
+                {
+                    title: "pruebZx",
+                    url: "prueba",
                 }
 
             ],
