@@ -6,21 +6,41 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search, User, Monitor, ChevronUp, X } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Search, User, Monitor, ChevronUp, X, Plus, Link, Save } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ServiceForm from './preuba2'
+import { useEquiposPorCliente, useFiltreClient } from '@/hooks/useService'
+import { useAddServicioEqHook, useServicioEquipoHook } from '@/hooks/useServicioEquipo'
+import { useUser } from '@/hooks/useUser'
+import { useAddClienteHook } from '@/hooks/useCliente'
+import toast from 'react-hot-toast'
+import { ServicioEquipo } from '@/interface'
+import { useService } from '@/context/ServiceContext'
+import CustomerModal from '../../cliente/ui/CustomerModal '
+import { ServicioEquipoDialog } from '../../servicio_equipos/ui/modal'
 
-interface Customer {
-  id: number
-  name: string
-  lastName: string
-  documentType: string
-  documentNumber: string
-  address: string
-  phone: string
+interface CustomerAPI {
+  idCliente: number
+  nombre: string
+  apellidos: string
+  numero_documento: string
+  tipo_documento: string
+  direccion: string
+  telefono: string
 }
 
-interface Equipment {
+interface CustomerUI {
+  id: number
+  nombre: string
+  apellidos: string
+  numero_documento: string
+  tipo_documento: string
+  direccion: string
+  telefono: string
+}
+
+interface EquipmentUI {
   id: number
   customerId: number
   type: string
@@ -28,325 +48,571 @@ interface Equipment {
   model: string
   serialNumber: string
   lastServiceDate: string
-  status: 'active' | 'inactive' | 'in-service'
+  servicio_equipos_id: number
 }
 
 export default function CustomerSearch() {
+  const { user } = useUser()
+  const usuarioId = user?.id
+  const { serviceData, setCliente, setEquipo, setServicio, submitService } = useService()
+
   const [searchTerm, setSearchTerm] = useState('')
-  const [customers, setCustomers] = useState<Customer[]>([])
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
-  const [equipments, setEquipments] = useState<Equipment[]>([])
-  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null)
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerUI | null>(null)
+  const [selectedEquipment, setSelectedEquipment] = useState<EquipmentUI | null>(null)
+  const [showServiceForm, setShowServiceForm] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
-  const [showServiceForm, setShowServiceForm] = useState(false) // Nuevo estado
+  const [showCustomerModal, setShowCustomerModal] = useState(false)
+  const [showEquipmentModal, setShowEquipmentModal] = useState(false)
+  const [showAvailableEquipments, setShowAvailableEquipments] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Simular datos de ejemplo
+  // Hook para agregar cliente
+  const addCliente = useAddClienteHook(usuarioId!)
+  // Hook para crear servicio-equipo
+  const addServicioEq = useAddServicioEqHook(usuarioId!)
+
+  // Hook clientes
+  const { data: customersRaw, isLoading: loadingCustomers, refetch: refetchClients } = useFiltreClient(searchTerm)
+
+  // Hook equipos del cliente
+  const { data: equiposRaw, isLoading: loadingEquipos, refetch: refetchEquipos } = useEquiposPorCliente(selectedCustomer?.id)
+
+  // Hook para todos los equipos disponibles (sin filtro de marca)
+  const { data: allEquipos, isLoading: loadingAllEquipos, refetch: refetchAllEquipos } = useServicioEquipoHook(
+    usuarioId,
+    0, // pageIndex
+    100 // pageSize (número grande para traer todos)
+  )
+
+  // Mapear clientes API → UI
+  const customers: CustomerUI[] = customersRaw?.map((c: CustomerAPI) => ({
+    id: c.idCliente,
+    nombre: c.nombre,
+    apellidos: c.apellidos,
+    numero_documento: c.numero_documento,
+    tipo_documento: c.tipo_documento,
+    direccion: c.direccion,
+    telefono: c.telefono,
+  })) ?? []
+
+  // Mapear equipos del cliente API → UI
+  const customerEquipments: EquipmentUI[] = equiposRaw?.data?.map((eq: any) => ({
+    id: eq.EQUIPO_idEquipo,
+    customerId: selectedCustomer?.id ?? 0,
+    type: eq.nombre_equipo,
+    brand: eq.nombre_marca,
+    model: eq.modelo,
+    serialNumber: eq.serie,
+    lastServiceDate: eq.ultimo_servicio
+      ? new Date(eq.ultimo_servicio).toLocaleDateString()
+      : 'N/A',
+    servicio_equipos_id: eq.idServicioEquipos
+  })) ?? []
+
+  // Mapear equipos disponibles
+  const availableEquipments: ServicioEquipo[] = allEquipos || []
+
+  // Sincronizar con el contexto
   useEffect(() => {
-    const mockCustomers: Customer[] = [
-      {
-        id: 1,
-        name: 'Juan',
-        lastName: 'Pérez García',
-        documentType: 'DNI',
-        documentNumber: '12345678',
-        address: 'Av. Principal 123',
-        phone: '987654321'
-      },
-      {
-        id: 2,
-        name: 'María',
-        lastName: 'López Martínez',
-        documentType: 'DNI',
-        documentNumber: '87654321',
-        address: 'Calle Secundaria 456',
-        phone: '912345678'
-      },
-      {
-        id: 3,
-        name: 'Carlos',
-        lastName: 'González Rodríguez',
-        documentType: 'RUC',
-        documentNumber: '10234567890',
-        address: 'Jr. Comercial 789',
-        phone: '934567890'
-      }
-    ]
+    if (serviceData.cliente) {
+      setSelectedCustomer({
+        id: serviceData.cliente.id!,
+        nombre: serviceData.cliente.nombre,
+        apellidos: serviceData.cliente.apellidos,
+        numero_documento: serviceData.cliente.documento,
+        tipo_documento: '',
+        direccion: '',
+        telefono: ''
+      })
+    }
+  }, [serviceData.cliente])
 
-    const mockEquipments: Equipment[] = [
-      {
-        id: 1,
-        customerId: 1,
-        type: 'Laptop',
-        brand: 'HP',
-        model: 'Pavilion 15',
-        serialNumber: 'HP123456',
-        lastServiceDate: '2023-10-15',
-        status: 'active'
-      },
-      {
-        id: 2,
-        customerId: 1,
-        type: 'Impresora',
-        brand: 'Epson',
-        model: 'L380',
-        serialNumber: 'EPS789012',
-        lastServiceDate: '2023-09-20',
-        status: 'in-service'
-      },
-      {
-        id: 3,
-        customerId: 2,
-        type: 'Monitor',
-        brand: 'Dell',
-        model: 'S2421HN',
-        serialNumber: 'DEL345678',
-        lastServiceDate: '2023-11-05',
-        status: 'active'
-      }
-    ]
+  const handleSearch = () => setIsSearching(true)
 
-    setCustomers(mockCustomers)
-    setEquipments(mockEquipments)
-  }, [])
-
-  const handleSearch = () => {
-    setIsSearching(true)
-  }
-
-  const handleSelectCustomer = (customer: Customer) => {
+  const handleSelectCustomer = (customer: CustomerUI) => {
     setSelectedCustomer(customer)
     setIsSearching(false)
+    setSelectedEquipment(null)
+
+    // Guardar en contexto
+    setCliente({
+      id: customer.id,
+      nombre: customer.nombre,
+      apellidos: customer.apellidos,
+      documento: customer.numero_documento
+    })
+
+    // Refrescar equipos del cliente
+    refetchEquipos()
   }
 
-  const handleSelectEquipment = (equipment: Equipment) => {
+  const handleSelectEquipment = (equipment: EquipmentUI) => {
     setSelectedEquipment(equipment)
+
+    // Guardar en contexto
+    setEquipo({
+      id: equipment.id,
+      tipo: equipment.type,
+      marca: equipment.brand,
+      modelo: equipment.model,
+      serie: equipment.serialNumber,
+      servicio_equipos_id: equipment.servicio_equipos_id
+    })
   }
 
   const handleClearSelection = () => {
     setSelectedCustomer(null)
     setSelectedEquipment(null)
     setSearchTerm('')
+    setCliente(null)
+    setEquipo(null)
   }
 
-  const handleSaveService = (serviceData: any) => {
-    console.log('Datos del servicio:', serviceData)
-    // Aquí harías la llamada a la API para guardar el servicio
-    setShowServiceForm(false)
-    // Opcional: resetear selección
-    // setSelectedCustomer(null)
-    // setSelectedEquipment(null)
+  const handleCustomerCreated = async (payload: any) => {
+    if (!usuarioId) {
+      toast.error("Usuario no autenticado")
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const newCustomer = await addCliente.mutateAsync(payload)
+      toast.success("Cliente creado")
+
+      // Convertir el nuevo cliente al formato UI
+      const uiCustomer: CustomerUI = {
+        id: newCustomer.idCliente,
+        nombre: newCustomer.nombre,
+        apellidos: newCustomer.apellidos,
+        numero_documento: newCustomer.numero_documento.toString(),
+        tipo_documento: "DNI",
+        direccion: newCustomer.direccion,
+        telefono: newCustomer.telefono?.toString() || ""
+      }
+
+      setSelectedCustomer(uiCustomer)
+      setShowCustomerModal(false)
+
+      // Guardar en contexto
+      setCliente({
+        id: uiCustomer.id,
+        nombre: uiCustomer.nombre,
+        apellidos: uiCustomer.apellidos,
+        documento: uiCustomer.numero_documento
+      })
+
+      refetchClients()
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.response?.data?.mensaje || "Error desconocido"
+      toast.error(`Error: ${errorMessage}`)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  const filteredCustomers = customers.filter(customer => 
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.documentNumber.includes(searchTerm)
-  )
+  const handleSelectExistingEquipment = (equipment: ServicioEquipo) => {
+    // Cuando seleccionas un equipo existente de la lista general
+    const uiEquipment: EquipmentUI = {
+      id: equipment.EQUIPO_idEquipo,
+      customerId: selectedCustomer?.id || 0,
+      type: equipment.nombre_equipo || '',
+      brand: equipment.nombre_marca || '',
+      model: equipment.modelo || '',
+      serialNumber: equipment.serie || '',
+      lastServiceDate: 'N/A',
+      servicio_equipos_id: equipment.idServicioEquipos
+    }
 
-  const customerEquipments = selectedCustomer 
-    ? equipments.filter(equipment => equipment.customerId === selectedCustomer.id)
-    : []
+    setSelectedEquipment(uiEquipment)
+
+    // Guardar en contexto
+    setEquipo({
+      id: uiEquipment.id,
+      tipo: uiEquipment.type,
+      marca: uiEquipment.brand,
+      modelo: uiEquipment.model,
+      serie: uiEquipment.serialNumber,
+      servicio_equipos_id: uiEquipment.servicio_equipos_id
+    })
+
+    setShowAvailableEquipments(false)
+    toast.success("Equipo seleccionado")
+  }
+
+  const handleCreateNewEquipment = async (equipmentData: any) => {
+    if (!selectedCustomer || !usuarioId) {
+      toast.error("Seleccione un cliente primero")
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      // Crear el nuevo servicio-equipo
+      const newEquipment = await addServicioEq.mutateAsync(equipmentData)
+
+      // Crear el objeto UI para el equipo
+      const uiEquipment: EquipmentUI = {
+        id: newEquipment.EQUIPO_idEquipo,
+        customerId: selectedCustomer.id,
+        type: newEquipment.nombre_equipo || '',
+        brand: newEquipment.nombre_marca || '',
+        model: newEquipment.modelo || '',
+        serialNumber: newEquipment.serie || '',
+        lastServiceDate: 'N/A',
+        servicio_equipos_id: newEquipment.idServicioEquipos
+      }
+
+      setSelectedEquipment(uiEquipment)
+
+      // Guardar en contexto
+      setEquipo({
+        id: uiEquipment.id,
+        tipo: uiEquipment.type,
+        marca: uiEquipment.brand,
+        modelo: uiEquipment.model,
+        serie: uiEquipment.serialNumber,
+        servicio_equipos_id: uiEquipment.servicio_equipos_id
+      })
+
+      toast.success("Equipo creado y seleccionado")
+      setShowEquipmentModal(false)
+      refetchAllEquipos() // Refrescar la lista de equipos disponibles
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.response?.data?.mensaje || "Error desconocido"
+      toast.error(`Error: ${errorMessage}`)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleFinalSubmit = async (serviceFormData: any) => {
+    // Verificar que tenemos el servicio_equipos_id
+    if (!serviceData.equipo?.servicio_equipos_id) {
+      toast.error("Falta seleccionar un equipo")
+      return
+    }
+
+    setIsSubmitting(true)
+
+    // Actualizar los datos del servicio con los del formulario
+    setServicio(serviceFormData)
+
+    // Esperar un momento para que se actualice el contexto
+    setTimeout(async () => {
+      const result = await submitService()
+
+      if (result.success) {
+        toast.success('Servicio registrado exitosamente!')
+        setShowServiceForm(false)
+      } else {
+        toast.error(`Error: ${result.error}`)
+      }
+      setIsSubmitting(false)
+    }, 100)
+  }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Gestión de Servicios Técnicos</h1>
-      
-      {/* Búsqueda de clientes */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar cliente por nombre, apellido o DNI..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            />
+
+      {/* Barra de estado del servicio */}
+      <div className="mb-6 p-4 bg-muted/50 rounded-lg">
+        <h3 className="font-medium mb-2">Estado del Servicio</h3>
+        <div className="flex items-center gap-4 text-sm">
+          <div className={`flex items-center gap-1 ${serviceData.cliente ? 'text-green-600' : 'text-muted-foreground'}`}>
+            <User className="h-4 w-4" />
+            <span>Cliente: {serviceData.cliente ? 'Seleccionado' : 'Pendiente'}</span>
           </div>
-          <Button onClick={handleSearch}>Buscar</Button>
+          <div className={`flex items-center gap-1 ${serviceData.equipo ? 'text-green-600' : 'text-muted-foreground'}`}>
+            <Monitor className="h-4 w-4" />
+            <span>Equipo: {serviceData.equipo ? 'Seleccionado' : 'Pendiente'}</span>
+          </div>
+          {serviceData.cliente && serviceData.equipo && (
+            <Button size="sm" onClick={() => setShowServiceForm(true)}>
+              <Save className="h-4 w-4 mr-1" /> Completar Servicio
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Layout de 2 columnas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Columna izquierda - Búsqueda y selección de cliente */}
+        <div className="space-y-6">
+          {/* Búsqueda de clientes */}
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="font-medium mb-4">Buscar Cliente</h3>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nombre, apellido o DNI..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  />
+                </div>
+                <Button onClick={handleSearch} disabled={!searchTerm} size="sm">
+                  {loadingCustomers ? "Buscando..." : "Buscar"}
+                </Button>
+              </div>
+
+              <Button 
+                variant="outline" 
+                onClick={() => setShowCustomerModal(true)} 
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-1" /> Nuevo Cliente
+              </Button>
+
+              <AnimatePresence>
+                {isSearching && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="mt-4"
+                  >
+                    {customers.length > 0 ? (
+                      <div className="max-h-60 overflow-y-auto border rounded-lg">
+                        {customers.map((customer) => (
+                          <div
+                            key={customer.id}
+                            className="p-3 border-b hover:bg-muted/50 cursor-pointer transition-colors"
+                            onClick={() => handleSelectCustomer(customer)}
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <p className="font-medium text-sm">{customer.nombre} {customer.apellidos}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {customer.numero_documento}
+                                </p>
+                              </div>
+                              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        No se encontraron clientes
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </CardContent>
+          </Card>
+
+          {/* Cliente seleccionado */}
+          {selectedCustomer && (
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="font-medium">Cliente Seleccionado</h3>
+                  <Button variant="outline" size="sm" onClick={handleClearSelection}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="bg-primary/10 p-2 rounded-full">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold">
+                      {selectedCustomer.nombre} {selectedCustomer.apellidos}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedCustomer.numero_documento}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedCustomer.telefono}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
-        <AnimatePresence>
-          {isSearching && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-            >
+        {/* Columna derecha - Gestión de equipos */}
+        <div className="space-y-6">
+          {selectedCustomer ? (
+            <>
+              {/* Equipos del cliente */}
               <Card>
-                <CardContent className="p-0">
-                  {filteredCustomers.length > 0 ? (
-                    <div className="max-h-60 overflow-y-auto">
-                      {filteredCustomers.map(customer => (
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-medium">Equipos del Cliente</h3>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setShowAvailableEquipments(true)}>
+                        <Link className="h-4 w-4 mr-1" /> Seleccionar
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setShowEquipmentModal(true)}>
+                        <Plus className="h-4 w-4 mr-1" /> Nuevo
+                      </Button>
+                    </div>
+                  </div>
+
+                  {loadingEquipos ? (
+                    <p className="text-sm text-muted-foreground">Cargando equipos...</p>
+                  ) : customerEquipments.length > 0 ? (
+                    <div className="space-y-2">
+                      {customerEquipments.map((equipment) => (
                         <div
-                          key={customer.id}
-                          className="p-4 border-b hover:bg-muted/50 cursor-pointer transition-colors"
-                          onClick={() => handleSelectCustomer(customer)}
+                          key={equipment.id}
+                          className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                            selectedEquipment?.id === equipment.id 
+                              ? 'bg-primary/10 border-primary' 
+                              : 'hover:bg-muted/50'
+                          }`}
+                          onClick={() => handleSelectEquipment(equipment)}
                         >
                           <div className="flex justify-between items-center">
                             <div>
-                              <p className="font-medium">{customer.name} {customer.lastName}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {customer.documentType}: {customer.documentNumber}
+                              <p className="font-medium text-sm">{equipment.brand} {equipment.model}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {equipment.type} - {equipment.serialNumber}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Último servicio: {equipment.lastServiceDate}
                               </p>
                             </div>
-                            <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                            {selectedEquipment?.id === equipment.id && (
+                              <div className="bg-primary text-primary-foreground rounded-full p-1">
+                                <Monitor className="h-3 w-3" />
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="p-4 text-center text-muted-foreground">
-                      No se encontraron clientes
+                    <div className="text-center py-6">
+                      <div className="bg-muted/20 p-3 rounded-full inline-block mb-3">
+                        <Monitor className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        No hay equipos registrados
+                      </p>
                     </div>
                   )}
                 </CardContent>
               </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
 
-      {/* Cliente seleccionado */}
-      <AnimatePresence>
-        {selectedCustomer && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="mb-6"
-          >
-            <Card className="border-primary/20">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-start gap-4">
-                    <div className="bg-primary/10 p-3 rounded-full">
-                      <User className="h-6 w-6 text-primary" />
+              {/* Resumen de selección */}
+              {selectedEquipment && (
+                <Card className="bg-primary/5 border-primary/20">
+                  <CardContent className="p-4">
+                    <h3 className="font-medium mb-3">Resumen de Selección</h3>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Cliente</p>
+                        <p className="font-medium">{selectedCustomer.nombre} {selectedCustomer.apellidos}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Documento</p>
+                        <p className="font-medium">{selectedCustomer.numero_documento}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Equipo</p>
+                        <p className="font-medium">{selectedEquipment.brand} {selectedEquipment.model}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Serie</p>
+                        <p className="font-medium">{selectedEquipment.serialNumber}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-xl font-semibold">
-                        {selectedCustomer.name} {selectedCustomer.lastName}
-                      </h2>
-                      <p className="text-muted-foreground">
-                        {selectedCustomer.documentType}: {selectedCustomer.documentNumber}
-                      </p>
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={handleClearSelection}>
-                    <X className="h-4 w-4 mr-1" /> Cambiar
-                  </Button>
+                    <Button 
+                      className="w-full mt-4" 
+                      onClick={() => setShowServiceForm(true)}
+                      size="sm"
+                    >
+                      <Save className="h-4 w-4 mr-1" /> Continuar con el Servicio
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="bg-muted/20 p-4 rounded-full inline-block mb-4">
+                  <User className="h-8 w-8 text-muted-foreground" />
                 </div>
+                <h3 className="font-medium text-lg mb-2">Seleccione un cliente</h3>
+                <p className="text-muted-foreground">
+                  Busque o registre un cliente para comenzar con el servicio técnico
+                </p>
               </CardContent>
             </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </div>
+      </div>
 
-      {/* Equipos del cliente */}
-      <AnimatePresence>
-        {selectedCustomer && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-          >
-            <h3 className="text-lg font-medium mb-4">Equipos registrados</h3>
-            
-            {customerEquipments.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Marca</TableHead>
-                    <TableHead>Modelo</TableHead>
-                    <TableHead>N° Serie</TableHead>
-                    <TableHead>Último servicio</TableHead>
-                    <TableHead>Seleccionar</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {customerEquipments.map(equipment => (
-                    <TableRow 
-                      key={equipment.id} 
-                      className={selectedEquipment?.id === equipment.id ? "bg-muted/50" : ""}
-                    >
-                      <TableCell className="font-medium">{equipment.type}</TableCell>
-                      <TableCell>{equipment.brand}</TableCell>
-                      <TableCell>{equipment.model}</TableCell>
-                      <TableCell>{equipment.serialNumber}</TableCell>
-                      <TableCell>{equipment.lastServiceDate}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant={selectedEquipment?.id === equipment.id ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handleSelectEquipment(equipment)}
-                        >
-                          {selectedEquipment?.id === equipment.id ? 'Seleccionado' : 'Seleccionar'}
-                        </Button>
-                      </TableCell>
+      {/* Modales */}
+      {showAvailableEquipments && (
+        <Dialog open={showAvailableEquipments} onOpenChange={setShowAvailableEquipments}>
+          <DialogContent className="max-w-4xl max-h-[80vh]">
+            <DialogHeader>
+              <DialogTitle>Seleccionar Equipo Existente</DialogTitle>
+              <DialogDescription>
+                Elija un equipo de la lista para usarlo con el cliente {selectedCustomer?.nombre}
+              </DialogDescription>
+            </DialogHeader>
+
+            {loadingAllEquipos ? (
+              <p>Cargando equipos...</p>
+            ) : availableEquipments.length > 0 ? (
+              <div className="max-h-96 overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Marca</TableHead>
+                      <TableHead>Modelo</TableHead>
+                      <TableHead>N° Serie</TableHead>
+                      <TableHead>Acción</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {availableEquipments.map((equipment) => (
+                      <TableRow key={equipment.idServicioEquipos}>
+                        <TableCell>{equipment.nombre_equipo || 'N/A'}</TableCell>
+                        <TableCell>{equipment.nombre_marca || 'N/A'}</TableCell>
+                        <TableCell>{equipment.modelo || 'N/A'}</TableCell>
+                        <TableCell>{equipment.serie || 'N/A'}</TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            onClick={() => handleSelectExistingEquipment(equipment)}
+                          >
+                            Seleccionar
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <div className="bg-muted/20 p-3 rounded-full inline-block mb-3">
-                    <Monitor className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="font-medium text-lg mb-1">No hay equipos registrados</h3>
-                  <p className="text-muted-foreground">
-                    Este cliente no tiene equipos registrados en el sistema.
-                  </p>
-                  <Button className="mt-4">Registrar nuevo equipo</Button>
-                </CardContent>
-              </Card>
+              <div className="text-center p-4">
+                <p>No hay equipos disponibles</p>
+                <Button 
+                  className="mt-2"
+                  onClick={() => setShowEquipmentModal(true)}
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Crear Nuevo Equipo
+                </Button>
+              </div>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Resumen de selección */}
-      <AnimatePresence>
-        {selectedEquipment && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.3 }}
-            className="mt-8 p-4 bg-primary/5 border border-primary/20 rounded-lg"
-          >
-            <h3 className="font-medium text-lg mb-2">Resumen de selección</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Cliente</p>
-                <p className="font-medium">{selectedCustomer?.name} {selectedCustomer?.lastName}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Documento</p>
-                <p className="font-medium">{selectedCustomer?.documentNumber}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Equipo seleccionado</p>
-                <p className="font-medium">{selectedEquipment.brand} {selectedEquipment.model}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Número de serie</p>
-                <p className="font-medium">{selectedEquipment.serialNumber}</p>
-              </div>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <Button onClick={() => setShowServiceForm(true)}>
-                Continuar con el servicio
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Formulario de servicio */}
       {showServiceForm && (
@@ -354,7 +620,30 @@ export default function CustomerSearch() {
           selectedCustomer={selectedCustomer}
           selectedEquipment={selectedEquipment}
           onClose={() => setShowServiceForm(false)}
-          onSave={handleSaveService}
+          onSave={handleFinalSubmit}
+          serviceData={serviceData}
+          updateServiceData={setServicio}
+          isSubmitting={isSubmitting}
+        />
+      )}
+
+      {/* Modal para agregar cliente */}
+      {showCustomerModal && usuarioId && (
+        <CustomerModal
+          open={showCustomerModal}
+          onOpenChange={setShowCustomerModal}
+          onSave={handleCustomerCreated}
+          usuarioId={usuarioId}
+          isSubmitting={isSubmitting}
+        />
+      )}
+
+      {/* Modal para agregar equipo */}
+      {showEquipmentModal && selectedCustomer && (
+        <ServicioEquipoDialog
+          open={showEquipmentModal}
+          onOpenChange={setShowEquipmentModal}
+          onSubmit={handleCreateNewEquipment}
         />
       )}
     </div>

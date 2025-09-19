@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from 'react';
 import { Toaster } from 'react-hot-toast';
 import { UserProvider } from './context/UseProvider.tsx';
+import { ServiceProvider } from './context/ServiceContext.tsx';
 
 const queryClient = new QueryClient();
 
@@ -14,8 +15,10 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <UserProvider>
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <AppRoutes />
-          <Toaster position="top-right" /> {/* 👈 aquí */}
+          <ServiceProvider> {/* 👈 Envuelve AppRoutes con ServiceProvider */}
+            <AppRoutes />
+            <Toaster position="top-right" />
+          </ServiceProvider>
         </ThemeProvider>
       </UserProvider>
     </QueryClientProvider>

@@ -1,11 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useEffect } from 'react';
-import { ServicioEquipo } from '@/interface';
-import { addServicioEquipoAPI, deleteServicioEquipoAPI, editServicioEquipoAPI } from '@/apis/servicio_equipo';
-import { fetchMarca } from '@/apis';
+
 import { Estado, Servicio } from '@/interface/types';
-import { fetchEstadoServ, fetchService } from '@/apis/servicio';
+import { entregarServicio, fetchEstadoServ, fetchService, filtreClient, obtenerEquiposPorCliente, servicioReparacion1, servicioReparacion2 } from '@/apis/servicio';
 
 // Definir la interfaz para la respuesta del API
 
@@ -75,94 +73,105 @@ export const useEstadoHook = () => {
 };
 
 // ----------------------
-// Hook para servicio equipos
+// Hook para filtrar cliente 
 // ----------------------
 
-export const useAddServicioEqHook = (usuarioId: number) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (serv: ServicioEquipo) =>
-      addServicioEquipoAPI({ ...serv, usuarioId }), // 👈 solo recibe nombre
-    onSuccess: () => {
-      toast.success('servicio equipo agregada');
-      queryClient.invalidateQueries({ queryKey: ['serEq', usuarioId] });
-    },
-    onError: () => {
-      toast.error('Error al servicio equipos');
-    },
-  });
-};
-
-// ----------------------
-// Hook para editar marca
-// ----------------------
-export const useEditServicioEqHook = (usuarioId: number) => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (serv: ServicioEquipo) => {
-      console.log("➡️ editando marca:", {
-        EQUIPO_idEquipo: serv.EQUIPO_idEquipo,
-        MARCA_idMarca: serv.MARCA_idMarca,
-        equipo: serv.EQUIPO_idEquipo,
-        modelo: serv.modelo,
-        serie: serv.serie,
-        cod: serv.codigo_barras,
-
-        usuarioId
-      });
-
-      return editServicioEquipoAPI({ ...serv, usuarioId });
-    },
-    onSuccess: () => {
-      toast.success('servicio equipo actualizada');
-      queryClient.invalidateQueries({ queryKey: ['serEq', usuarioId] });
-    },
-    onError: () => {
-      toast.error('Error al actualizar servicio equipo');
-    },
-  });
-};
-
-
-// ----------------------
-// Hook para eliminar servicio equipo
-// ----------------------
-export const useDeleteServicioEqHook = (usuarioId: number) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: number) => deleteServicioEquipoAPI(id, usuarioId),
-    onSuccess: () => {
-      toast.success('servicio equipo eliminado');
-      queryClient.invalidateQueries({ queryKey: ['serEq', usuarioId] });
-    },
-    onError: () => {
-      toast.error('Error aliminar servicio equipo');
-    },
-  });
-};
-
-
-
-export const useMarcas = () => {
+export const useFiltreClient = (filtro: string) => {
   const query = useQuery({
-    queryKey: ["marcas"], // Key única para el cache
-    queryFn: fetchMarca,   // Función que llama a la API
+    queryKey: ["clientes", filtro],
+    queryFn: () => filtreClient(filtro),
+    enabled: !!filtro, // solo corre si existe filtro
   });
 
   if (query.isError) {
-    toast.error("Error al cargar marcas sin pag");
+    toast.error("Error al filtrar clientes");
   }
 
   return {
     ...query,
-    data: query.data?.data || [], // Extrae el array de datos
+    data: query.data?.data || [],
+  };
+};
+
+// ----------------------
+// Hook para filtrar equipos por cliente
+// ----------------------
+
+export const useEquiposPorCliente = (cliente_id?: number) => {
+  const query = useQuery({
+    queryKey: ["equipos", cliente_id],
+    queryFn: () => obtenerEquiposPorCliente(cliente_id!),
+    enabled: !!cliente_id, // solo corre si hay id
+  });
+
+  if (query.isError) {
+    toast.error("Error al cargar equipos del cliente");
+  }
+
+  return {
+    ...query,
+    data: query.data?.data || [],
   };
 };
 
 
+// ----------------------
+// Hook para  la resepcion de los equipos 
+// ----------------------
+
+export const useServicioReparacion1 = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: servicioReparacion1,
+    onSuccess: () => {
+      toast.success("Servicio actualizado (paso 1)");
+      queryClient.invalidateQueries({ queryKey: ["equipos"] }); 
+    },
+    onError: () => {
+      toast.error("Error al actualizar el servicio (paso 1)");
+    },
+  });
+};
+
+// ----------------------
+// Hook para reparar el equipo 
+// ----------------------
+
+export const useServicioReparacion2 = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: servicioReparacion2,
+    onSuccess: () => {
+      toast.success("Servicio actualizado (paso 2)");
+      queryClient.invalidateQueries({ queryKey: ["equipos"] });
+    },
+    onError: () => {
+      toast.error("Error al actualizar el servicio (paso 2)");
+    },
+  });
+};
+
+// ----------------------
+// Hook para finalizar el servicio al entregar al cliente su equipo qe dejo en la tienda
+// ----------------------
 
 
+export const useEntregarServicio = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: entregarServicio,
+    onSuccess: () => {
+      toast.success("Servicio entregado correctamente");
+      queryClient.invalidateQueries({ queryKey: ["equipos"] }); 
+    },
+    onError: () => {
+      toast.error("Error al entregar el servicio");
+    },
+  });
+};
 // hooks/para detalles del servicio completo (añadir esta función)
 
 export const useServiceyId = (usuarioId: number, idServicio: string | undefined) => {
