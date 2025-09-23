@@ -95,19 +95,53 @@ export default function CustomerSearch() {
     telefono: c.telefono,
   })) ?? []
 
-  // Mapear equipos del cliente API → UI
-  const customerEquipments: EquipmentUI[] = equiposRaw?.data?.map((eq: any) => ({
-    id: eq.EQUIPO_idEquipo,
-    customerId: selectedCustomer?.id ?? 0,
-    type: eq.nombre_equipo,
-    brand: eq.nombre_marca,
-    model: eq.modelo,
-    serialNumber: eq.serie,
-    lastServiceDate: eq.ultimo_servicio
-      ? new Date(eq.ultimo_servicio).toLocaleDateString()
-      : 'N/A',
-    servicio_equipos_id: eq.idServicioEquipos
-  })) ?? []
+
+  // Mapear equipos del cliente API → UI - CORREGIDO
+  const customerEquipments: EquipmentUI[] = (() => {
+    try {
+      // Si equiposRaw es un array, usarlo directamente
+      if (Array.isArray(equiposRaw)) {
+        return equiposRaw.map((eq: any) => ({
+          id: eq.EQUIPO_idEquipo || eq.idequipo,
+          customerId: selectedCustomer?.id ?? 0,
+          type: eq.nombre_equipo || eq.nombreequipo,
+          brand: eq.nombre_marca,
+          model: eq.modelo,
+          serialNumber: eq.serie,
+          lastServiceDate: eq.ultimo_servicio
+            ? new Date(eq.ultimo_servicio).toLocaleDateString()
+            : 'N/A',
+          servicio_equipos_id: eq.idServicioEquipos
+        }));
+      }
+      // Si equiposRaw es un objeto con propiedad data que es array
+      else if (equiposRaw && Array.isArray(equiposRaw.data)) {
+        return equiposRaw.data.map((eq: any) => ({
+          id: eq.EQUIPO_idEquipo || eq.idequipo,
+          customerId: selectedCustomer?.id ?? 0,
+          type: eq.nombre_equipo || eq.nombreequipo,
+          brand: eq.nombre_marca,
+          model: eq.modelo,
+          serialNumber: eq.serie,
+          lastServiceDate: eq.ultimo_servicio
+            ? new Date(eq.ultimo_servicio).toLocaleDateString()
+            : 'N/A',
+          servicio_equipos_id: eq.idServicioEquipos
+        }));
+      }
+      // Si no es ninguno de los casos anteriores, retornar array vacío
+      return [];
+    } catch (error) {
+      console.error('Error mapeando equipos:', error);
+      return [];
+    }
+  })();
+
+// Depuración mejorada
+console.log('Tipo de equiposRaw:', typeof equiposRaw);
+console.log('Es array?:', Array.isArray(equiposRaw));
+console.log('EquiposRaw completo:', equiposRaw);
+console.log('customerEquipments:', customerEquipments);
 
   // Mapear equipos disponibles
   const availableEquipments: ServicioEquipo[] = allEquipos || []
@@ -337,7 +371,7 @@ export default function CustomerSearch() {
 
       {/* Layout de 2 columnas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* Columna izquierda - Búsqueda y selección de cliente */}
         <div className="space-y-6">
           {/* Búsqueda de clientes */}
@@ -360,9 +394,9 @@ export default function CustomerSearch() {
                 </Button>
               </div>
 
-              <Button 
-                variant="outline" 
-                onClick={() => setShowCustomerModal(true)} 
+              <Button
+                variant="outline"
+                onClick={() => setShowCustomerModal(true)}
                 className="w-full"
               >
                 <Plus className="h-4 w-4 mr-1" /> Nuevo Cliente
@@ -465,11 +499,10 @@ export default function CustomerSearch() {
                       {customerEquipments.map((equipment) => (
                         <div
                           key={equipment.id}
-                          className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                            selectedEquipment?.id === equipment.id 
-                              ? 'bg-primary/10 border-primary' 
-                              : 'hover:bg-muted/50'
-                          }`}
+                          className={`p-3 border rounded-lg cursor-pointer transition-colors ${selectedEquipment?.id === equipment.id
+                            ? 'bg-primary/10 border-primary'
+                            : 'hover:bg-muted/50'
+                            }`}
                           onClick={() => handleSelectEquipment(equipment)}
                         >
                           <div className="flex justify-between items-center">
@@ -527,8 +560,8 @@ export default function CustomerSearch() {
                         <p className="font-medium">{selectedEquipment.serialNumber}</p>
                       </div>
                     </div>
-                    <Button 
-                      className="w-full mt-4" 
+                    <Button
+                      className="w-full mt-4"
                       onClick={() => setShowServiceForm(true)}
                       size="sm"
                     >
@@ -602,7 +635,7 @@ export default function CustomerSearch() {
             ) : (
               <div className="text-center p-4">
                 <p>No hay equipos disponibles</p>
-                <Button 
+                <Button
                   className="mt-2"
                   onClick={() => setShowEquipmentModal(true)}
                 >

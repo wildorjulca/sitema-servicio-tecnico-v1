@@ -56,7 +56,7 @@ export const useServicioHook = (
 // Hook para listar estados del servicio pediente , etc
 // ----------------------
 export const useEstadoHook = () => {
-  const query = useQuery<{ data: Estado[]}, Error>({
+  const query = useQuery<{ data: Estado[] }, Error>({
     queryKey: ["estado"],
     queryFn: () =>
       fetchEstadoServ(),
@@ -96,24 +96,32 @@ export const useFiltreClient = (filtro: string) => {
 // ----------------------
 // Hook para filtrar equipos por cliente
 // ----------------------
-
+// hooks/useService.ts
 export const useEquiposPorCliente = (cliente_id?: number) => {
   const query = useQuery({
     queryKey: ["equipos", cliente_id],
-    queryFn: () => obtenerEquiposPorCliente(cliente_id!),
-    enabled: !!cliente_id, // solo corre si hay id
+    queryFn: () => {
+      if (!cliente_id) {
+        throw new Error("cliente_id es requerido");
+      }
+      return obtenerEquiposPorCliente(cliente_id);
+    },
+    enabled: !!cliente_id,
+    retry: false,
   });
 
-  if (query.isError) {
-    toast.error("Error al cargar equipos del cliente");
-  }
+  useEffect(() => {
+    if (query.isError) {
+      toast.error("Error al cargar equipos del cliente");
+    }
+  }, [query.isError]);
 
+  // ✅ Retornar directamente los datos (que son el array)
   return {
     ...query,
-    data: query.data?.data || [],
+    data: query.data || [], // query.data ya es el array de equipos
   };
 };
-
 
 // ----------------------
 // Hook para  la resepcion de los equipos 
@@ -126,7 +134,7 @@ export const useServicioReparacion1 = () => {
     mutationFn: servicioReparacion1,
     onSuccess: () => {
       toast.success("Servicio actualizado (paso 1)");
-      queryClient.invalidateQueries({ queryKey: ["equipos"] }); 
+      queryClient.invalidateQueries({ queryKey: ["equipos"] });
     },
     onError: () => {
       toast.error("Error al actualizar el servicio (paso 1)");
@@ -165,7 +173,7 @@ export const useEntregarServicio = () => {
     mutationFn: entregarServicio,
     onSuccess: () => {
       toast.success("Servicio entregado correctamente");
-      queryClient.invalidateQueries({ queryKey: ["equipos"] }); 
+      queryClient.invalidateQueries({ queryKey: ["equipos"] });
     },
     onError: () => {
       toast.error("Error al entregar el servicio");
@@ -176,11 +184,11 @@ export const useEntregarServicio = () => {
 
 export const useServiceyId = (usuarioId: number, idServicio: string | undefined) => {
   const { data: serviceData, isLoading, isError } = useServicioHook(usuarioId, 0, 1000); // Obtener todos los productos
-  
+
   return {
-    data: serviceData?.find((p: Servicio) => p.idServicio=== parseInt(idServicio || '')),
+    data: serviceData?.find((p: Servicio) => p.idServicio === parseInt(idServicio || '')),
     isLoading,
     isError,
-    refetch: () => {} // No necesitamos refetch para este caso
+    refetch: () => { } // No necesitamos refetch para este caso
   };
 };
