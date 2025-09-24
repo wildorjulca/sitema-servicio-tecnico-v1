@@ -7,10 +7,18 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { Search, User, Monitor, ChevronUp, X, Plus, Link, Save } from 'lucide-react'
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
+import { Search, User, Monitor, ChevronUp, X, Plus, Link, Save, Calendar } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import ServiceForm from './preuba2'
-import { useEquiposPorCliente, useFiltreClient } from '@/hooks/useService'
+import { useEquiposPorCliente, useFiltreClient, useMot_IngHook } from '@/hooks/useService'
 import { useAddServicioEqHook, useServicioEquipoHook } from '@/hooks/useServicioEquipo'
 import { useUser } from '@/hooks/useUser'
 import { useAddClienteHook } from '@/hooks/useCliente'
@@ -51,20 +59,65 @@ interface EquipmentUI {
   servicio_equipos_id: number
 }
 
+// Componente Select simplificado - SIN BUSCADOR
+function SimpleSelect({
+  options,
+  value,
+  onValueChange,
+  placeholder = "Seleccionar...",
+  emptyMessage = "No hay opciones disponibles"
+}: {
+  options: Array<{ id: number; descripcion: string; precio_cobrar: number }>
+  value: string
+  onValueChange: (value: string) => void
+  placeholder?: string
+  emptyMessage?: string
+}) {
+  return (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent className="max-h-60">
+        {options.length === 0 ? (
+          <div className="p-4 text-center text-sm text-muted-foreground">
+            {emptyMessage}
+          </div>
+        ) : (
+          options.map((option) => (
+            <SelectItem key={option.id} value={option.id.toString()}>
+              <div className="flex justify-between items-center w-full">
+                <span>{option.descripcion || 'Sin descripción'}</span>
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  S/. {option.precio_cobrar || 0}
+                </span>
+              </div>
+            </SelectItem>
+          ))
+        )}
+      </SelectContent>
+    </Select>
+  )
+}
+
 export default function CustomerSearch() {
   const { user } = useUser()
   const usuarioId = user?.id
-  const { serviceData, setCliente, setEquipo, setServicio, submitService } = useService()
+  const { serviceData, setCliente, setEquipo, setServicio, submitService, isLoading } = useService()
+  const { data: motivosData, isLoading: loadingMotivos } = useMot_IngHook()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerUI | null>(null)
   const [selectedEquipment, setSelectedEquipment] = useState<EquipmentUI | null>(null)
-  const [showServiceForm, setShowServiceForm] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
   const [showCustomerModal, setShowCustomerModal] = useState(false)
   const [showEquipmentModal, setShowEquipmentModal] = useState(false)
   const [showAvailableEquipments, setShowAvailableEquipments] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Estados para los campos del servicio
+  const [motivoIngresoId, setMotivoIngresoId] = useState<string>('')
+  const [observacion, setObservacion] = useState('')
 
   // Hook para agregar cliente
   const addCliente = useAddClienteHook(usuarioId!)
@@ -95,11 +148,9 @@ export default function CustomerSearch() {
     telefono: c.telefono,
   })) ?? []
 
-
-  // Mapear equipos del cliente API → UI - CORREGIDO
+  // Mapear equipos del cliente API → UI
   const customerEquipments: EquipmentUI[] = (() => {
     try {
-      // Si equiposRaw es un array, usarlo directamente
       if (Array.isArray(equiposRaw)) {
         return equiposRaw.map((eq: any) => ({
           id: eq.EQUIPO_idEquipo || eq.idequipo,
@@ -114,7 +165,6 @@ export default function CustomerSearch() {
           servicio_equipos_id: eq.idServicioEquipos
         }));
       }
-      // Si equiposRaw es un objeto con propiedad data que es array
       else if (equiposRaw && Array.isArray(equiposRaw.data)) {
         return equiposRaw.data.map((eq: any) => ({
           id: eq.EQUIPO_idEquipo || eq.idequipo,
@@ -129,22 +179,24 @@ export default function CustomerSearch() {
           servicio_equipos_id: eq.idServicioEquipos
         }));
       }
-      // Si no es ninguno de los casos anteriores, retornar array vacío
       return [];
     } catch (error) {
       console.error('Error mapeando equipos:', error);
       return [];
     }
-  })();
-
-// Depuración mejorada
-console.log('Tipo de equiposRaw:', typeof equiposRaw);
-console.log('Es array?:', Array.isArray(equiposRaw));
-console.log('EquiposRaw completo:', equiposRaw);
-console.log('customerEquipments:', customerEquipments);
+  })()
 
   // Mapear equipos disponibles
   const availableEquipments: ServicioEquipo[] = allEquipos || []
+
+  // Preparar datos seguros para los motivos - LISTADO DIRECTO
+  const safeMotivosData = (motivosData || []).map((m: any) => ({
+    id: Number(m.idMotivo) || 0,
+    descripcion: String(m.descripcion || 'Sin descripción'),
+    precio_cobrar: Number(m.precio_cobrar) || 0
+  })).filter(m => m.id > 0)
+
+  const selectedMotivo = safeMotivosData.find(m => m.id === parseInt(motivoIngresoId))
 
   // Sincronizar con el contexto
   useEffect(() => {
@@ -198,8 +250,16 @@ console.log('customerEquipments:', customerEquipments);
     setSelectedCustomer(null)
     setSelectedEquipment(null)
     setSearchTerm('')
+    setMotivoIngresoId('')
+    setObservacion('')
     setCliente(null)
     setEquipo(null)
+    setServicio({
+      fechaIngreso: new Date().toISOString().split('T')[0],
+      motivo_ingreso_id: null,
+      descripcion_motivo: '',
+      observacion: ''
+    })
   }
 
   const handleCustomerCreated = async (payload: any) => {
@@ -213,7 +273,6 @@ console.log('customerEquipments:', customerEquipments);
       const newCustomer = await addCliente.mutateAsync(payload)
       toast.success("Cliente creado")
 
-      // Convertir el nuevo cliente al formato UI
       const uiCustomer: CustomerUI = {
         id: newCustomer.idCliente,
         nombre: newCustomer.nombre,
@@ -227,7 +286,6 @@ console.log('customerEquipments:', customerEquipments);
       setSelectedCustomer(uiCustomer)
       setShowCustomerModal(false)
 
-      // Guardar en contexto
       setCliente({
         id: uiCustomer.id,
         nombre: uiCustomer.nombre,
@@ -245,7 +303,6 @@ console.log('customerEquipments:', customerEquipments);
   }
 
   const handleSelectExistingEquipment = (equipment: ServicioEquipo) => {
-    // Cuando seleccionas un equipo existente de la lista general
     const uiEquipment: EquipmentUI = {
       id: equipment.EQUIPO_idEquipo,
       customerId: selectedCustomer?.id || 0,
@@ -259,7 +316,6 @@ console.log('customerEquipments:', customerEquipments);
 
     setSelectedEquipment(uiEquipment)
 
-    // Guardar en contexto
     setEquipo({
       id: uiEquipment.id,
       tipo: uiEquipment.type,
@@ -281,10 +337,8 @@ console.log('customerEquipments:', customerEquipments);
 
     setIsSubmitting(true)
     try {
-      // Crear el nuevo servicio-equipo
       const newEquipment = await addServicioEq.mutateAsync(equipmentData)
 
-      // Crear el objeto UI para el equipo
       const uiEquipment: EquipmentUI = {
         id: newEquipment.EQUIPO_idEquipo,
         customerId: selectedCustomer.id,
@@ -298,7 +352,6 @@ console.log('customerEquipments:', customerEquipments);
 
       setSelectedEquipment(uiEquipment)
 
-      // Guardar en contexto
       setEquipo({
         id: uiEquipment.id,
         tipo: uiEquipment.type,
@@ -310,7 +363,7 @@ console.log('customerEquipments:', customerEquipments);
 
       toast.success("Equipo creado y seleccionado")
       setShowEquipmentModal(false)
-      refetchAllEquipos() // Refrescar la lista de equipos disponibles
+      refetchAllEquipos()
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || error.response?.data?.mensaje || "Error desconocido"
       toast.error(`Error: ${errorMessage}`)
@@ -319,17 +372,26 @@ console.log('customerEquipments:', customerEquipments);
     }
   }
 
-  const handleFinalSubmit = async (serviceFormData: any) => {
-    // Verificar que tenemos el servicio_equipos_id
+  const handleSubmitService = async () => {
     if (!serviceData.equipo?.servicio_equipos_id) {
       toast.error("Falta seleccionar un equipo")
       return
     }
 
+    if (!motivoIngresoId) {
+      toast.error("Seleccione un motivo de ingreso")
+      return
+    }
+
     setIsSubmitting(true)
 
-    // Actualizar los datos del servicio con los del formulario
-    setServicio(serviceFormData)
+    // Actualizar los datos del servicio en el contexto
+    setServicio({
+      fechaIngreso: new Date().toISOString().split('T')[0],
+      motivo_ingreso_id: parseInt(motivoIngresoId),
+      descripcion_motivo: '', // Puedes agregar un campo adicional si lo necesitas
+      observacion: observacion
+    })
 
     // Esperar un momento para que se actualice el contexto
     setTimeout(async () => {
@@ -337,7 +399,8 @@ console.log('customerEquipments:', customerEquipments);
 
       if (result.success) {
         toast.success('Servicio registrado exitosamente!')
-        setShowServiceForm(false)
+        // Limpiar el formulario
+        handleClearSelection()
       } else {
         toast.error(`Error: ${result.error}`)
       }
@@ -346,339 +409,493 @@ console.log('customerEquipments:', customerEquipments);
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Gestión de Servicios Técnicos</h1>
-
-      {/* Barra de estado del servicio */}
-      <div className="mb-6 p-4 bg-muted/50 rounded-lg">
-        <h3 className="font-medium mb-2">Estado del Servicio</h3>
-        <div className="flex items-center gap-4 text-sm">
-          <div className={`flex items-center gap-1 ${serviceData.cliente ? 'text-green-600' : 'text-muted-foreground'}`}>
-            <User className="h-4 w-4" />
-            <span>Cliente: {serviceData.cliente ? 'Seleccionado' : 'Pendiente'}</span>
-          </div>
-          <div className={`flex items-center gap-1 ${serviceData.equipo ? 'text-green-600' : 'text-muted-foreground'}`}>
-            <Monitor className="h-4 w-4" />
-            <span>Equipo: {serviceData.equipo ? 'Seleccionado' : 'Pendiente'}</span>
-          </div>
-          {serviceData.cliente && serviceData.equipo && (
-            <Button size="sm" onClick={() => setShowServiceForm(true)}>
-              <Save className="h-4 w-4 mr-1" /> Completar Servicio
-            </Button>
-          )}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-4 md:p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-[#0A5CB8] mb-2">
+            Gestión de Servicios Técnicos
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Sistema integral de registro y seguimiento de servicios
+          </p>
         </div>
-      </div>
 
-      {/* Layout de 2 columnas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Columna izquierda - Búsqueda y selección de cliente */}
-        <div className="space-y-6">
-          {/* Búsqueda de clientes */}
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-medium mb-4">Buscar Cliente</h3>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar por nombre, apellido o DNI..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  />
+        {/* Barra de estado del servicio */}
+        <Card className="mb-8 border-blue-200 shadow-lg">
+          <CardContent className="p-6">
+            <h3 className="font-semibold text-lg text-[#0A5CB8] mb-4">Progreso del Servicio</h3>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                <div className={`flex items-center gap-2 ${serviceData.cliente ? 'text-green-600' : 'text-muted-foreground'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${serviceData.cliente ? 'bg-green-100' : 'bg-gray-100'}`}>
+                    <User className="h-4 w-4" />
+                  </div>
+                  <span className="font-medium">Cliente</span>
                 </div>
-                <Button onClick={handleSearch} disabled={!searchTerm} size="sm">
-                  {loadingCustomers ? "Buscando..." : "Buscar"}
-                </Button>
+                <div className={`flex items-center gap-2 ${serviceData.equipo ? 'text-green-600' : 'text-muted-foreground'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${serviceData.equipo ? 'bg-green-100' : 'bg-gray-100'}`}>
+                    <Monitor className="h-4 w-4" />
+                  </div>
+                  <span className="font-medium">Equipo</span>
+                </div>
+                <div className={`flex items-center gap-2 ${motivoIngresoId ? 'text-green-600' : 'text-muted-foreground'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${motivoIngresoId ? 'bg-green-100' : 'bg-gray-100'}`}>
+                    <Calendar className="h-4 w-4" />
+                  </div>
+                  <span className="font-medium">Motivo</span>
+                </div>
               </div>
+              {serviceData.cliente && serviceData.equipo && motivoIngresoId && (
+                <Button
+                  onClick={handleSubmitService}
+                  disabled={isSubmitting || isLoading}
+                  className="bg-[#0A5CB8] hover:bg-[#0A5CB8]/90"
+                >
+                  {isSubmitting || isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Registrando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Registrar Servicio
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-              <Button
-                variant="outline"
-                onClick={() => setShowCustomerModal(true)}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-1" /> Nuevo Cliente
-              </Button>
+        {/* Layout de 2 columnas */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-              <AnimatePresence>
-                {isSearching && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="mt-4"
+          {/* Columna izquierda - Búsqueda y selección de cliente + Campos del servicio */}
+          <div className="space-y-6">
+            {/* Búsqueda de clientes */}
+            <Card className="border-blue-200 shadow-lg">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-lg text-[#0A5CB8] mb-4 flex items-center gap-2">
+                  <Search className="h-5 w-5" />
+                  Búsqueda de Clientes
+                </h3>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por nombre, apellido o DNI..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    />
+                  </div>
+                  <Button
+                    onClick={handleSearch}
+                    disabled={!searchTerm}
+                    size="sm"
+                    className="bg-[#0A5CB8] hover:bg-[#0A5CB8]/90"
                   >
-                    {customers.length > 0 ? (
-                      <div className="max-h-60 overflow-y-auto border rounded-lg">
-                        {customers.map((customer) => (
+                    {loadingCustomers ? "Buscando..." : "Buscar"}
+                  </Button>
+                </div>
+
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCustomerModal(true)}
+                  className="w-full border-blue-200 text-[#0A5CB8] hover:bg-blue-50"
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Nuevo Cliente
+                </Button>
+
+                <AnimatePresence>
+                  {isSearching && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="mt-4"
+                    >
+                      {customers.length > 0 ? (
+                        <div className="max-h-60 overflow-y-auto border border-blue-100 rounded-lg">
+                          {customers.map((customer) => (
+                            <div
+                              key={customer.id}
+                              className="p-3 border-b border-blue-50 hover:bg-blue-50 cursor-pointer transition-colors"
+                              onClick={() => handleSelectCustomer(customer)}
+                            >
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <p className="font-medium text-sm">{customer.nombre} {customer.apellidos}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {customer.numero_documento}
+                                  </p>
+                                </div>
+                                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-4 text-center text-sm text-muted-foreground border border-blue-100 rounded-lg">
+                          No se encontraron clientes
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </CardContent>
+            </Card>
+
+            {/* Campos del servicio - Motivo de Ingreso y Observación */}
+            {selectedCustomer && selectedEquipment && (
+              <Card className="border-blue-200 shadow-lg">
+                <CardContent className="p-6">
+                  <h3 className="font-semibold text-lg text-[#0A5CB8] mb-4 flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Detalles del Servicio
+                  </h3>
+
+                  <div className="space-y-4">
+                    {/* Motivo de ingreso - LISTADO DIRECTO */}
+                    <div className="space-y-2">
+                      <Label htmlFor="motivo_ingreso_id" className="text-sm font-medium">
+                        Motivo de Ingreso *
+                      </Label>
+                      {loadingMotivos ? (
+                        <div className="p-3 border rounded-md text-center text-muted-foreground">
+                          Cargando motivos...
+                        </div>
+                      ) : (
+                        <SimpleSelect
+                          options={safeMotivosData}
+                          value={motivoIngresoId}
+                          onValueChange={setMotivoIngresoId}
+                          placeholder="Seleccione un motivo de ingreso..."
+                          emptyMessage="No hay motivos disponibles"
+                        />
+                      )}
+                    </div>
+
+                    {/* Precio del motivo seleccionado */}
+                    {selectedMotivo && (
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-green-800">
+                            Precio del servicio:
+                          </span>
+                          <span className="text-lg font-bold text-green-800">
+                            S/. {selectedMotivo.precio_cobrar}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Observaciones */}
+                    <div className="space-y-2">
+                      <Label htmlFor="observacion" className="text-sm font-medium">
+                        Observaciones del Equipo
+                      </Label>
+                      <Textarea
+                        id="observacion"
+                        value={observacion}
+                        onChange={(e) => setObservacion(e.target.value)}
+                        placeholder="Observaciones sobre el estado del equipo, accesorios, etc..."
+                        rows={3}
+                      />
+                    </div>
+
+                    {/* Botón de registrar */}
+                    <Button
+                      onClick={handleSubmitService}
+                      disabled={isSubmitting || isLoading || !motivoIngresoId}
+                      className="w-full bg-[#0A5CB8] hover:bg-[#0A5CB8]/90"
+                      size="lg"
+                    >
+                      {isSubmitting || isLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Registrando Servicio...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-5 w-5 mr-2" />
+                          Registrar Servicio Completo
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Cliente seleccionado */}
+            {selectedCustomer && (
+              <Card className="border-green-200 bg-green-50 shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="font-semibold text-green-800">Cliente Seleccionado</h3>
+                    <Button variant="outline" size="sm" onClick={handleClearSelection} className="border-green-300">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="bg-green-100 p-3 rounded-full">
+                      <User className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-green-900">
+                        {selectedCustomer.nombre} {selectedCustomer.apellidos}
+                      </h4>
+                      <p className="text-sm text-green-700">
+                        {selectedCustomer.numero_documento}
+                      </p>
+                      <p className="text-sm text-green-700">
+                        {selectedCustomer.telefono}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Columna derecha - Gestión de equipos */}
+          <div className="space-y-6">
+            {selectedCustomer ? (
+              <>
+                {/* Equipos del cliente */}
+                <Card className="border-blue-200 shadow-lg">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-semibold text-lg text-[#0A5CB8] flex items-center gap-2">
+                        <Monitor className="h-5 w-5" />
+                        Equipos del Cliente
+                      </h3>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowAvailableEquipments(true)}
+                          className="border-blue-200 text-[#0A5CB8] hover:bg-blue-50"
+                        >
+                          <Link className="h-4 w-4 mr-1" /> Seleccionar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowEquipmentModal(true)}
+                          className="border-blue-200 text-[#0A5CB8] hover:bg-blue-50"
+                        >
+                          <Plus className="h-4 w-4 mr-1" /> Nuevo
+                        </Button>
+                      </div>
+                    </div>
+
+                    {loadingEquipos ? (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0A5CB8] mx-auto"></div>
+                        <p className="text-sm text-muted-foreground mt-2">Cargando equipos...</p>
+                      </div>
+                    ) : customerEquipments.length > 0 ? (
+                      <div className="space-y-3">
+                        {customerEquipments.map((equipment) => (
                           <div
-                            key={customer.id}
-                            className="p-3 border-b hover:bg-muted/50 cursor-pointer transition-colors"
-                            onClick={() => handleSelectCustomer(customer)}
+                            key={equipment.id}
+                            className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${selectedEquipment?.id === equipment.id
+                                ? 'bg-[#0A5CB8] text-white shadow-lg transform scale-105'
+                                : 'bg-white border-blue-100 hover:bg-blue-50 hover:border-blue-300'
+                              }`}
+                            onClick={() => handleSelectEquipment(equipment)}
                           >
                             <div className="flex justify-between items-center">
                               <div>
-                                <p className="font-medium text-sm">{customer.nombre} {customer.apellidos}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {customer.numero_documento}
+                                <p className={`font-semibold text-sm ${selectedEquipment?.id === equipment.id ? 'text-white' : 'text-gray-900'
+                                  }`}>
+                                  {equipment.brand} {equipment.model}
+                                </p>
+                                <p className={`text-xs ${selectedEquipment?.id === equipment.id ? 'text-blue-100' : 'text-muted-foreground'
+                                  }`}>
+                                  {equipment.type} - {equipment.serialNumber}
+                                </p>
+                                <p className={`text-xs ${selectedEquipment?.id === equipment.id ? 'text-blue-100' : 'text-muted-foreground'
+                                  }`}>
+                                  Último servicio: {equipment.lastServiceDate}
                                 </p>
                               </div>
-                              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                              {selectedEquipment?.id === equipment.id && (
+                                <div className="bg-white text-[#0A5CB8] rounded-full p-2">
+                                  <Monitor className="h-4 w-4" />
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="p-4 text-center text-sm text-muted-foreground">
-                        No se encontraron clientes
+                      <div className="text-center py-8 border-2 border-dashed border-blue-200 rounded-lg">
+                        <div className="bg-blue-100 p-3 rounded-full inline-block mb-3">
+                          <Monitor className="h-8 w-8 text-[#0A5CB8]" />
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          No hay equipos registrados para este cliente
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowEquipmentModal(true)}
+                          className="border-blue-200 text-[#0A5CB8] hover:bg-blue-50"
+                        >
+                          <Plus className="h-4 w-4 mr-1" /> Registrar Primer Equipo
+                        </Button>
                       </div>
                     )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </CardContent>
-          </Card>
-
-          {/* Cliente seleccionado */}
-          {selectedCustomer && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="font-medium">Cliente Seleccionado</h3>
-                  <Button variant="outline" size="sm" onClick={handleClearSelection}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="bg-primary/10 p-2 rounded-full">
-                    <User className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold">
-                      {selectedCustomer.nombre} {selectedCustomer.apellidos}
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      {selectedCustomer.numero_documento}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {selectedCustomer.telefono}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Columna derecha - Gestión de equipos */}
-        <div className="space-y-6">
-          {selectedCustomer ? (
-            <>
-              {/* Equipos del cliente */}
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-medium">Equipos del Cliente</h3>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setShowAvailableEquipments(true)}>
-                        <Link className="h-4 w-4 mr-1" /> Seleccionar
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => setShowEquipmentModal(true)}>
-                        <Plus className="h-4 w-4 mr-1" /> Nuevo
-                      </Button>
-                    </div>
-                  </div>
-
-                  {loadingEquipos ? (
-                    <p className="text-sm text-muted-foreground">Cargando equipos...</p>
-                  ) : customerEquipments.length > 0 ? (
-                    <div className="space-y-2">
-                      {customerEquipments.map((equipment) => (
-                        <div
-                          key={equipment.id}
-                          className={`p-3 border rounded-lg cursor-pointer transition-colors ${selectedEquipment?.id === equipment.id
-                            ? 'bg-primary/10 border-primary'
-                            : 'hover:bg-muted/50'
-                            }`}
-                          onClick={() => handleSelectEquipment(equipment)}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <p className="font-medium text-sm">{equipment.brand} {equipment.model}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {equipment.type} - {equipment.serialNumber}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                Último servicio: {equipment.lastServiceDate}
-                              </p>
-                            </div>
-                            {selectedEquipment?.id === equipment.id && (
-                              <div className="bg-primary text-primary-foreground rounded-full p-1">
-                                <Monitor className="h-3 w-3" />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-6">
-                      <div className="bg-muted/20 p-3 rounded-full inline-block mb-3">
-                        <Monitor className="h-6 w-6 text-muted-foreground" />
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        No hay equipos registrados
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Resumen de selección */}
-              {selectedEquipment && (
-                <Card className="bg-primary/5 border-primary/20">
-                  <CardContent className="p-4">
-                    <h3 className="font-medium mb-3">Resumen de Selección</h3>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <p className="text-muted-foreground">Cliente</p>
-                        <p className="font-medium">{selectedCustomer.nombre} {selectedCustomer.apellidos}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Documento</p>
-                        <p className="font-medium">{selectedCustomer.numero_documento}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Equipo</p>
-                        <p className="font-medium">{selectedEquipment.brand} {selectedEquipment.model}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Serie</p>
-                        <p className="font-medium">{selectedEquipment.serialNumber}</p>
-                      </div>
-                    </div>
-                    <Button
-                      className="w-full mt-4"
-                      onClick={() => setShowServiceForm(true)}
-                      size="sm"
-                    >
-                      <Save className="h-4 w-4 mr-1" /> Continuar con el Servicio
-                    </Button>
                   </CardContent>
                 </Card>
-              )}
-            </>
-          ) : (
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="bg-muted/20 p-4 rounded-full inline-block mb-4">
-                  <User className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="font-medium text-lg mb-2">Seleccione un cliente</h3>
-                <p className="text-muted-foreground">
-                  Busque o registre un cliente para comenzar con el servicio técnico
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
 
-      {/* Modales */}
-      {showAvailableEquipments && (
-        <Dialog open={showAvailableEquipments} onOpenChange={setShowAvailableEquipments}>
-          <DialogContent className="max-w-4xl max-h-[80vh]">
-            <DialogHeader>
-              <DialogTitle>Seleccionar Equipo Existente</DialogTitle>
-              <DialogDescription>
-                Elija un equipo de la lista para usarlo con el cliente {selectedCustomer?.nombre}
-              </DialogDescription>
-            </DialogHeader>
-
-            {loadingAllEquipos ? (
-              <p>Cargando equipos...</p>
-            ) : availableEquipments.length > 0 ? (
-              <div className="max-h-96 overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Marca</TableHead>
-                      <TableHead>Modelo</TableHead>
-                      <TableHead>N° Serie</TableHead>
-                      <TableHead>Acción</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {availableEquipments.map((equipment) => (
-                      <TableRow key={equipment.idServicioEquipos}>
-                        <TableCell>{equipment.nombre_equipo || 'N/A'}</TableCell>
-                        <TableCell>{equipment.nombre_marca || 'N/A'}</TableCell>
-                        <TableCell>{equipment.modelo || 'N/A'}</TableCell>
-                        <TableCell>{equipment.serie || 'N/A'}</TableCell>
-                        <TableCell>
-                          <Button
-                            size="sm"
-                            onClick={() => handleSelectExistingEquipment(equipment)}
-                          >
-                            Seleccionar
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                {/* Resumen de selección */}
+                {selectedEquipment && (
+                  <Card className="bg-gradient-to-r from-[#0A5CB8] to-blue-600 text-white shadow-xl">
+                    <CardContent className="p-6">
+                      <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                        <Save className="h-5 w-5" />
+                        Servicio Listo para Registrar
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-blue-100">Cliente</p>
+                          <p className="font-semibold">{selectedCustomer.nombre} {selectedCustomer.apellidos}</p>
+                        </div>
+                        <div>
+                          <p className="text-blue-100">Documento</p>
+                          <p className="font-semibold">{selectedCustomer.numero_documento}</p>
+                        </div>
+                        <div>
+                          <p className="text-blue-100">Equipo</p>
+                          <p className="font-semibold">{selectedEquipment.brand} {selectedEquipment.model}</p>
+                        </div>
+                        <div>
+                          <p className="text-blue-100">N° Serie</p>
+                          <p className="font-semibold">{selectedEquipment.serialNumber}</p>
+                        </div>
+                      </div>
+                      {motivoIngresoId && (
+                        <div className="mt-3 p-3 bg-white/20 rounded-lg">
+                          <p className="text-blue-100">Motivo seleccionado:</p>
+                          <p className="font-semibold">{selectedMotivo?.descripcion}</p>
+                          <p className="text-blue-100">Precio: S/. {selectedMotivo?.precio_cobrar}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </>
             ) : (
-              <div className="text-center p-4">
-                <p>No hay equipos disponibles</p>
-                <Button
-                  className="mt-2"
-                  onClick={() => setShowEquipmentModal(true)}
-                >
-                  <Plus className="h-4 w-4 mr-1" /> Crear Nuevo Equipo
-                </Button>
-              </div>
+              <Card className="border-blue-200 shadow-lg">
+                <CardContent className="p-8 text-center">
+                  <div className="bg-blue-100 p-4 rounded-full inline-block mb-4">
+                    <User className="h-12 w-12 text-[#0A5CB8]" />
+                  </div>
+                  <h3 className="font-semibold text-lg text-[#0A5CB8] mb-2">Seleccione un cliente</h3>
+                  <p className="text-muted-foreground">
+                    Busque o registre un cliente para comenzar con el servicio técnico
+                  </p>
+                </CardContent>
+              </Card>
             )}
-          </DialogContent>
-        </Dialog>
-      )}
+          </div>
+        </div>
 
-      {/* Formulario de servicio */}
-      {showServiceForm && (
-        <ServiceForm
-          selectedCustomer={selectedCustomer}
-          selectedEquipment={selectedEquipment}
-          onClose={() => setShowServiceForm(false)}
-          onSave={handleFinalSubmit}
-          serviceData={serviceData}
-          updateServiceData={setServicio}
-          isSubmitting={isSubmitting}
-        />
-      )}
+        {/* Modales */}
+        {showAvailableEquipments && (
+          <Dialog open={showAvailableEquipments} onOpenChange={setShowAvailableEquipments}>
+            <DialogContent className="max-w-4xl max-h-[80vh]">
+              <DialogHeader>
+                <DialogTitle className="text-[#0A5CB8]">Seleccionar Equipo Existente</DialogTitle>
+                <DialogDescription>
+                  Elija un equipo de la lista para usarlo con el cliente {selectedCustomer?.nombre}
+                </DialogDescription>
+              </DialogHeader>
 
-      {/* Modal para agregar cliente */}
-      {showCustomerModal && usuarioId && (
-        <CustomerModal
-          open={showCustomerModal}
-          onOpenChange={setShowCustomerModal}
-          onSave={handleCustomerCreated}
-          usuarioId={usuarioId}
-          isSubmitting={isSubmitting}
-        />
-      )}
+              {loadingAllEquipos ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0A5CB8] mx-auto"></div>
+                  <p className="text-sm text-muted-foreground mt-2">Cargando equipos...</p>
+                </div>
+              ) : availableEquipments.length > 0 ? (
+                <div className="max-h-96 overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-[#0A5CB8]">Tipo</TableHead>
+                        <TableHead className="text-[#0A5CB8]">Marca</TableHead>
+                        <TableHead className="text-[#0A5CB8]">Modelo</TableHead>
+                        <TableHead className="text-[#0A5CB8]">N° Serie</TableHead>
+                        <TableHead className="text-[#0A5CB8]">Acción</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {availableEquipments.map((equipment) => (
+                        <TableRow key={equipment.idServicioEquipos}>
+                          <TableCell>{equipment.nombre_equipo || 'N/A'}</TableCell>
+                          <TableCell>{equipment.nombre_marca || 'N/A'}</TableCell>
+                          <TableCell>{equipment.modelo || 'N/A'}</TableCell>
+                          <TableCell>{equipment.serie || 'N/A'}</TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              onClick={() => handleSelectExistingEquipment(equipment)}
+                              className="bg-[#0A5CB8] hover:bg-[#0A5CB8]/90"
+                            >
+                              Seleccionar
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center p-6">
+                  <p className="text-muted-foreground mb-3">No hay equipos disponibles</p>
+                  <Button
+                    onClick={() => setShowEquipmentModal(true)}
+                    className="bg-[#0A5CB8] hover:bg-[#0A5CB8]/90"
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Crear Nuevo Equipo
+                  </Button>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        )}
 
-      {/* Modal para agregar equipo */}
-      {showEquipmentModal && selectedCustomer && (
-        <ServicioEquipoDialog
-          open={showEquipmentModal}
-          onOpenChange={setShowEquipmentModal}
-          onSubmit={handleCreateNewEquipment}
-        />
-      )}
+        {/* Modal para agregar cliente */}
+        
+
+        {/* Modal para agregar cliente */}
+        {showCustomerModal && usuarioId && (
+          <CustomerModal
+            open={showCustomerModal}
+            onOpenChange={setShowCustomerModal}
+            onSave={handleCustomerCreated}
+            usuarioId={usuarioId}
+            isSubmitting={isSubmitting}
+          />
+        )}
+
+        {/* Modal para agregar equipo */}
+        {showEquipmentModal && selectedCustomer && (
+          <ServicioEquipoDialog
+            open={showEquipmentModal}
+            onOpenChange={setShowEquipmentModal}
+            onSubmit={handleCreateNewEquipment}
+          />
+        )}
+        
+      </div>
     </div>
   )
 }

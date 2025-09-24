@@ -73,6 +73,27 @@ export const useEstadoHook = () => {
 };
 
 // ----------------------
+// Hook para listar  mot ingresos
+// ----------------------
+export const useMot_IngHook = () => {
+  const query = useQuery<{ data: Estado[] }, Error>({
+    queryKey: ["mot"],
+    queryFn: () =>
+      fetchEstadoServ(),
+  });
+
+  if (query.isError) {
+    toast.error("Error al cargar los motivos ingreso service");
+  }
+
+  return {
+    ...query,
+    data: query.data?.data || [],
+  };
+};
+
+
+// ----------------------
 // Hook para filtrar cliente 
 // ----------------------
 
@@ -99,7 +120,7 @@ export const useFiltreClient = (filtro: string) => {
 // hooks/useService.ts
 export const useEquiposPorCliente = (cliente_id?: number) => {
   const query = useQuery({
-    queryKey: ["equipos", cliente_id],
+    queryKey: ["red", cliente_id],
     queryFn: () => {
       if (!cliente_id) {
         throw new Error("cliente_id es requerido");
@@ -134,7 +155,7 @@ export const useServicioReparacion1 = () => {
     mutationFn: servicioReparacion1,
     onSuccess: () => {
       toast.success("Servicio actualizado (paso 1)");
-      queryClient.invalidateQueries({ queryKey: ["equipos"] });
+      queryClient.invalidateQueries({ queryKey: ["reparaciones"] });
     },
     onError: () => {
       toast.error("Error al actualizar el servicio (paso 1)");
@@ -153,7 +174,7 @@ export const useServicioReparacion2 = () => {
     mutationFn: servicioReparacion2,
     onSuccess: () => {
       toast.success("Servicio actualizado (paso 2)");
-      queryClient.invalidateQueries({ queryKey: ["equipos"] });
+      queryClient.invalidateQueries({ queryKey: ["reparaciones"] });
     },
     onError: () => {
       toast.error("Error al actualizar el servicio (paso 2)");
@@ -173,7 +194,7 @@ export const useEntregarServicio = () => {
     mutationFn: entregarServicio,
     onSuccess: () => {
       toast.success("Servicio entregado correctamente");
-      queryClient.invalidateQueries({ queryKey: ["equipos"] });
+      queryClient.invalidateQueries({ queryKey: ["reparaciones"] });
     },
     onError: () => {
       toast.error("Error al entregar el servicio");

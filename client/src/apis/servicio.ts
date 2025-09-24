@@ -49,6 +49,25 @@ export const fetchEstadoServ = async (
     throw error;
   };
 };
+
+// ----------------------
+// listar motivos de ingreso nene
+// ----------------------
+
+
+export const fetchMot_Ingreso = async (
+) => {
+  try {
+    const response = await instance.get(`/getMot_ing`);
+    const { data } = response.data;
+    console.log("estados obtenidos:", { data });
+    return { data };
+  } catch (error) {
+    console.error("Error al obtener los mot ingresos:", error);
+    throw error;
+  };
+};
+
 // ----------------------
 // filtro de clientes para listar
 // ----------------------
@@ -100,8 +119,6 @@ export const servicioReparacion1 = async (payload: {
   servicio_id: number;
   diagnostico: string;
   solucion: string;
-  precio_mano_obra?: number;
-  usuario_soluciona_id: number;
   estado_id: number;
   repuestos?: any[]; // ajusta al tipo real de tus repuestos
 }) => {

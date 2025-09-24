@@ -68,10 +68,10 @@ export default function ServiceForm({ selectedCustomer, selectedEquipment, onClo
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-semibold">Nuevo Servicio Técnico</h2>
+        <div className="flex justify-between items-center p-4 border-b">
+          <h4 className="text-xl font-semibold">Nuevo Servicio Técnico</h4>
           <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
+            <X className="h-6 w-6" />
           </Button>
         </div>
         
@@ -108,7 +108,7 @@ export default function ServiceForm({ selectedCustomer, selectedEquipment, onClo
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Columna izquierda - Información del servicio */}
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className=" gap-4">
 
                 <div className="space-y-2">
                   <Label htmlFor="motivo_ingreso_id">Motivo de Ingreso</Label>
@@ -129,46 +129,23 @@ export default function ServiceForm({ selectedCustomer, selectedEquipment, onClo
                   </Select>
                 </div>
               </div>
-              
 
-              
-              <div className="space-y-2">
-                <Label htmlFor="observacion">Observaciones</Label>
-                <Textarea
-                  id="observacion"
-                  name="observacion"
-                  value={formData.observacion}
-                  onChange={handleInputChange}
-                  placeholder="Observaciones adicionales..."
-                  rows={3}
-                />
-              </div>
             </div>
             
             {/* Columna derecha - Diagnóstico y precios */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="diagnostico">Diagnóstico</Label>
+                <Label htmlFor="diagnostico">Observacion</Label>
                 <Textarea
                   id="diagnostico"
                   name="diagnostico"
                   value={formData.diagnostico}
                   onChange={handleInputChange}
-                  placeholder="Diagnóstico del equipo..."
+                  placeholder="alguna observacion  del equipo..."
                   rows={3}
                 />
               </div>
-              
 
-              
-
-              
-              <div className="bg-muted p-3 rounded-md">
-                <div className="flex justify-between font-medium">
-                  <span>Total a pagar:</span>
-                  <span>S/ {(parseFloat(formData.precio) + parseFloat(formData.precioRepuestos)).toFixed(2)}</span>
-                </div>
-              </div>
             </div>
           </div>
           

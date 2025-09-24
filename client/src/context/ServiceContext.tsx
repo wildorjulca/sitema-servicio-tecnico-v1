@@ -3,6 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useUser } from '@/hooks/useUser'
+import { useServicioReparacion1 } from '@/hooks/useService'
 
 interface ServiceData {
   // Paso 1: Información del cliente
@@ -43,6 +44,7 @@ interface ServiceContextType {
   setServicio: (servicio: Partial<ServiceData['servicio']>) => void
   resetService: () => void
   submitService: () => Promise<{ success: boolean; data?: any; error?: string }>
+  isLoading: boolean
 }
 
 const ServiceContext = createContext<ServiceContextType | undefined>(undefined)
@@ -63,6 +65,12 @@ const initialServiceData: ServiceData = {
 export function ServiceProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser()
   const [serviceData, setServiceData] = useState<ServiceData>(initialServiceData)
+  
+  // Usamos el hook personalizado para el servicio de reparación
+  const { 
+    mutateAsync: crearServicio, 
+    isPending: isLoading 
+  } = useServicioReparacion1()
 
   // Cargar datos guardados del localStorage al iniciar
   useEffect(() => {
@@ -92,11 +100,19 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
   }, [user])
 
   const setCliente = (cliente: ServiceData['cliente']) => {
-    setServiceData(prev => ({ ...prev, cliente }))
+    setServiceData(prev => ({ 
+      ...prev, 
+      cliente,
+      estado: cliente ? 'completo' : 'incompleto'
+    }))
   }
 
   const setEquipo = (equipo: ServiceData['equipo']) => {
-    setServiceData(prev => ({ ...prev, equipo }))
+    setServiceData(prev => ({ 
+      ...prev, 
+      equipo,
+      estado: equipo ? 'completo' : 'incompleto'
+    }))
   }
 
   const setServicio = (servicio: Partial<ServiceData['servicio']>) => {
@@ -117,32 +133,24 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const response = await fetch('/api/servicios/registrar', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fechaIngreso: serviceData.servicio.fechaIngreso,
-          motivo_ingreso_id: serviceData.servicio.motivo_ingreso_id,
-          descripcion_motivo: serviceData.servicio.descripcion_motivo,
-          observacion: serviceData.servicio.observacion,
-          usuario_recibe_id: serviceData.usuario_recibe_id,
-          servicio_equipos_id: serviceData.equipo.servicio_equipos_id,
-          cliente_id: serviceData.cliente.id
-        })
+      // Usamos el hook personalizado en lugar de fetch directo
+      const data = await crearServicio({
+        motivo_ingreso_id: serviceData.servicio.motivo_ingreso_id,
+        descripcion_motivo: serviceData.servicio.descripcion_motivo,
+        observacion: serviceData.servicio.observacion,
+        usuario_recibe_id: serviceData.usuario_recibe_id,
+        servicio_equipos_id: serviceData.equipo.servicio_equipos_id,
+        cliente_id: serviceData.cliente.id
       })
 
-      const result = await response.json()
-
-      if (response.ok) {
-        resetService()
-        return { success: true, data: result }
-      } else {
-        return { success: false, error: result.error || 'Error al registrar servicio' }
+      resetService()
+      return { success: true, data }
+    } catch (error: any) {
+      // Manejo de errores específico del hook
+      return { 
+        success: false, 
+        error: error?.message || 'Error al registrar servicio' 
       }
-    } catch (error) {
-      return { success: false, error: 'Error de conexión' }
     }
   }
 
@@ -153,7 +161,8 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
       setEquipo,
       setServicio,
       resetService,
-      submitService
+      submitService,
+      isLoading
     }}>
       {children}
     </ServiceContext.Provider>
