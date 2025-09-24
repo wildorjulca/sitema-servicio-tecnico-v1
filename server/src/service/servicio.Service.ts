@@ -59,6 +59,35 @@ const listServicio = async (
     }
 };
 
+const listMot_Ingreso= async () => {
+    try {
+        const [results]: any = await cn
+            .promise()
+            .query(
+                "CALL sp_listar_mot_Ingreso"
+            );
+
+        console.log("Resultados de sp_listar_mot_Ingreso:", {
+            data: results[0],
+        });
+
+        return {
+            status: 200,
+            success: true,
+            data: results[0],
+        };
+    } catch (error: any) {
+        console.error("Error en listar servicios ingresos service:", error);
+
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error en la base de datos",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
+
 const listEstadoServ = async () => {
     try {
         const [results]: any = await cn
@@ -266,4 +295,4 @@ const entregarServicioCliente = async (
 
 
 
-export { listServicio, listEstadoServ, buscarClienteServ, obtenerEquiposPorCliente, registrarServicioBasico, actualizarServicioReparacion, entregarServicioCliente };
+export { listServicio, listEstadoServ,listMot_Ingreso, buscarClienteServ, obtenerEquiposPorCliente, registrarServicioBasico, actualizarServicioReparacion, entregarServicioCliente };

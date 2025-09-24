@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { actualizarServicioReparacionCTRL, buscarClienteServicioCTRL, entregarServicioCTRL, getAllServicioCTRL, getEstadoCTRL, obtenerEquiposPorClienteCTRL, registrarServicioBasicoCTRL } from "../controller/servicio.Controller";
+import { actualizarServicioReparacionCTRL, buscarClienteServicioCTRL, entregarServicioCTRL, getAllServicioCTRL, getEstadoCTRL, getMot_IngresoCTRL, obtenerEquiposPorClienteCTRL, registrarServicioBasicoCTRL } from "../controller/servicio.Controller";
 import { validate } from "../middlewares/validation";
 import { validateActualizarReparacion, validateRegistroBasico } from "../validation/servicioValidation";
 
@@ -8,6 +8,7 @@ const routerServicio = Router()
 
     routerServicio.get("/getService/:usuarioId", getAllServicioCTRL),
     routerServicio.get("/getEstado", getEstadoCTRL),
+    routerServicio.get("/getMot_ing", getMot_IngresoCTRL),
     routerServicio.get("/filtroClient", buscarClienteServicioCTRL),
     routerServicio.get('/equipos-cliente', obtenerEquiposPorClienteCTRL);
 

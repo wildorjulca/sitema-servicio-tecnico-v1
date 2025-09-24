@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { createServicioEquipo, updateServicioEquipo } from "../service/servicio_equipos.Service";
 import { ServicioEquipo } from "../interface";
-import { actualizarServicioReparacion, buscarClienteServ, entregarServicioCliente, listEstadoServ, listServicio, obtenerEquiposPorCliente, registrarServicioBasico } from "../service/servicio.Service";
+import { actualizarServicioReparacion, buscarClienteServ, entregarServicioCliente, listEstadoServ, listMot_Ingreso, listServicio, obtenerEquiposPorCliente, registrarServicioBasico } from "../service/servicio.Service";
 
 
 const getAllServicioCTRL = async (req: Request, res: Response) => {
@@ -22,6 +22,12 @@ const getAllServicioCTRL = async (req: Request, res: Response) => {
   );
 
   res.status(response.status).json(response); return
+};
+
+const getMot_IngresoCTRL = async (req: Request, res: Response) => {
+  const response = await listMot_Ingreso();
+  res.status(response.status).json(response);
+  return
 };
 
 const getEstadoCTRL = async (req: Request, res: Response) => {
@@ -241,4 +247,4 @@ const entregarServicioCTRL = async (req: Request, res: Response) => {
 
 
 
-export { getAllServicioCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL, actualizarServicioReparacionCTRL, entregarServicioCTRL }
+export { getAllServicioCTRL, getMot_IngresoCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL, actualizarServicioReparacionCTRL, entregarServicioCTRL }
