@@ -19,12 +19,11 @@ import { Usuarios } from '@/pages/dashboard/usuarios';
 import { Producto } from '@/pages/dashboard/producto/ui';
 import { DetalleProducto } from '@/pages/dashboard/producto/ui/detalleProducto';
 import { ProductLayout } from '@/pages/dashboard/producto/outlet';
-import Listar_Servicio from '@/pages/dashboard/servicio/pages/Listar_Servicio';
+import Listar_Servicio from '@/pages/dashboard/servicio/pages/list/Listar_Servicio';
 import New_Service from '@/pages/dashboard/servicio/pages/new/New_service';
 import Servicio_Equipos from '@/pages/dashboard/servicio_equipos';
 import Estado_serv from '@/pages/dashboard/estado_serv/estado_serv';
-import { DetalleService } from '@/pages/dashboard/servicio/ui/detalleService';
-import CustomerSearch from '@/pages/dashboard/servicio/pages/prueba';
+import { DetalleService } from '@/pages/dashboard/servicio/pages/list/ui/detalleService';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -61,7 +60,6 @@ const AppRoutes = () => {
                     </Route>
 
                     <Route path="estado" element={<Estado_serv />} />
-                    <Route path="prueba" element={<CustomerSearch />} />
 
                     <Route path="users" element={<Usuarios />} />
                     <Route path="settings" element={<div>Settings</div>} />

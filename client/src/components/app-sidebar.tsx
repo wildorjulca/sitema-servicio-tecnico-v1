@@ -75,13 +75,13 @@ const data = {
                     url: "mot_ingreso",
                 },
                 {
+                    title: "Servicio Equipos",
+                    url: "serv_e",
+                },
+                {
                     title: "Estados",
                     url: "estado",
                 },
-                {
-                    title: "pruebZx",
-                    url: "prueba",
-                }
 
             ],
         },
@@ -90,10 +90,7 @@ const data = {
             url: "#",
             icon: Settings2,
             items: [
-                {
-                    title: "Servicio Equipos",
-                    url: "serv_e",
-                },
+
                 {
                     title: "listado del servicio",
                     url: "list",

@@ -211,31 +211,62 @@ export function DataTableService<T extends { id: string | number }>({
                             <MoreHorizontal />
                           </Button>
                         </DropdownMenuTrigger>
+                        {/* // En el dropdown menu (versión desktop) */}
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+
+                          {/* Ver más - Color azul/informativo */}
                           {onView && (
-                            <DropdownMenuItem onClick={() => handleView(row.original)}>
-                              <Eye className="mr-2 h-4 w-4" /> Ver más
+                            <DropdownMenuItem
+                              onClick={() => handleView(row.original)}
+                              className="text-blue-600 hover:bg-blue-50 focus:bg-blue-50"
+                            >
+                              <Eye className="mr-2 h-4 w-4 text-blue-500" />
+                              Ver más
                             </DropdownMenuItem>
                           )}
+
+                          {/* Reparar - Color naranja/acción técnica */}
                           {onRepair && (
-                            <DropdownMenuItem onClick={() => handleRepair(row.original)}>
-                              <Wrench className="mr-2 h-4 w-4" /> Reparar
+                            <DropdownMenuItem
+                              onClick={() => handleRepair(row.original)}
+                              className="text-orange-600 hover:bg-orange-50 focus:bg-orange-50"
+                            >
+                              <Wrench className="mr-2 h-4 w-4 text-orange-500" />
+                              Reparar
                             </DropdownMenuItem>
                           )}
+
+                          {/* Entregar equipo - Color verde/éxito */}
                           {onDeliver && (
-                            <DropdownMenuItem onClick={() => handleDeliver(row.original)}>
-                              <Truck className="mr-2 h-4 w-4" /> Entregar equipo
+                            <DropdownMenuItem
+                              onClick={() => handleDeliver(row.original)}
+                              className="text-green-600 hover:bg-green-50 focus:bg-green-50"
+                            >
+                              <Truck className="mr-2 h-4 w-4 text-green-500" />
+                              Entregar equipo
                             </DropdownMenuItem>
                           )}
+
+                          {/* Imprimir - Color morado/documentación */}
                           {onPrint && (
-                            <DropdownMenuItem onClick={() => handlePrint(row.original)}>
-                              <Printer className="mr-2 h-4 w-4" /> Imprimir
+                            <DropdownMenuItem
+                              onClick={() => handlePrint(row.original)}
+                              className="text-purple-600 hover:bg-purple-50 focus:bg-purple-50"
+                            >
+                              <Printer className="mr-2 h-4 w-4 text-purple-500" />
+                              Imprimir
                             </DropdownMenuItem>
                           )}
+
+                          {/* Editar - Color azul claro/edición */}
                           {onEdit && (
-                            <DropdownMenuItem onClick={() => handleEdit(row.original)}>
-                              <Edit className="mr-2 h-4 w-4" /> Editar
+                            <DropdownMenuItem
+                              onClick={() => handleEdit(row.original)}
+                              className="text-cyan-600 hover:bg-cyan-50 focus:bg-cyan-50"
+                            >
+                              <Edit className="mr-2 h-4 w-4 text-cyan-500" />
+                              Editar
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
@@ -271,31 +302,57 @@ export function DataTableService<T extends { id: string | number }>({
                   <span>{flexRender(cell.column.columnDef.cell, cell.getContext())}</span>
                 </div>
               ))}
+              {/* // En la versión móvil */}
               {hasActions && (
                 <div className="flex justify-end gap-2 pt-2 flex-wrap">
                   {onView && (
-                    <Button variant="outline" size="sm" onClick={() => handleView(row.original)}>
-                      <Eye className="h-4 w-4 mr-1" /> Ver
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleView(row.original)}
+                      className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                    >
+                      <Eye className="h-4 w-4 mr-1 text-blue-500" /> Ver
                     </Button>
                   )}
                   {onRepair && (
-                    <Button variant="outline" size="sm" onClick={() => handleRepair(row.original)}>
-                      <Wrench className="h-4 w-4 mr-1" /> Reparar
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRepair(row.original)}
+                      className="border-orange-200 text-orange-600 hover:bg-orange-50"
+                    >
+                      <Wrench className="h-4 w-4 mr-1 text-orange-500" /> Reparar
                     </Button>
                   )}
                   {onDeliver && (
-                    <Button variant="outline" size="sm" onClick={() => handleDeliver(row.original)}>
-                      <Truck className="h-4 w-4 mr-1" /> Entregar
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeliver(row.original)}
+                      className="border-green-200 text-green-600 hover:bg-green-50"
+                    >
+                      <Truck className="h-4 w-4 mr-1 text-green-500" /> Entregar
                     </Button>
                   )}
                   {onPrint && (
-                    <Button variant="outline" size="sm" onClick={() => handlePrint(row.original)}>
-                      <Printer className="h-4 w-4 mr-1" /> Imprimir
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePrint(row.original)}
+                      className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                    >
+                      <Printer className="h-4 w-4 mr-1 text-purple-500" /> Imprimir
                     </Button>
                   )}
                   {onEdit && (
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(row.original)}>
-                      <Edit className="h-4 w-4 mr-1" /> Editar
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(row.original)}
+                      className="border-cyan-200 text-cyan-600 hover:bg-cyan-50"
+                    >
+                      <Edit className="h-4 w-4 mr-1 text-cyan-500" /> Editar
                     </Button>
                   )}
                 </div>

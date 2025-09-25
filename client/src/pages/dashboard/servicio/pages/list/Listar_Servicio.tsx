@@ -5,8 +5,9 @@ import { useEstadoHook, useServicioHook } from "@/hooks/useService";
 import { Servicio } from "@/interface/types";
 import { SelectWithCheckbox } from "@/components/chexbox/SelectWithCheckbox";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { DataTableService } from "../../ui/table-service";
+import { Link, useNavigate } from "react-router-dom";
+import { DataTableService } from "../../../ui/table-service";
+import { Plus } from "lucide-react";
 
 export default function Listar_Servicio() {
   const { user } = useUser();
@@ -120,10 +121,6 @@ export default function Listar_Servicio() {
     navigate(`/servicios/editar/${servicio.id}`);
   };
 
-  const openAddModal = () => {
-    alert("Agregar servicio");
-  }
-
   const handleClearFilters = () => {
     setPageIndex(0);
     setFiltros({});
@@ -209,22 +206,26 @@ export default function Listar_Servicio() {
         totalRows={totalRows}
         onPageChange={(newPage) => setPageIndex(newPage)}
         onPageSizeChange={(size) => setPageSize(size)}
-        
+
         // Pasar TODAS las acciones que quieres mostrar
         onView={handleView}
         onRepair={handleRepair}
         onDeliver={handleDeliver}
         onPrint={handlePrint}
         onEdit={handleEdit}
-        
+
         // También puedes pasar las rutas como respaldo
         viewRoute="/servicios/detalle"
         repairRoute="/servicios/reparar"
         deliverRoute="/servicios/entregar"
         printRoute="/servicios/imprimir"
         editRoute="/servicios/editar"
-        
-        actions={<Button onClick={openAddModal}> + Agregar servicio</Button>}
+
+        actions={<Link to={'/dashboard/new'}>
+          <Button size="sm" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" /> Nuevo servicio
+          </Button>
+        </Link>}
       />
     </div>
   );
