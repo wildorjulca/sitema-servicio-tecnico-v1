@@ -180,7 +180,6 @@ const obtenerEquiposPorCliente = async (cliente_id: number) => {
 };
 
 const registrarServicioBasico = async (
-    fechaIngreso: string,
     motivo_ingreso_id: number,
     descripcion_motivo: string,
     observacion: string,
@@ -192,25 +191,26 @@ const registrarServicioBasico = async (
         const [results]: any = await cn
             .promise()
             .query(
-                "CALL sp_registrar_servicio_basico(?, ?, ?, ?, ?, ?, ?)",
-                [fechaIngreso, motivo_ingreso_id, descripcion_motivo, observacion, usuario_recibe_id, servicio_equipos_id, cliente_id]
+                "CALL sp_registrar_servicio_basico(?, ?, ?, ?, ?, ?)",
+                [motivo_ingreso_id, descripcion_motivo, observacion, usuario_recibe_id, servicio_equipos_id, cliente_id]
             );
 
         const servicioId = results[0][0].id_servicio_generado;
         const codigoSeguimiento = results[0][0].codigo_seguimiento;
+        const precioTotal = results[0][0].precio_total;
 
         return {
             status: 200,
             success: true,
             data: {
                 id_servicio: servicioId,
-                codigo_seguimiento: codigoSeguimiento
+                codigo_seguimiento: codigoSeguimiento,
+                precio_total: precioTotal
             },
             mensaje: "Servicio registrado exitosamente"
         };
     } catch (error: any) {
         console.error("Error en registrar servicio básico:", error);
-
         return {
             status: 500,
             success: false,

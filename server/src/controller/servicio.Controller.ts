@@ -106,7 +106,6 @@ const obtenerEquiposPorClienteCTRL = async (req: Request, res: Response) => {
 const registrarServicioBasicoCTRL = async (req: Request, res: Response) => {
   try {
     const {
-      fechaIngreso,
       motivo_ingreso_id,
       descripcion_motivo,
       observacion,
@@ -116,8 +115,7 @@ const registrarServicioBasicoCTRL = async (req: Request, res: Response) => {
     } = req.body;
 
     // Validar campos obligatorios
-    if (!fechaIngreso || !motivo_ingreso_id || !descripcion_motivo ||
-      !usuario_recibe_id || !servicio_equipos_id || !cliente_id) {
+    if ( !motivo_ingreso_id ||!usuario_recibe_id || !servicio_equipos_id || !cliente_id) {
       res.status(400).json({
         status: 400,
         success: false,
@@ -127,7 +125,6 @@ const registrarServicioBasicoCTRL = async (req: Request, res: Response) => {
     }
 
     const response = await registrarServicioBasico(
-      fechaIngreso,
       motivo_ingreso_id,
       descripcion_motivo,
       observacion || '',
