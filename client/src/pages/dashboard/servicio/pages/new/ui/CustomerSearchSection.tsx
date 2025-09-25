@@ -36,11 +36,24 @@ export function CustomerSearchSection({
   return (
     <Card className="border-blue-200 shadow-lg">
       <CardContent className="p-6">
-        <h3 className="font-semibold text-lg text-[#0A5CB8] mb-4 flex items-center gap-2">
-          <Search className="h-5 w-5" />
-          Búsqueda de Clientes
-        </h3>
-        
+
+        <div className='grid grid-cols-2 mb-2 items-center'>
+
+          <span className="font-semibold text-base text-[#0A5CB8] flex">
+            Búsqueda de Clientes
+          </span>
+
+          <Button
+            variant="outline"
+            onClick={onOpenCustomerModal}
+            className=" border-blue-200 text-[#0A5CB8] hover:bg-blue-50"
+          >
+            <Plus className="h-4 w-4" /> Nuevo Cliente
+          </Button>
+
+        </div>
+
+
         <div className="flex items-center gap-2 mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -61,18 +74,12 @@ export function CustomerSearchSection({
             {loadingCustomers ? "Buscando..." : "Buscar"}
           </Button>
         </div>
-        
-        <Button
-          variant="outline"
-          onClick={onOpenCustomerModal}
-          className="w-full border-blue-200 text-[#0A5CB8] hover:bg-blue-50"
-        >
-          <Plus className="h-4 w-4 mr-2" /> Nuevo Cliente
-        </Button>
-        
+
+
+
         <AnimatePresence>
           {isSearching && (
-            <SearchResults 
+            <SearchResults
               customers={customers}
               onSelectCustomer={onSelectCustomer}
             />
@@ -98,7 +105,7 @@ function SearchResults({ customers, onSelectCustomer }: {
       {customers.length > 0 ? (
         <div className="max-h-60 overflow-y-auto border border-blue-100 rounded-lg">
           {customers.map((customer) => (
-            <CustomerResultItem 
+            <CustomerResultItem
               key={customer.id}
               customer={customer}
               onSelect={onSelectCustomer}

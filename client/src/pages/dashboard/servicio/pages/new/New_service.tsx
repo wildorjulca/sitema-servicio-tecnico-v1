@@ -289,11 +289,11 @@ export default function New_Service() {
   if (!usuarioId) return <div>Por favor inicia sesión para crear servicios</div>
 
   return (
-    <div className="min-h-screen bg-gradient-to-br to-white p-4 md:p-6">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8">
-          <span className="text-3xl font-bold text-[#034693] mb-2 font-sans">
-            Gestión de Servicios Técnicos
+        <div className="text-center mb-4 ">
+          <span className="text-2xl font-semibold text-gray-700 mb-2 font-mono">
+            Registro de Los Equipos  
           </span>
         </div>
 
@@ -451,11 +451,11 @@ function ServiceSummaryCard({ customer, equipment, motivo }: {
 function EmptyCustomerState() {
   return (
     <Card className="border-blue-200 shadow-lg">
-      <CardContent className="p-8 text-center">
+      <CardContent className="p-6 text-center">
         <div className="bg-blue-100 p-4 rounded-full inline-block ">
-          <User className="h-12 w-12 text-[#1276e8]" />
+          <User className="h-8 w-8 text-[#1276e8]" />
         </div>
-        <h3 className="font-semibold text-lg text-[#0552a9] ">Seleccione un cliente</h3>
+        <h3 className="font-semibold text-lg text-[#5f646a] ">Seleccione un cliente para ver si tiene equipos </h3>
       </CardContent>
     </Card>
   );

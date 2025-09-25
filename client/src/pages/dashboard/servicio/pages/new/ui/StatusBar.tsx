@@ -23,23 +23,23 @@ export function StatusBar({
     onCancel
 }: StatusBarProps) {
     return (
-        <Card className="mb-8 border-blue-200 shadow-lg">
+        <Card className="mb-4 border-blue-200 shadow-md">
             <CardContent className="p-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-6">
                         <StatusItem
                             icon={User}
-                            label="Cliente"
+                            label="Client"
                             completed={clienteCompleto}
                         />
                         <StatusItem
                             icon={Monitor}
-                            label="Equipo"
+                            label="Equipment"
                             completed={equipoCompleto}
                         />
                         <StatusItem
                             icon={Calendar}
-                            label="Motivo"
+                            label="Reason "
                             completed={motivoCompleto}
                         />
                     </div>
