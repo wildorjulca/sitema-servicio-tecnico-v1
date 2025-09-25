@@ -1,4 +1,3 @@
-// contexts/ServiceContext.tsx
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
@@ -6,73 +5,43 @@ import { useUser } from '@/hooks/useUser'
 import { useServicioReparacion1 } from '@/hooks/useService'
 
 interface ServiceData {
-  // Paso 1: Información del cliente
-  cliente: {
-    id: number | null
-    nombre: string
-    apellidos: string
-    documento: string
-  } | null
-  
-  // Paso 2: Información del equipo
-  equipo: {
-    id: number | null
-    tipo: string
-    marca: string
-    modelo: string
-    serie: string
-    servicio_equipos_id: number | null // ID de la relación en servicio_equipos
-  } | null
-  
-  // Paso 3: Detalles del servicio
-  servicio: {
-    fechaIngreso: string
-    motivo_ingreso_id: number | null
-    descripcion_motivo: string
-    observacion: string
-  }
-  
-  // Metadata
+  motivo_ingreso_id: number | null
+  descripcion_motivo: string
+  observacion: string
   usuario_recibe_id: number | null
-  estado: 'incompleto' | 'completo' | 'enviado'
+  servicio_equipos_id: number | null
+  cliente_id: number | null
+  pasoActual: number
 }
 
 interface ServiceContextType {
   serviceData: ServiceData
-  setCliente: (cliente: ServiceData['cliente']) => void
-  setEquipo: (equipo: ServiceData['equipo']) => void
-  setServicio: (servicio: Partial<ServiceData['servicio']>) => void
+  updateServiceData: (data: Partial<ServiceData>) => void
   resetService: () => void
   submitService: () => Promise<{ success: boolean; data?: any; error?: string }>
   isLoading: boolean
+  setPasoActual: (paso: number) => void
 }
 
 const ServiceContext = createContext<ServiceContextType | undefined>(undefined)
 
 const initialServiceData: ServiceData = {
-  cliente: null,
-  equipo: null,
-  servicio: {
-    fechaIngreso: new Date().toISOString(),
-    motivo_ingreso_id: null,
-    descripcion_motivo: '',
-    observacion: ''
-  },
+  motivo_ingreso_id: null,
+  descripcion_motivo: '',
+  observacion: '',
   usuario_recibe_id: null,
-  estado: 'incompleto'
+  servicio_equipos_id: null,
+  cliente_id: null,
+  pasoActual: 1
 }
 
 export function ServiceProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser()
   const [serviceData, setServiceData] = useState<ServiceData>(initialServiceData)
   
-  // Usamos el hook personalizado para el servicio de reparación
-  const { 
-    mutateAsync: crearServicio, 
-    isPending: isLoading 
-  } = useServicioReparacion1()
+  const { mutateAsync: crearServicio, isPending: isLoading } = useServicioReparacion1()
 
-  // Cargar datos guardados del localStorage al iniciar
+  // Cargar datos guardados
   useEffect(() => {
     const saved = localStorage.getItem('serviceData')
     if (saved) {
@@ -84,12 +53,12 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Guardar en localStorage cuando cambien los datos
+  // Guardar en localStorage
   useEffect(() => {
     localStorage.setItem('serviceData', JSON.stringify(serviceData))
   }, [serviceData])
 
-  // Setear el usuario que recibe
+  // Setear usuario automáticamente
   useEffect(() => {
     if (user?.id) {
       setServiceData(prev => ({
@@ -99,27 +68,12 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user])
 
-  const setCliente = (cliente: ServiceData['cliente']) => {
-    setServiceData(prev => ({ 
-      ...prev, 
-      cliente,
-      estado: cliente ? 'completo' : 'incompleto'
-    }))
+  const updateServiceData = (data: Partial<ServiceData>) => {
+    setServiceData(prev => ({ ...prev, ...data }))
   }
 
-  const setEquipo = (equipo: ServiceData['equipo']) => {
-    setServiceData(prev => ({ 
-      ...prev, 
-      equipo,
-      estado: equipo ? 'completo' : 'incompleto'
-    }))
-  }
-
-  const setServicio = (servicio: Partial<ServiceData['servicio']>) => {
-    setServiceData(prev => ({
-      ...prev,
-      servicio: { ...prev.servicio, ...servicio }
-    }))
+  const setPasoActual = (paso: number) => {
+    setServiceData(prev => ({ ...prev, pasoActual: paso }))
   }
 
   const resetService = () => {
@@ -128,41 +82,80 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
   }
 
   const submitService = async (): Promise<{ success: boolean; data?: any; error?: string }> => {
-    if (!serviceData.cliente?.id || !serviceData.equipo?.servicio_equipos_id || !serviceData.usuario_recibe_id) {
-      return { success: false, error: 'Datos incompletos' }
+    console.log('🔍 === INICIANDO ENVÍO DE SERVICIO ===');
+    console.log('📦 serviceData completo:', JSON.stringify(serviceData, null, 2));
+    
+    // Validar campos obligatorios del SP
+    const camposObligatorios = {
+      motivo_ingreso_id: serviceData.motivo_ingreso_id,
+      usuario_recibe_id: serviceData.usuario_recibe_id,
+      servicio_equipos_id: serviceData.servicio_equipos_id,
+      cliente_id: serviceData.cliente_id
+    };
+    
+    console.log('✅ Validación de campos obligatorios:', camposObligatorios);
+    
+    const camposFaltantes = Object.entries(camposObligatorios)
+      .filter(([_, value]) => !value)
+      .map(([key]) => key);
+    
+    if (camposFaltantes.length > 0) {
+      console.error('❌ Campos faltantes:', camposFaltantes);
+      return { 
+        success: false, 
+        error: `Datos incompletos: ${camposFaltantes.join(', ')}` 
+      }
     }
 
-    try {
-      // Usamos el hook personalizado en lugar de fetch directo
-      const data = await crearServicio({
-        motivo_ingreso_id: serviceData.servicio.motivo_ingreso_id,
-        descripcion_motivo: serviceData.servicio.descripcion_motivo,
-        observacion: serviceData.servicio.observacion,
-        usuario_recibe_id: serviceData.usuario_recibe_id,
-        servicio_equipos_id: serviceData.equipo.servicio_equipos_id,
-        cliente_id: serviceData.cliente.id
-      })
+    // Preparar payload para enviar
+    const payload = {
+      motivo_ingreso_id: serviceData.motivo_ingreso_id,
+      descripcion_motivo: serviceData.descripcion_motivo,
+      observacion: serviceData.observacion,
+      usuario_recibe_id: serviceData.usuario_recibe_id,
+      servicio_equipos_id: serviceData.servicio_equipos_id,
+      cliente_id: serviceData.cliente_id
+    };
 
-      resetService()
-      return { success: true, data }
+    console.log('🚀 Payload a enviar:', JSON.stringify(payload, null, 2));
+    console.log('📤 Llamando a crearServicio...');
+
+    try {
+      const data = await crearServicio(payload);
+      
+      console.log('🎉 Respuesta del servidor:', data);
+      console.log('✅ Servicio registrado exitosamente');
+      
+      resetService();
+      return { success: true, data };
     } catch (error: any) {
-      // Manejo de errores específico del hook
+      console.error('💥 Error al registrar servicio:');
+      console.error('📌 Mensaje de error:', error?.message);
+      console.error('📌 Error completo:', error);
+      
+      // Log adicional para errores de Axios
+      if (error?.response) {
+        console.error('📡 Response error:', error.response.data);
+        console.error('🔧 Status:', error.response.status);
+      }
+      
       return { 
         success: false, 
         error: error?.message || 'Error al registrar servicio' 
-      }
+      };
+    } finally {
+      console.log('🔚 === FIN DEL ENVÍO ===');
     }
   }
 
   return (
     <ServiceContext.Provider value={{
       serviceData,
-      setCliente,
-      setEquipo,
-      setServicio,
+      updateServiceData,
       resetService,
       submitService,
-      isLoading
+      isLoading,
+      setPasoActual
     }}>
       {children}
     </ServiceContext.Provider>

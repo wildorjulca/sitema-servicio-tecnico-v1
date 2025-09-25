@@ -20,7 +20,7 @@ import { Producto } from '@/pages/dashboard/producto/ui';
 import { DetalleProducto } from '@/pages/dashboard/producto/ui/detalleProducto';
 import { ProductLayout } from '@/pages/dashboard/producto/outlet';
 import Listar_Servicio from '@/pages/dashboard/servicio/pages/Listar_Servicio';
-import New_Service from '@/pages/dashboard/servicio/pages/New_service';
+import New_Service from '@/pages/dashboard/servicio/pages/new/New_service';
 import Servicio_Equipos from '@/pages/dashboard/servicio_equipos';
 import Estado_serv from '@/pages/dashboard/estado_serv/estado_serv';
 import { DetalleService } from '@/pages/dashboard/servicio/ui/detalleService';
@@ -75,6 +75,7 @@ const AppRoutes = () => {
                         <Route index element={<Listar_Servicio />} />
                         <Route path="dex/:id" element={<DetalleService />} />
                     </Route>
+
                     <Route path="serv_e" element={<Servicio_Equipos />} />
                     {/* <Route path="list" element={<Listar_Servicio />} /> */}
 

@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import { useEffect } from 'react';
 
 import { Estado, Servicio } from '@/interface/types';
-import { entregarServicio, fetchEstadoServ, fetchService, filtreClient, obtenerEquiposPorCliente, servicioReparacion1, servicioReparacion2 } from '@/apis/servicio';
+import { entregarServicio, fetchEstadoServ, fetchMot_Ingreso, fetchService, filtreClient, obtenerEquiposPorCliente, servicioReparacion1, servicioReparacion2 } from '@/apis/servicio';
 
 // Definir la interfaz para la respuesta del API
 
@@ -79,7 +79,7 @@ export const useMot_IngHook = () => {
   const query = useQuery<{ data: Estado[] }, Error>({
     queryKey: ["mot"],
     queryFn: () =>
-      fetchEstadoServ(),
+      fetchMot_Ingreso(),
   });
 
   if (query.isError) {
@@ -145,7 +145,7 @@ export const useEquiposPorCliente = (cliente_id?: number) => {
 };
 
 // ----------------------
-// Hook para  la resepcion de los equipos 
+// Hook para  la recepcion de los equipos 
 // ----------------------
 
 export const useServicioReparacion1 = () => {
@@ -154,7 +154,7 @@ export const useServicioReparacion1 = () => {
   return useMutation({
     mutationFn: servicioReparacion1,
     onSuccess: () => {
-      toast.success("Servicio actualizado (paso 1)");
+      toast.success("Servicio registrado exitosamente (paso 1)");
       queryClient.invalidateQueries({ queryKey: ["reparaciones"] });
     },
     onError: () => {

@@ -24,39 +24,10 @@ import { useAddClienteHook } from '@/hooks/useCliente'
 import toast from 'react-hot-toast'
 import { ServicioEquipo } from '@/interface'
 import { useService } from '@/context/ServiceContext'
-import { ServicioEquipoDialog } from '../../servicio_equipos/ui/modal'
-import CustomerModal from '../../cliente/ui/CustomerModal '
+import CustomerModal from '@/pages/dashboard/cliente/ui/CustomerModal '
+import { ServicioEquipoDialog } from '@/pages/dashboard/servicio_equipos/ui/modal'
+import { CustomerAPI, CustomerUI, EquipmentUI } from './types'
 
-interface CustomerAPI {
-  idCliente: number
-  nombre: string
-  apellidos: string
-  numero_documento: string
-  tipo_documento: string
-  direccion: string
-  telefono: string
-}
-
-interface CustomerUI {
-  id: number
-  nombre: string
-  apellidos: string
-  numero_documento: string
-  tipo_documento: string
-  direccion: string
-  telefono: string
-}
-
-interface EquipmentUI {
-  id: number
-  customerId: number
-  type: string
-  brand: string
-  model: string
-  serialNumber: string
-  lastServiceDate: string
-  servicio_equipos_id: number
-}
 
 // Componente Select simplificado - SIN BUSCADOR
 function SimpleSelect({
@@ -99,7 +70,7 @@ function SimpleSelect({
   )
 }
 
-export default function CustomerSearch() {
+export default function New_Service() {
   const { user } = useUser()
   const usuarioId = user?.id
   const { serviceData, updateServiceData, submitService, isLoading, setPasoActual } = useService()

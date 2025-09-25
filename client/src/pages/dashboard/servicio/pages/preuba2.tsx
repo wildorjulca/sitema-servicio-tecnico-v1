@@ -30,8 +30,7 @@ export default function ServiceForm({ selectedCustomer, selectedEquipment, onClo
     motivo_ingreso_id: '',
     descripcion_motivo: '',
     observacion: '',
-    diagnostico: '',
-    solucion: '',
+
     precio: '0',
     precioRepuestos: '0',
     estado_id: '1', // Estado por defecto: Recibido

@@ -1,5 +1,6 @@
-import {  Servicio } from "@/interface/types";
+import { Servicio } from "@/interface/types";
 import { instance } from "@/lib/axios";
+import axios from "axios";
 
 // ----------------------
 // listar servicio 
@@ -115,22 +116,36 @@ export const obtenerEquiposPorCliente = async (cliente_id: number) => {
 // ----------------------
 
 
+// hooks/useService.ts
 export const servicioReparacion1 = async (payload: {
-  servicio_id: number;
-  diagnostico: string;
-  solucion: string;
-  estado_id: number;
-  repuestos?: any[]; // ajusta al tipo real de tus repuestos
+  motivo_ingreso_id: number;
+  descripcion_motivo: string;
+  observacion: string;
+  usuario_recibe_id: number;
+  servicio_equipos_id: number;
+  cliente_id: number;
 }) => {
   try {
-    const response = await instance.put(`/actualizar-reparacion`, payload);
+    console.log('🌐 === INICIANDO LLAMADA API ===');
+    console.log('📤 Enviando a /registro-basico:', JSON.stringify(payload, null, 2));
 
-    const data = response.data;
-    console.log("Respuesta al actualizar servicio:", data);
+    const response = await instance.post(`/registro-basico`, payload);
 
-    return data;
+    console.log('📥 Respuesta recibida:', response.data);
+    console.log('✅ Llamada API exitosa');
+
+    return response.data;
   } catch (error) {
-    console.error("Error al actualizar servicio:", error);
+    console.error('❌ Error en llamada API:');
+    console.error('📌 Error:', error);
+
+    if (axios.isAxiosError(error)) {
+      console.error('🔧 Axios error details:');
+      console.error('Status:', error.response?.status);
+      console.error('Data:', error.response?.data);
+      console.error('Headers:', error.response?.headers);
+    }
+
     throw error;
   }
 };

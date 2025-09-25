@@ -5,8 +5,8 @@ import { useEstadoHook, useServicioHook } from "@/hooks/useService";
 import { Servicio } from "@/interface/types";
 import { SelectWithCheckbox } from "@/components/chexbox/SelectWithCheckbox";
 import { Button } from "@/components/ui/button";
-import { DataTableDetalle } from "../../ui/table-producto";
 import { useNavigate } from "react-router-dom";
+import { DataTableService } from "../../ui/table-service";
 
 export default function Listar_Servicio() {
   const { user } = useUser();
@@ -70,12 +70,11 @@ export default function Listar_Servicio() {
     }
   ];
 
-  // Pasar el objeto de filtros correctamente
   const { data, total, isLoading, isError, error } = useServicioHook(
     usuarioId,
     pageIndex,
     pageSize,
-    filtros  // Ahora pasamos el objeto completo de filtros
+    filtros
   );
 
   const { data: estados, isLoading: isLoadingEstados } = useEstadoHook();
@@ -93,22 +92,38 @@ export default function Listar_Servicio() {
   }, [data, total, usuarioId]);
 
   const handleFiltroEstadoChange = (value: number | null) => {
-    setPageIndex(0); // Resetear a la primera página al cambiar filtros
+    setPageIndex(0);
     setFiltros(prev => ({
       ...prev,
-      estadoId: value || undefined // Si es null, lo convertimos a undefined
+      estadoId: value || undefined
     }));
   };
 
-  const openEditModal = () => {
-    alert("hola")
-  }
-  const handleDelete = () => {
-    alert("hola")
-  }
+  // Funciones para las acciones
+  const handleView = (servicio: any) => {
+    navigate(`/dashboard/list/dex/${servicio.id}`);
+  };
+
+  const handleRepair = (servicio: any) => {
+    navigate(`/servicios/reparar/${servicio.id}`);
+  };
+
+  const handleDeliver = (servicio: any) => {
+    navigate(`/servicios/entregar/${servicio.id}`);
+  };
+
+  const handlePrint = (servicio: any) => {
+    navigate(`/servicios/imprimir/${servicio.id}`);
+  };
+
+  const handleEdit = (servicio: any) => {
+    navigate(`/servicios/editar/${servicio.id}`);
+  };
+
   const openAddModal = () => {
-    alert("hola")
+    alert("Agregar servicio");
   }
+
   const handleClearFilters = () => {
     setPageIndex(0);
     setFiltros({});
@@ -168,7 +183,6 @@ export default function Listar_Servicio() {
       </div>
 
       {/* --- Filtros --- */}
-
       <div className="grid grid-cols-2 md:grid-cols-12 gap-4 items-end">
         <div className="md:col-span-4">
           <SelectWithCheckbox
@@ -180,15 +194,13 @@ export default function Listar_Servicio() {
         </div>
 
         <div className="md:col-span-2">
-          <Button variant={"outline"}
-            onClick={handleClearFilters}
-          >
+          <Button variant={"outline"} onClick={handleClearFilters}>
             Limpiar Filtros
           </Button>
         </div>
       </div>
 
-      <DataTableDetalle
+      <DataTableService
         data={MapedService}
         columns={columns}
         searchColumn="cliente"
@@ -197,14 +209,22 @@ export default function Listar_Servicio() {
         totalRows={totalRows}
         onPageChange={(newPage) => setPageIndex(newPage)}
         onPageSizeChange={(size) => setPageSize(size)}
-
-        onEdit={openEditModal}
-        onDelete={handleDelete}
-        onView={(servicio) => {
-          // Navegar a la página de detalle
-          navigate(`/dashboard/list/dex/${servicio.id}`);
-        }}
-        actions={<Button onClick={openAddModal}>Agregar servicio</Button>}
+        
+        // Pasar TODAS las acciones que quieres mostrar
+        onView={handleView}
+        onRepair={handleRepair}
+        onDeliver={handleDeliver}
+        onPrint={handlePrint}
+        onEdit={handleEdit}
+        
+        // También puedes pasar las rutas como respaldo
+        viewRoute="/servicios/detalle"
+        repairRoute="/servicios/reparar"
+        deliverRoute="/servicios/entregar"
+        printRoute="/servicios/imprimir"
+        editRoute="/servicios/editar"
+        
+        actions={<Button onClick={openAddModal}> + Agregar servicio</Button>}
       />
     </div>
   );
