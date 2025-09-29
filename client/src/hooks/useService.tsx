@@ -1,13 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { Estado, Servicio } from '@/interface/types';
-import { entregarServicio, fetchEstadoServ, fetchMot_Ingreso, fetchService, filtreClient, obtenerEquiposPorCliente, servicioReparacion1, servicioReparacion2 } from '@/apis/servicio';
+import { 
+  entregarServicio, 
+  fetchEstadoServ, 
+  fetchMot_Ingreso, 
+  fetchService, 
+  filtreClient, 
+  filtroProduct, 
+  iniciarReparacionService, 
+  obtenerEquiposPorCliente, 
+  servicioReparacion1, 
+  servicioReparacion2 
+} from '@/apis/servicio';
+import { useNavigate } from 'react-router-dom';
 
-// Definir la interfaz para la respuesta del API
-
-
+// ----------------------
+// Hook para listar servicios - OPTIMIZADO
+// ----------------------
 export const useServicioHook = (
   usuarioId?: number,
   pageIndex = 0,
@@ -31,11 +43,12 @@ export const useServicioHook = (
         usuarioId!,
         pageIndex,
         pageSize,
-        filtros?.estadoId,    // Filtro por estado
-        filtros?.clienteId    // Filtro por cliente
+        filtros?.estadoId,
+        filtros?.clienteId
       ),
     enabled: !!usuarioId,
-    staleTime: 0,
+    staleTime: 1000 * 60 * 5, // ✅ 5 minutos
+    gcTime: 1000 * 60 * 10,   // ✅ 10 minutos en cache
     placeholderData: (prev) => prev,
   });
 
@@ -53,18 +66,21 @@ export const useServicioHook = (
 };
 
 // ----------------------
-// Hook para listar estados del servicio pediente , etc
+// Hook para estados del servicio - OPTIMIZADO
 // ----------------------
 export const useEstadoHook = () => {
   const query = useQuery<{ data: Estado[] }, Error>({
-    queryKey: ["estado"],
-    queryFn: () =>
-      fetchEstadoServ(),
+    queryKey: ["estados"],
+    queryFn: fetchEstadoServ,
+    staleTime: 1000 * 60 * 30, // ✅ 30 minutos (datos estáticos)
+    gcTime: 1000 * 60 * 60,    // ✅ 1 hora en cache
   });
 
-  if (query.isError) {
-    toast.error("Error al cargar los estados");
-  }
+  useEffect(() => {
+    if (query.isError) {
+      toast.error("Error al cargar los estados");
+    }
+  }, [query.isError]);
 
   return {
     ...query,
@@ -73,18 +89,21 @@ export const useEstadoHook = () => {
 };
 
 // ----------------------
-// Hook para listar  mot ingresos
+// Hook para motivos de ingreso - OPTIMIZADO
 // ----------------------
 export const useMot_IngHook = () => {
   const query = useQuery<{ data: Estado[] }, Error>({
-    queryKey: ["mot"],
-    queryFn: () =>
-      fetchMot_Ingreso(),
+    queryKey: ["motivos-ingreso"],
+    queryFn: fetchMot_Ingreso,
+    staleTime: 1000 * 60 * 30, // ✅ 30 minutos
+    gcTime: 1000 * 60 * 60,    // ✅ 1 hora
   });
 
-  if (query.isError) {
-    toast.error("Error al cargar los motivos ingreso service");
-  }
+  useEffect(() => {
+    if (query.isError) {
+      toast.error("Error al cargar los motivos de ingreso");
+    }
+  }, [query.isError]);
 
   return {
     ...query,
@@ -92,21 +111,23 @@ export const useMot_IngHook = () => {
   };
 };
 
-
 // ----------------------
-// Hook para filtrar cliente 
+// Hook para filtrar cliente - OPTIMIZADO
 // ----------------------
-
 export const useFiltreClient = (filtro: string) => {
   const query = useQuery({
     queryKey: ["clientes", filtro],
     queryFn: () => filtreClient(filtro),
-    enabled: !!filtro, // solo corre si existe filtro
+    enabled: !!filtro,
+    staleTime: 1000 * 60 * 10, // ✅ 10 minutos
+    gcTime: 1000 * 60 * 15,    // ✅ 15 minutos
   });
 
-  if (query.isError) {
-    toast.error("Error al filtrar clientes");
-  }
+  useEffect(() => {
+    if (query.isError) {
+      toast.error("Error al filtrar clientes");
+    }
+  }, [query.isError]);
 
   return {
     ...query,
@@ -115,12 +136,35 @@ export const useFiltreClient = (filtro: string) => {
 };
 
 // ----------------------
-// Hook para filtrar equipos por cliente
+// Hook para filtrar productos - OPTIMIZADO
 // ----------------------
-// hooks/useService.ts
+export const useFiltreProductHook = (nombre: string) => {
+  const query = useQuery({
+    queryKey: ["productos", nombre],
+    queryFn: () => filtroProduct(nombre),
+    enabled: !!nombre,
+    staleTime: 1000 * 60 * 10, // ✅ 10 minutos
+    gcTime: 1000 * 60 * 15,    // ✅ 15 minutos
+  });
+
+  useEffect(() => {
+    if (query.isError) {
+      toast.error("Error al filtrar productos");
+    }
+  }, [query.isError]);
+
+  return {
+    ...query,
+    data: query.data?.data || [],
+  };
+};
+
+// ----------------------
+// Hook para equipos por cliente - OPTIMIZADO
+// ----------------------
 export const useEquiposPorCliente = (cliente_id?: number) => {
   const query = useQuery({
-    queryKey: ["red", cliente_id],
+    queryKey: ["equipos-cliente", cliente_id],
     queryFn: () => {
       if (!cliente_id) {
         throw new Error("cliente_id es requerido");
@@ -128,6 +172,8 @@ export const useEquiposPorCliente = (cliente_id?: number) => {
       return obtenerEquiposPorCliente(cliente_id);
     },
     enabled: !!cliente_id,
+    staleTime: 1000 * 60 * 5, // ✅ 5 minutos
+    gcTime: 1000 * 60 * 10,   // ✅ 10 minutos
     retry: false,
   });
 
@@ -137,17 +183,15 @@ export const useEquiposPorCliente = (cliente_id?: number) => {
     }
   }, [query.isError]);
 
-  // ✅ Retornar directamente los datos (que son el array)
   return {
     ...query,
-    data: query.data || [], // query.data ya es el array de equipos
+    data: query.data || [],
   };
 };
 
 // ----------------------
-// Hook para  la recepcion de los equipos 
+// Hook para recepción de equipos (Paso 1) - OPTIMIZADO
 // ----------------------
-
 export const useServicioReparacion1 = () => {
   const queryClient = useQueryClient();
 
@@ -164,52 +208,121 @@ export const useServicioReparacion1 = () => {
 };
 
 // ----------------------
-// Hook para reparar el equipo 
+// Hook para iniciar reparación - OPTIMIZADO
 // ----------------------
-
-export const useServicioReparacion2 = () => {
+export const useIniciarReparacion = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: servicioReparacion2,
-    onSuccess: () => {
-      toast.success("Servicio actualizado (paso 2)");
-      queryClient.invalidateQueries({ queryKey: ["reparaciones"] });
+    mutationFn: ({ servicioId, usuarioId }: { servicioId: number; usuarioId: number }) => {
+      return iniciarReparacionService(servicioId, usuarioId);
     },
-    onError: () => {
-      toast.error("Error al actualizar el servicio (paso 2)");
+    onSuccess: (data, variables) => {
+      toast.success("Reparación iniciada correctamente");
+      
+      // ✅ INVALIDAR MÚLTIPLES QUERIES
+      queryClient.invalidateQueries({ queryKey: ["reparaciones"] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["servicio", variables.servicioId.toString()] 
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error al iniciar reparación:', error);
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.mensaje || 
+                          "Error al iniciar la reparación";
+      toast.error(errorMessage);
     },
   });
 };
 
 // ----------------------
-// Hook para finalizar el servicio al entregar al cliente su equipo qe dejo en la tienda
+// Hook para reparar equipo (Paso 2) - OPTIMIZADO
 // ----------------------
+export const useServicioReparacion2 = () => {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
+  return useMutation({
+    mutationFn: servicioReparacion2,
+    onSuccess: (variables) => {
+      toast.success("Servicio actualizado correctamente");
+      
+      // ✅ INVALIDAR MÚLTIPLES QUERIES
+      queryClient.invalidateQueries({ queryKey: ["reparaciones"] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["servicio", variables.servicio_id.toString()] 
+      });
 
+      // Redirigir después de 1 segundo
+      setTimeout(() => {
+        navigate('/dashboard/list');
+      }, 1000);
+    },
+    onError: (error) => {
+      console.error('Error al actualizar servicio:', error);
+      toast.error("Error al actualizar el servicio");
+    },
+  });
+};
+
+// ----------------------
+// Hook para entregar servicio - OPTIMIZADO
+// ----------------------
 export const useEntregarServicio = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: entregarServicio,
-    onSuccess: () => {
+    onSuccess: (variables) => {
       toast.success("Servicio entregado correctamente");
+      
+      // ✅ INVALIDAR MÚLTIPLES QUERIES
       queryClient.invalidateQueries({ queryKey: ["reparaciones"] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["servicio", variables.servicio_id.toString()] 
+      });
     },
     onError: () => {
       toast.error("Error al entregar el servicio");
     },
   });
 };
-// hooks/para detalles del servicio completo (añadir esta función)
 
+// ----------------------
+// Hook para servicio por ID - MANTENIDO (pero considera crear endpoint específico)
+// ----------------------
 export const useServiceyId = (usuarioId: number, idServicio: string | undefined) => {
-  const { data: serviceData, isLoading, isError } = useServicioHook(usuarioId, 0, 1000); // Obtener todos los productos
+  const { data: serviceData, isLoading, isError } = useServicioHook(usuarioId, 0, 1000);
+
+  const servicio = useMemo(() => {
+    if (!serviceData || !idServicio) return undefined;
+    return serviceData.find((p: Servicio) => p.idServicio === parseInt(idServicio || ''));
+  }, [serviceData, idServicio]);
 
   return {
-    data: serviceData?.find((p: Servicio) => p.idServicio === parseInt(idServicio || '')),
+    data: servicio,
     isLoading,
     isError,
-    refetch: () => { } // No necesitamos refetch para este caso
+    refetch: () => { }
+  };
+};
+
+// ----------------------
+// Hook alternativo para servicio por ID - OPTIMIZADO
+// ----------------------
+export const useServicioById = (usuarioId: number, idServicio: string | undefined) => {
+  const { data: serviceData, isLoading, isError } = useServicioHook(usuarioId, 0, 1000);
+
+  const servicio = useMemo(() => {
+    if (!serviceData || !idServicio) return undefined;
+    return serviceData.find((p: Servicio) => p.idServicio === parseInt(idServicio));
+  }, [serviceData, idServicio]);
+
+  return {
+    data: servicio,
+    isLoading,
+    isError,
+    refetch: () => { }
   };
 };

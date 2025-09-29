@@ -24,6 +24,7 @@ import New_Service from '@/pages/dashboard/servicio/pages/new/New_service';
 import Servicio_Equipos from '@/pages/dashboard/servicio_equipos';
 import Estado_serv from '@/pages/dashboard/estado_serv/estado_serv';
 import { DetalleService } from '@/pages/dashboard/servicio/pages/list/ui/detalleService';
+import ReparacionPage from '@/pages/dashboard/servicio/pages/repare/ReparacionPage';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -53,15 +54,19 @@ const AppRoutes = () => {
                     <Route path="cat" element={<Categoria />} />
                     <Route path="tipo_doc" element={<Tipo_doc />} />
                     <Route path="mot_ingreso" element={<Motivo_Ingreso />} />
+                    <Route path="serv_e" element={<Servicio_Equipos />} />
+                    <Route path="estado" element={<Estado_serv />} />
+                    <Route path="users" element={<Usuarios />} />
+
+
+
 
                     <Route path="producto" element={<ProductLayout />}>
                         <Route index element={<Producto />} />
                         <Route path="inf/:id" element={<DetalleProducto />} />
                     </Route>
 
-                    <Route path="estado" element={<Estado_serv />} />
 
-                    <Route path="users" element={<Usuarios />} />
                     <Route path="settings" element={<div>Settings</div>} />
 
                     <Route path="servicio" element={<ServicioLayout />}>
@@ -74,10 +79,15 @@ const AppRoutes = () => {
                         <Route path="dex/:id" element={<DetalleService />} />
                     </Route>
 
-                    <Route path="serv_e" element={<Servicio_Equipos />} />
                     {/* <Route path="list" element={<Listar_Servicio />} /> */}
 
                     <Route path="new" element={<New_Service />} />
+                    <Route path="repare/:id" element={<ReparacionPage  />} />
+
+
+
+
+
 
 
                     <Route path="permiso" element={<Permiso />} />

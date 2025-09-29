@@ -1,13 +1,17 @@
 import { useUser } from "@/hooks/useUser";
 import { useState, useEffect } from "react";
 import Loader from "@/components/sniper-carga/loader";
-import { useEstadoHook, useServicioHook } from "@/hooks/useService";
+import { useEstadoHook, useIniciarReparacion, useServicioHook } from "@/hooks/useService";
 import { Servicio } from "@/interface/types";
 import { SelectWithCheckbox } from "@/components/chexbox/SelectWithCheckbox";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { DataTableService } from "../../../ui/table-service";
 import { Plus } from "lucide-react";
+
+ interface X{
+  id:number,
+ }
 
 export default function Listar_Servicio() {
   const { user } = useUser();
@@ -19,7 +23,115 @@ export default function Listar_Servicio() {
   const [filtros, setFiltros] = useState<{ estadoId?: number; clienteId?: number }>({});
   const [totalRows, setTotalRows] = useState(0);
 
+  const { data, total, isLoading, isError, error } = useServicioHook(
+    usuarioId,
+    pageIndex,
+    pageSize,
+    filtros
+  );
+
+  const { data: estados, isLoading: isLoadingEstados } = useEstadoHook();
+  const { mutate: iniciarReparacion } = useIniciarReparacion();
+
+  const estadosOptions = estados.map(est => ({
+    value: est.idEstado,
+    label: est.nombre
+  }));
+
+  useEffect(() => {
+    if (usuarioId && data) {
+      console.log("Datos de listar servicio:", { data, total });
+      setTotalRows(total);
+    }
+  }, [data, total, usuarioId]);
+
+  const handleFiltroEstadoChange = (value: number | null) => {
+    setPageIndex(0);
+    setFiltros(prev => ({
+      ...prev,
+      estadoId: value || undefined
+    }));
+  };
+
+  // Funciones para las acciones
+  const handleView = (servicio: X) => {
+    navigate(`/dashboard/list/dex/${servicio.id}`);
+  };
+
+  const handleRepair = (servicio: X) => {
+    // Iniciar reparación antes de navegar
+    iniciarReparacion(
+      { 
+        servicioId: servicio.id, 
+        usuarioId: usuarioId 
+      },
+      {
+        onSuccess: () => {
+          // Navegar solo si fue exitoso
+          navigate(`/dashboard/repare/${servicio.id}`);
+        }
+        // El error se maneja en el hook con toast
+      }
+    );
+  };
+
+  const handleDeliver = (servicio: X) => {
+    navigate(`/dashboard/entregar/${servicio.id}`);
+  };
+
+  const handlePrint = (servicio: X) => {
+    navigate(`/dashboard/imprimir/${servicio.id}`);
+  };
+
+  const handleEdit = (servicio: X) => {
+    navigate(`/dashboard/editar/${servicio.id}`);
+  };
+
+  const handleClearFilters = () => {
+    setPageIndex(0);
+    setFiltros({});
+  };
+
+  // Función para determinar el estado de los botones
+  const getActionState = (servicio: any) => {
+    const isRepairDisabled = 
+      servicio.estadoId === 3 || // Ya reparado (Terminado)
+      (servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId); // En reparación por otro técnico
+
+    const repairText = 
+      servicio.estadoId === 3 
+        ? "Ya Reparado" 
+        : servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId 
+          ? "En Reparación (Otro)" 
+          : servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId 
+            ? "Continuar Reparación" 
+            : "Reparar";
+
+    const repairVariant = 
+      servicio.estadoId === 3 
+        ? "outline" 
+        : servicio.estadoId === 2 
+          ? "secondary" 
+          : "default";
+
+    const repairClassName = 
+      servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId 
+        ? "bg-orange-500 hover:bg-orange-600 text-white" 
+        : "";
+
+    const isDeliverDisabled = servicio.estadoId !== 3; // Solo habilitado si estado es 3 (Terminado)
+
+    return {
+      canRepair: !isRepairDisabled,
+      repairText,
+      repairVariant,
+      repairClassName,
+      isDeliverDisabled
+    };
+  };
+
   const columns = [
+    { accessorKey: "id", header: "ID" },
     { accessorKey: "cod", header: "Código" },
     { accessorKey: "cliente", header: "Cliente" },
     { accessorKey: "equipo", header: "Equipo" },
@@ -71,62 +183,7 @@ export default function Listar_Servicio() {
     }
   ];
 
-  const { data, total, isLoading, isError, error } = useServicioHook(
-    usuarioId,
-    pageIndex,
-    pageSize,
-    filtros
-  );
-
-  const { data: estados, isLoading: isLoadingEstados } = useEstadoHook();
-
-  const estadosOptions = estados.map(est => ({
-    value: est.idEstado,
-    label: est.nombre
-  }));
-
-  useEffect(() => {
-    if (usuarioId && data) {
-      console.log("Datos de listar servicio:", { data, total });
-      setTotalRows(total);
-    }
-  }, [data, total, usuarioId]);
-
-  const handleFiltroEstadoChange = (value: number | null) => {
-    setPageIndex(0);
-    setFiltros(prev => ({
-      ...prev,
-      estadoId: value || undefined
-    }));
-  };
-
-  // Funciones para las acciones
-  const handleView = (servicio: any) => {
-    navigate(`/dashboard/list/dex/${servicio.id}`);
-  };
-
-  const handleRepair = (servicio: any) => {
-    navigate(`/servicios/reparar/${servicio.id}`);
-  };
-
-  const handleDeliver = (servicio: any) => {
-    navigate(`/servicios/entregar/${servicio.id}`);
-  };
-
-  const handlePrint = (servicio: any) => {
-    navigate(`/servicios/imprimir/${servicio.id}`);
-  };
-
-  const handleEdit = (servicio: any) => {
-    navigate(`/servicios/editar/${servicio.id}`);
-  };
-
-  const handleClearFilters = () => {
-    setPageIndex(0);
-    setFiltros({});
-  };
-
-  if (!usuarioId) return <div>Por favor inicia sesión para ver los servicios</div>;
+  if (!usuarioId) return <div>Por favor inicia sesión para ver los dashboard</div>;
   if (isLoadingEstados || isLoading) return <div><Loader /></div>;
   if (isError) {
     console.error("Error details:", error);
@@ -214,12 +271,8 @@ export default function Listar_Servicio() {
         onPrint={handlePrint}
         onEdit={handleEdit}
 
-        // También puedes pasar las rutas como respaldo
-        viewRoute="/servicios/detalle"
-        repairRoute="/servicios/reparar"
-        deliverRoute="/servicios/entregar"
-        printRoute="/servicios/imprimir"
-        editRoute="/servicios/editar"
+        // Pasar la función de validación
+        getActionState={getActionState}
 
         actions={<Link to={'/dashboard/new'}>
           <Button size="sm" className="flex items-center gap-2">

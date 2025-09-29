@@ -36,20 +36,28 @@ interface DataTableDetalleProps<T> {
   totalRows?: number;
   onPageChange?: (newPage: number) => void;
   onPageSizeChange?: (size: number) => void;
-  onRepair?: (row: T) => void; // Cambiado de onEdit a onRepair
-  onDeliver?: (row: T) => void; // Nueva prop para entregar equipo
-  onPrint?: (row: T) => void; // Nueva prop para imprimir
-  onEdit?: (row: T) => void; // Mantenemos onEdit por si acaso
+  onRepair?: (row: T) => void;
+  onDeliver?: (row: T) => void;
+  onPrint?: (row: T) => void;
+  onEdit?: (row: T) => void;
   onView?: (row: T) => void;
   onRowSelect?: (row: T) => void;
   searchColumn?: keyof T;
   placeholderSearch?: string;
   actions?: React.ReactNode;
   viewRoute?: string;
-  repairRoute?: string; // Nueva ruta para reparar
-  deliverRoute?: string; // Nueva ruta para entregar
-  printRoute?: string; // Nueva ruta para imprimir
-  editRoute?: string; // Ruta para editar
+  repairRoute?: string;
+  deliverRoute?: string;
+  printRoute?: string;
+  editRoute?: string;
+  // NUEVA PROPS PARA VALIDACIONES
+  getActionState?: (row: T) => {
+    canRepair?: boolean;
+    repairText?: string;
+    repairVariant?: "default" | "secondary" | "outline" | "ghost" | "link" | "destructive";
+    repairClassName?: string;
+    isDeliverDisabled?: boolean;
+  };
 }
 
 export function DataTableService<T extends { id: string | number }>({
@@ -60,20 +68,21 @@ export function DataTableService<T extends { id: string | number }>({
   totalRows = 0,
   onPageChange,
   onPageSizeChange,
-  onRepair, // Cambiado de onEdit
-  onDeliver, // Nueva prop
-  onPrint, // Nueva prop
-  onEdit, // Mantenemos por si acaso
+  onRepair,
+  onDeliver,
+  onPrint,
+  onEdit,
   onView,
   onRowSelect,
   searchColumn,
   placeholderSearch,
   actions,
-  viewRoute = "/servicios", // Cambiado a servicios
-  repairRoute = "/servicios/reparar", // Nueva ruta
-  deliverRoute = "/servicios/entregar", // Nueva ruta
-  printRoute = "/servicios/imprimir", // Nueva ruta
-  editRoute = "/servicios/editar", // Ruta para editar
+  viewRoute = "/servicios",
+  repairRoute = "/servicios/reparar",
+  deliverRoute = "/servicios/entregar",
+  printRoute = "/servicios/imprimir",
+  editRoute = "/servicios/editar",
+  getActionState, // NUEVA PROPS
 }: DataTableDetalleProps<T>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -195,86 +204,99 @@ export function DataTableService<T extends { id: string | number }>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} onClick={() => onRowSelect?.(row.original)}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                  {hasActions && (
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Acciones</span>
-                            <MoreHorizontal />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        {/* // En el dropdown menu (versión desktop) */}
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+              table.getRowModel().rows.map((row) => {
+                const actionState = getActionState ? getActionState(row.original) : null;
+                
+                return (
+                  <TableRow key={row.id} onClick={() => onRowSelect?.(row.original)}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                    {hasActions && (
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Acciones</span>
+                              <MoreHorizontal />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
 
-                          {/* Ver más - Color azul/informativo */}
-                          {onView && (
-                            <DropdownMenuItem
-                              onClick={() => handleView(row.original)}
-                              className="text-blue-600 hover:bg-blue-50 focus:bg-blue-50"
-                            >
-                              <Eye className="mr-2 h-4 w-4 text-blue-500" />
-                              Ver más
-                            </DropdownMenuItem>
-                          )}
+                            {/* Ver más */}
+                            {onView && (
+                              <DropdownMenuItem
+                                onClick={() => handleView(row.original)}
+                                className="text-blue-600 hover:bg-blue-50 focus:bg-blue-50"
+                              >
+                                <Eye className="mr-2 h-4 w-4 text-blue-500" />
+                                Ver más
+                              </DropdownMenuItem>
+                            )}
 
-                          {/* Reparar - Color naranja/acción técnica */}
-                          {onRepair && (
-                            <DropdownMenuItem
-                              onClick={() => handleRepair(row.original)}
-                              className="text-orange-600 hover:bg-orange-50 focus:bg-orange-50"
-                            >
-                              <Wrench className="mr-2 h-4 w-4 text-orange-500" />
-                              Reparar
-                            </DropdownMenuItem>
-                          )}
+                            {/* Reparar - CON VALIDACIÓN */}
+                            {onRepair && (
+                              <DropdownMenuItem
+                                onClick={() => handleRepair(row.original)}
+                                disabled={actionState && !actionState.canRepair}
+                                className={`${
+                                  actionState && !actionState.canRepair 
+                                    ? 'text-gray-400 cursor-not-allowed' 
+                                    : 'text-orange-600 hover:bg-orange-50 focus:bg-orange-50'
+                                }`}
+                              >
+                                <Wrench className="mr-2 h-4 w-4 text-orange-500" />
+                                {actionState?.repairText || "Reparar"}
+                              </DropdownMenuItem>
+                            )}
 
-                          {/* Entregar equipo - Color verde/éxito */}
-                          {onDeliver && (
-                            <DropdownMenuItem
-                              onClick={() => handleDeliver(row.original)}
-                              className="text-green-600 hover:bg-green-50 focus:bg-green-50"
-                            >
-                              <Truck className="mr-2 h-4 w-4 text-green-500" />
-                              Entregar equipo
-                            </DropdownMenuItem>
-                          )}
+                            {/* Entregar equipo - CON VALIDACIÓN */}
+                            {onDeliver && (
+                              <DropdownMenuItem
+                                onClick={() => handleDeliver(row.original)}
+                                disabled={actionState?.isDeliverDisabled}
+                                className={`${
+                                  actionState?.isDeliverDisabled 
+                                    ? 'text-gray-400 cursor-not-allowed' 
+                                    : 'text-green-600 hover:bg-green-50 focus:bg-green-50'
+                                }`}
+                              >
+                                <Truck className="mr-2 h-4 w-4 text-green-500" />
+                                Entregar equipo
+                              </DropdownMenuItem>
+                            )}
 
-                          {/* Imprimir - Color morado/documentación */}
-                          {onPrint && (
-                            <DropdownMenuItem
-                              onClick={() => handlePrint(row.original)}
-                              className="text-purple-600 hover:bg-purple-50 focus:bg-purple-50"
-                            >
-                              <Printer className="mr-2 h-4 w-4 text-purple-500" />
-                              Imprimir
-                            </DropdownMenuItem>
-                          )}
+                            {/* Imprimir */}
+                            {onPrint && (
+                              <DropdownMenuItem
+                                onClick={() => handlePrint(row.original)}
+                                className="text-purple-600 hover:bg-purple-50 focus:bg-purple-50"
+                              >
+                                <Printer className="mr-2 h-4 w-4 text-purple-500" />
+                                Imprimir
+                              </DropdownMenuItem>
+                            )}
 
-                          {/* Editar - Color azul claro/edición */}
-                          {onEdit && (
-                            <DropdownMenuItem
-                              onClick={() => handleEdit(row.original)}
-                              className="text-cyan-600 hover:bg-cyan-50 focus:bg-cyan-50"
-                            >
-                              <Edit className="mr-2 h-4 w-4 text-cyan-500" />
-                              Editar
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))
+                            {/* Editar */}
+                            {onEdit && (
+                              <DropdownMenuItem
+                                onClick={() => handleEdit(row.original)}
+                                className="text-cyan-600 hover:bg-cyan-50 focus:bg-cyan-50"
+                              >
+                                <Edit className="mr-2 h-4 w-4 text-cyan-500" />
+                                Editar
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length + (hasActions ? 1 : 0)} className="h-24 text-center">
@@ -286,79 +308,90 @@ export function DataTableService<T extends { id: string | number }>({
         </Table>
       </div>
 
+      {/* VERSIÓN MÓVIL - CON VALIDACIONES */}
       <div className="sm:hidden space-y-3">
         {table.getRowModel().rows.length ? (
-          table.getRowModel().rows.map((row) => (
-            <div
-              key={row.id}
-              className="border rounded-lg p-3 shadow-sm bg-white cursor-pointer hover:bg-gray-50"
-              onClick={() => onRowSelect?.(row.original)}
-            >
-              {row.getVisibleCells().map((cell) => (
-                <div key={cell.id} className="flex justify-between py-1">
-                  <span className="font-medium text-gray-600">
-                    {String(cell.column.columnDef.header)}:
-                  </span>
-                  <span>{flexRender(cell.column.columnDef.cell, cell.getContext())}</span>
-                </div>
-              ))}
-              {/* // En la versión móvil */}
-              {hasActions && (
-                <div className="flex justify-end gap-2 pt-2 flex-wrap">
-                  {onView && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleView(row.original)}
-                      className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                    >
-                      <Eye className="h-4 w-4 mr-1 text-blue-500" /> Ver
-                    </Button>
-                  )}
-                  {onRepair && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRepair(row.original)}
-                      className="border-orange-200 text-orange-600 hover:bg-orange-50"
-                    >
-                      <Wrench className="h-4 w-4 mr-1 text-orange-500" /> Reparar
-                    </Button>
-                  )}
-                  {onDeliver && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeliver(row.original)}
-                      className="border-green-200 text-green-600 hover:bg-green-50"
-                    >
-                      <Truck className="h-4 w-4 mr-1 text-green-500" /> Entregar
-                    </Button>
-                  )}
-                  {onPrint && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePrint(row.original)}
-                      className="border-purple-200 text-purple-600 hover:bg-purple-50"
-                    >
-                      <Printer className="h-4 w-4 mr-1 text-purple-500" /> Imprimir
-                    </Button>
-                  )}
-                  {onEdit && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(row.original)}
-                      className="border-cyan-200 text-cyan-600 hover:bg-cyan-50"
-                    >
-                      <Edit className="h-4 w-4 mr-1 text-cyan-500" /> Editar
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-          ))
+          table.getRowModel().rows.map((row) => {
+            const actionState = getActionState ? getActionState(row.original) : null;
+            
+            return (
+              <div
+                key={row.id}
+                className="border rounded-lg p-3 shadow-sm bg-white cursor-pointer hover:bg-gray-50"
+                onClick={() => onRowSelect?.(row.original)}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <div key={cell.id} className="flex justify-between py-1">
+                    <span className="font-medium text-gray-600">
+                      {String(cell.column.columnDef.header)}:
+                    </span>
+                    <span>{flexRender(cell.column.columnDef.cell, cell.getContext())}</span>
+                  </div>
+                ))}
+                {hasActions && (
+                  <div className="flex justify-end gap-2 pt-2 flex-wrap">
+                    {onView && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleView(row.original)}
+                        className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                      >
+                        <Eye className="h-4 w-4 mr-1 text-blue-500" /> Ver
+                      </Button>
+                    )}
+                    {onRepair && (
+                      <Button
+                        variant={actionState?.repairVariant || "outline"}
+                        size="sm"
+                        onClick={() => handleRepair(row.original)}
+                        disabled={actionState && !actionState.canRepair}
+                        className={`${
+                          actionState?.repairClassName || "border-orange-200 text-orange-600 hover:bg-orange-50"
+                        } ${actionState && !actionState.canRepair ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <Wrench className="h-4 w-4 mr-1 text-orange-500" /> 
+                        {actionState?.repairText || "Reparar"}
+                      </Button>
+                    )}
+                    {onDeliver && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeliver(row.original)}
+                        disabled={actionState?.isDeliverDisabled}
+                        className={`border-green-200 text-green-600 hover:bg-green-50 ${
+                          actionState?.isDeliverDisabled ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        <Truck className="h-4 w-4 mr-1 text-green-500" /> Entregar
+                      </Button>
+                    )}
+                    {onPrint && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePrint(row.original)}
+                        className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                      >
+                        <Printer className="h-4 w-4 mr-1 text-purple-500" /> Imprimir
+                      </Button>
+                    )}
+                    {onEdit && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(row.original)}
+                        className="border-cyan-200 text-cyan-600 hover:bg-cyan-50"
+                      >
+                        <Edit className="h-4 w-4 mr-1 text-cyan-500" /> Editar
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })
         ) : (
           <p className="text-center text-gray-500">Sin resultados.</p>
         )}

@@ -85,7 +85,28 @@ export const filtreClient = async (filtro: string) => {
 
     return data;
   } catch (error) {
-    console.error("Error al obtener los estados:", error);
+    console.error("Error al obtener los clientes:", error);
+    throw error;
+  }
+};
+
+// ----------------------
+// filtro de productos para reparara paso 2
+// ----------------------
+
+
+export const filtroProduct = async (nombre: string) => {
+  try {
+    const response = await instance.get(`/filtroP`, {
+      params: { nombre }   // genera => ?filtro=valor
+    });
+
+    const data = response.data;
+    console.log("estados obtenidos:", data);
+
+    return data;
+  } catch (error) {
+    console.error("Error al obtener los productos:", error);
     throw error;
   }
 };
@@ -150,6 +171,27 @@ export const servicioReparacion1 = async (payload: {
   }
 };
 
+// NUEVO Servicio - Iniciar reparación (con tu formato)
+export const iniciarReparacionService = async (
+  servicio_id: number,
+  usuario_soluciona_id: number
+) => {
+  try {
+    const response = await instance.post(`/iniciar-repare`, {
+      servicio_id,
+      usuario_soluciona_id
+    });
+
+    return {
+      status: 200,
+      success: true,
+      data: response.data.data,
+      mensaje: "Reparación iniciada exitosamente"
+    };
+  } catch (error) {
+    console.error("Error al iniciar reparación:", error);
+  }
+};
 // ----------------------
 // reparacion del equipo paso 2
 // ----------------------
