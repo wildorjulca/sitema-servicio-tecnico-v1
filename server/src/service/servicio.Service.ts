@@ -59,7 +59,7 @@ const listServicio = async (
     }
 };
 
-const listMot_Ingreso= async () => {
+const listMot_Ingreso = async () => {
     try {
         const [results]: any = await cn
             .promise()
@@ -118,16 +118,16 @@ const listEstadoServ = async () => {
 };
 
 const buscarClienteServ = async (
-    filtro: string
+    nombre: string
 ) => {
-    console.log("Parámetros enviados a sp_buscar_cliente_servicio:", { filtro });
+    console.log("Parámetros enviados a sp_buscar_cliente_servicio:", { nombre });
 
     try {
         const [results]: any = await cn
             .promise()
             .query(
                 "CALL sp_buscar_cliente_servicio(?)",
-                [filtro]
+                [nombre]
             );
 
         console.log("Resultados de sp_buscar_cliente_servicio:", { data: results[0] });
@@ -140,6 +140,38 @@ const buscarClienteServ = async (
         };
     } catch (error: any) {
         console.error("Error en buscar cliente servicio:", error);
+
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error en la base de datos",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
+const buscarProduct = async (
+    filtro: string
+) => {
+    console.log("Parámetros enviados a sp_filtrar_productos:", { filtro });
+
+    try {
+        const [results]: any = await cn
+            .promise()
+            .query(
+                "CALL sp_filtrar_productos(?)",
+                [filtro]
+            );
+
+        console.log("Resultados de sp_filtrar_productos:", { data: results[0] });
+
+        return {
+            status: 200,
+            success: true,
+            data: results[0],
+            total: results[0]?.length || 0,
+        };
+    } catch (error: any) {
+        console.error("Error en buscar productos en servicio:", error);
 
         return {
             status: 500,
@@ -220,6 +252,38 @@ const registrarServicioBasico = async (
     }
 };
 
+const iniciarReparacion = async (
+  servicio_id: number,
+  usuario_soluciona_id: number
+) => {
+  try {
+    const [results]: any = await cn
+      .promise()
+      .query("CALL sp_iniciar_reparacion(?, ?)", [
+        servicio_id,
+        usuario_soluciona_id
+      ]);
+
+    // Como el SP devuelve un SELECT final, la data viene en results[0]
+    const servicioActualizado = results[0][0];
+
+    return {
+      status: 200,
+      success: true,
+      data: servicioActualizado,
+      mensaje: "Reparación iniciada correctamente"
+    };
+  } catch (error: any) {
+    console.error("Error en iniciarReparacion:", error);
+    return {
+      status: 500,
+      success: false,
+      mensaje: "Error en la base de datos",
+      error: error.sqlMessage || error.message,
+    };
+  }
+};
+
 const actualizarServicioReparacion = async (
     servicio_id: number,
     diagnostico: string,
@@ -295,4 +359,5 @@ const entregarServicioCliente = async (
 
 
 
-export { listServicio, listEstadoServ,listMot_Ingreso, buscarClienteServ, obtenerEquiposPorCliente, registrarServicioBasico, actualizarServicioReparacion, entregarServicioCliente };
+
+export { listServicio, listEstadoServ, listMot_Ingreso,iniciarReparacion, buscarProduct, buscarClienteServ, obtenerEquiposPorCliente, registrarServicioBasico, actualizarServicioReparacion, entregarServicioCliente };

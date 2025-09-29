@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { createServicioEquipo, updateServicioEquipo } from "../service/servicio_equipos.Service";
 import { ServicioEquipo } from "../interface";
-import { actualizarServicioReparacion, buscarClienteServ, entregarServicioCliente, listEstadoServ, listMot_Ingreso, listServicio, obtenerEquiposPorCliente, registrarServicioBasico } from "../service/servicio.Service";
+import { actualizarServicioReparacion, buscarClienteServ, buscarProduct, entregarServicioCliente, iniciarReparacion, listEstadoServ, listMot_Ingreso, listServicio, obtenerEquiposPorCliente, registrarServicioBasico } from "../service/servicio.Service";
 
 
 const getAllServicioCTRL = async (req: Request, res: Response) => {
@@ -59,6 +59,28 @@ const buscarClienteServicioCTRL = async (req: Request, res: Response) => {
   }
 };
 
+const buscarProducCTRL = async (req: Request, res: Response) => {
+  try {
+    // Obtener el filtro de búsqueda
+    const nombre = req.query.nombre ? String(req.query.nombre) : '';
+
+    const response = await buscarProduct(nombre);
+
+    // Devolver la respuesta
+    res.status(response.status).json(response);
+
+  } catch (error: any) {
+    console.error("Error en controlador buscarProductCTL:", error);
+
+    res.status(500).json({
+      status: 500,
+      success: false,
+      mensaje: "Error interno del servidor",
+      error: error.message
+    });
+    return
+  }
+};
 const obtenerEquiposPorClienteCTRL = async (req: Request, res: Response) => {
   try {
     const { cliente_id } = req.query;
@@ -115,7 +137,7 @@ const registrarServicioBasicoCTRL = async (req: Request, res: Response) => {
     } = req.body;
 
     // Validar campos obligatorios
-    if ( !motivo_ingreso_id ||!usuario_recibe_id || !servicio_equipos_id || !cliente_id) {
+    if (!motivo_ingreso_id || !usuario_recibe_id || !servicio_equipos_id || !cliente_id) {
       res.status(400).json({
         status: 400,
         success: false,
@@ -148,6 +170,34 @@ const registrarServicioBasicoCTRL = async (req: Request, res: Response) => {
   }
 };
 
+const iniciarReparacionCTRL = async (req: Request, res: Response) => {
+  try {
+    const { servicio_id, usuario_soluciona_id } = req.body;
+
+    // Validar campos obligatorios
+    if (!servicio_id || !usuario_soluciona_id) {
+      res.status(400).json({
+        status: 400,
+        success: false,
+        mensaje: "Faltan campos obligatorios: servicio_id, usuario_soluciona_id"
+      });
+      return;
+    }
+
+    const response = await iniciarReparacion(servicio_id, usuario_soluciona_id);
+
+    res.status(response.status).json(response);
+
+  } catch (error: any) {
+    console.error("Error en iniciarReparacionCTRL:", error);
+    res.status(500).json({
+      status: 500,
+      success: false,
+      mensaje: "Error interno del servidor",
+      error: error.message
+    });
+  }
+};
 const actualizarServicioReparacionCTRL = async (req: Request, res: Response) => {
   try {
     const {
@@ -244,4 +294,4 @@ const entregarServicioCTRL = async (req: Request, res: Response) => {
 
 
 
-export { getAllServicioCTRL, getMot_IngresoCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL, actualizarServicioReparacionCTRL, entregarServicioCTRL }
+export { getAllServicioCTRL, getMot_IngresoCTRL, buscarProducCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL,iniciarReparacionCTRL, actualizarServicioReparacionCTRL, entregarServicioCTRL }
