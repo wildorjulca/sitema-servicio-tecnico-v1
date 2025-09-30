@@ -25,6 +25,7 @@ import Servicio_Equipos from '@/pages/dashboard/servicio_equipos';
 import Estado_serv from '@/pages/dashboard/estado_serv/estado_serv';
 import { DetalleService } from '@/pages/dashboard/servicio/pages/list/ui/detalleService';
 import ReparacionPage from '@/pages/dashboard/servicio/pages/repare/ReparacionPage';
+import { ImprimirServicio } from '@/pages/dashboard/servicio/pages/print/ImprimirServicio';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -83,6 +84,9 @@ const AppRoutes = () => {
 
                     <Route path="new" element={<New_Service />} />
                     <Route path="repare/:id" element={<ReparacionPage  />} />
+
+                    <Route path="imprimir/:id" element={<ImprimirServicio  />} />
+                    
 
 
 

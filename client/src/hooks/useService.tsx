@@ -274,17 +274,18 @@ export const useEntregarServicio = () => {
 
   return useMutation({
     mutationFn: entregarServicio,
-    onSuccess: (variables) => {
+    onSuccess: (data, variables) => {
       toast.success("Servicio entregado correctamente");
       
-      // ✅ INVALIDAR MÚLTIPLES QUERIES
-      queryClient.invalidateQueries({ queryKey: ["reparaciones"] });
+      // Invalidar las queries para refrescar datos
+      queryClient.invalidateQueries({ queryKey: ["servicios"] });
       queryClient.invalidateQueries({ 
         queryKey: ["servicio", variables.servicio_id.toString()] 
       });
     },
-    onError: () => {
-      toast.error("Error al entregar el servicio");
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || "Error al entregar el servicio";
+      toast.error(errorMessage);
     },
   });
 };

@@ -4,7 +4,7 @@ import { useUser } from "@/hooks/useUser";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, Edit, Laptop, Calendar, User, DollarSign, Code,
-  Copy, CheckCheck
+  Copy, CheckCheck, Package
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +19,7 @@ export function DetalleService() {
   const usuarioId = user?.id;
   const [copied, setCopied] = useState(false);
 
-  const { data: ServiceData, isLoading, isError, refetch } = useServiceyId(usuarioId, id);
+  const { data: ServiceData, isLoading, isError } = useServiceyId(usuarioId, id);
 
   const handleEdit = () => {
     navigate(`/service/edit/${id}`);
@@ -41,6 +41,11 @@ export function DetalleService() {
       month: '2-digit',
       year: 'numeric'
     });
+  };
+
+  // Formatear moneda
+  const formatCurrency = (amount: number) => {
+    return `S/. ${(amount || 0).toFixed(2)}`;
   };
 
   if (isLoading) {
@@ -82,6 +87,8 @@ export function DetalleService() {
       </div>
     );
   }
+
+  const repuestos = ServiceData.repuestos || [];
 
   return (
     <div className="container mx-auto p-4 max-w-7xl h-full">
@@ -129,7 +136,7 @@ export function DetalleService() {
                     <DollarSign className="h-4 w-4 mr-2 text-green-500 dark:text-green-400" />
                     Precio total
                   </div>
-                  <div className="font-medium text-green-600 dark:text-green-400 text-lg">${ServiceData.precioTotal}</div>
+                  <div className="font-medium text-green-600 dark:text-green-400 text-lg">{formatCurrency(ServiceData.precioTotal)}</div>
                 </div>
               </div>
 
@@ -193,6 +200,55 @@ export function DetalleService() {
             </CardContent>
           </Card>
 
+          {/* Tarjeta de repuestos utilizados - NUEVA SECCIÓN */}
+          <Card className="border-2 dark:border-gray-700">
+            <CardHeader className="pb-3 border-b dark:border-gray-700">
+              <CardTitle className="text-xl flex items-center gap-2 text-gray-800 dark:text-gray-100">
+                <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                Repuestos Utilizados
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {repuestos.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-4 gap-4 font-semibold text-sm text-gray-600 dark:text-gray-400 border-b pb-2">
+                    <div>Producto</div>
+                    <div className="text-center">Cantidad</div>
+                    <div className="text-right">Precio Unit.</div>
+                    <div className="text-right">Importe</div>
+                  </div>
+                  {repuestos.map((repuesto, index) => (
+                    <div key={repuesto.idServicioRepuesto} className="grid grid-cols-4 gap-4 py-2 border-b dark:border-gray-700">
+                      <div className="font-medium text-gray-800 dark:text-gray-100">
+                        {repuesto.producto_nombre}
+                      </div>
+                      <div className="text-center text-gray-600 dark:text-gray-400">
+                        {repuesto.cantidad}
+                      </div>
+                      <div className="text-right text-gray-600 dark:text-gray-400">
+                        {formatCurrency(repuesto.precio_unitario)}
+                      </div>
+                      <div className="text-right font-semibold text-green-600 dark:text-green-400">
+                        {formatCurrency(repuesto.importe)}
+                      </div>
+                    </div>
+                  ))}
+                  <div className="flex justify-between items-center pt-4 border-t dark:border-gray-700">
+                    <span className="font-semibold text-gray-800 dark:text-gray-100">Total Repuestos:</span>
+                    <span className="text-lg font-bold text-green-600 dark:text-green-400">
+                      {formatCurrency(ServiceData.precioRepuestos)}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>No se utilizaron repuestos en este servicio</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Tarjeta de detalles del servicio */}
           <Card className="border-2 dark:border-gray-700">
             <CardHeader className="pb-3 border-b dark:border-gray-700">
@@ -237,15 +293,15 @@ export function DetalleService() {
             <CardContent className="space-y-2 pt-4">
               <div className="flex justify-between">
                 <span className="text-gray-500 dark:text-gray-400">Mano de obra:</span>
-                <span className="text-gray-800 dark:text-gray-100">${ServiceData.precio}</span>
+                <span className="text-gray-800 dark:text-gray-100">{formatCurrency(ServiceData.precio)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500 dark:text-gray-400">Repuestos:</span>
-                <span className="text-gray-800 dark:text-gray-100">${ServiceData.precioRepuestos}</span>
+                <span className="text-gray-800 dark:text-gray-100">{formatCurrency(ServiceData.precioRepuestos)}</span>
               </div>
               <div className="flex justify-between pt-2 border-t dark:border-gray-700 font-medium">
                 <span className="text-gray-800 dark:text-gray-100">Total:</span>
-                <span className="text-green-600 dark:text-green-400 text-lg">${ServiceData.precioTotal}</span>
+                <span className="text-green-600 dark:text-green-400 text-lg">{formatCurrency(ServiceData.precioTotal)}</span>
               </div>
             </CardContent>
           </Card>

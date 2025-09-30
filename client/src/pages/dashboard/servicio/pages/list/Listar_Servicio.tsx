@@ -1,7 +1,12 @@
 import { useUser } from "@/hooks/useUser";
 import { useState, useEffect } from "react";
 import Loader from "@/components/sniper-carga/loader";
-import { useEstadoHook, useIniciarReparacion, useServicioHook } from "@/hooks/useService";
+import {
+  useEstadoHook,
+  useIniciarReparacion,
+  useServicioHook,
+  useEntregarServicio
+} from "@/hooks/useService";
 import { Servicio } from "@/interface/types";
 import { SelectWithCheckbox } from "@/components/chexbox/SelectWithCheckbox";
 import { Button } from "@/components/ui/button";
@@ -9,9 +14,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { DataTableService } from "../../../ui/table-service";
 import { Plus } from "lucide-react";
 
- interface X{
-  id:number,
- }
+interface X {
+  id: number,
+}
 
 export default function Listar_Servicio() {
   const { user } = useUser();
@@ -32,6 +37,7 @@ export default function Listar_Servicio() {
 
   const { data: estados, isLoading: isLoadingEstados } = useEstadoHook();
   const { mutate: iniciarReparacion } = useIniciarReparacion();
+  const { mutate: entregarServicio, isPending: isDelivering } = useEntregarServicio();
 
   const estadosOptions = estados.map(est => ({
     value: est.idEstado,
@@ -59,24 +65,33 @@ export default function Listar_Servicio() {
   };
 
   const handleRepair = (servicio: X) => {
-    // Iniciar reparación antes de navegar
     iniciarReparacion(
-      { 
-        servicioId: servicio.id, 
-        usuarioId: usuarioId 
+      {
+        servicioId: servicio.id,
+        usuarioId: usuarioId
       },
       {
         onSuccess: () => {
-          // Navegar solo si fue exitoso
           navigate(`/dashboard/repare/${servicio.id}`);
         }
-        // El error se maneja en el hook con toast
       }
     );
   };
 
   const handleDeliver = (servicio: X) => {
-    navigate(`/dashboard/entregar/${servicio.id}`);
+    // Confirmación nativa del navegador
+    const confirmar = window.confirm(
+      `¿Estás seguro de que deseas marcar el servicio ${servicio.id} como entregado?\n\nEsta acción no se puede deshacer.`
+    );
+
+    if (confirmar && usuarioId) {
+      entregarServicio(
+        {
+          servicio_id: servicio.id,
+          usuario_entrega_id: usuarioId
+        }
+      );
+    }
   };
 
   const handlePrint = (servicio: X) => {
@@ -94,32 +109,35 @@ export default function Listar_Servicio() {
 
   // Función para determinar el estado de los botones
   const getActionState = (servicio: any) => {
-    const isRepairDisabled = 
-      servicio.estadoId === 3 || // Ya reparado (Terminado)
-      (servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId); // En reparación por otro técnico
+    const isRepairDisabled =
+      servicio.estadoId === 3 ||
+      servicio.estadoId === 4 ||
+      (servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId);
 
-    const repairText = 
-      servicio.estadoId === 3 
-        ? "Ya Reparado" 
-        : servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId 
-          ? "En Reparación (Otro)" 
-          : servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId 
-            ? "Continuar Reparación" 
-            : "Reparar";
+    const repairText =
+      servicio.estadoId === 3
+        ? "Ya Reparado"
+        : servicio.estadoId === 4
+          ? "Entregado"
+          : servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId
+            ? "En Reparación (Otro)"
+            : servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId
+              ? "Continuar Reparación"
+              : "Reparar";
 
-    const repairVariant = 
-      servicio.estadoId === 3 
-        ? "outline" 
-        : servicio.estadoId === 2 
-          ? "secondary" 
+    const repairVariant =
+      servicio.estadoId === 3 || servicio.estadoId === 4
+        ? "outline"
+        : servicio.estadoId === 2
+          ? "secondary"
           : "default";
 
-    const repairClassName = 
-      servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId 
-        ? "bg-orange-500 hover:bg-orange-600 text-white" 
+    const repairClassName =
+      servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId
+        ? "bg-orange-500 hover:bg-orange-600 text-white"
         : "";
 
-    const isDeliverDisabled = servicio.estadoId !== 3; // Solo habilitado si estado es 3 (Terminado)
+    const isDeliverDisabled = servicio.estadoId !== 3;
 
     return {
       canRepair: !isRepairDisabled,
@@ -131,7 +149,7 @@ export default function Listar_Servicio() {
   };
 
   const columns = [
-    { accessorKey: "id", header: "ID" },
+    { accessorKey: "id", header: "ID  " },
     { accessorKey: "cod", header: "Código" },
     { accessorKey: "cliente", header: "Cliente" },
     { accessorKey: "equipo", header: "Equipo" },
@@ -227,9 +245,9 @@ export default function Listar_Servicio() {
 
   return (
     <div className="w-full space-y-4 p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-2">
         <h1 className="text-2xl font-bold text-gray-800">Listado de Servicios</h1>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-600">
             Mostrando {MapedService.length} de {totalRows} servicios
           </span>
@@ -263,17 +281,12 @@ export default function Listar_Servicio() {
         totalRows={totalRows}
         onPageChange={(newPage) => setPageIndex(newPage)}
         onPageSizeChange={(size) => setPageSize(size)}
-
-        // Pasar TODAS las acciones que quieres mostrar
         onView={handleView}
         onRepair={handleRepair}
         onDeliver={handleDeliver}
         onPrint={handlePrint}
         onEdit={handleEdit}
-
-        // Pasar la función de validación
         getActionState={getActionState}
-
         actions={<Link to={'/dashboard/new'}>
           <Button size="sm" className="flex items-center gap-2">
             <Plus className="h-4 w-4" /> Nuevo servicio
