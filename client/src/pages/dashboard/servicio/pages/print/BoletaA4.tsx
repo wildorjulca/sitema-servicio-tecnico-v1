@@ -203,12 +203,16 @@ const Reporte = ({ data }: ReporteProps) => {
   };
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return 'No especificada';
+    if (!dateString) return "No especificada";
     const date = new Date(dateString);
     return date.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
     });
   };
 
@@ -292,15 +296,15 @@ const Reporte = ({ data }: ReporteProps) => {
           <Text style={styles.sectionTitle}>DETALLES</Text>
           <View style={styles.row}>
             <Text style={styles.label}>Problema:</Text>
-            <Text style={[styles.value, {textAlign: 'left'}, styles.compactText]}>{servicio.descripcion_motivo}</Text>
+            <Text style={[styles.value, { textAlign: 'left' }, styles.compactText]}>{servicio.descripcion_motivo}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Diagnóstico:</Text>
-            <Text style={[styles.value, {textAlign: 'left'}, styles.compactText]}>{servicio.diagnostico || 'N/A'}</Text>
+            <Text style={[styles.value, { textAlign: 'left' }, styles.compactText]}>{servicio.diagnostico || 'N/A'}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Solución:</Text>
-            <Text style={[styles.value, {textAlign: 'left'}, styles.compactText]}>{servicio.solucion || 'N/A'}</Text>
+            <Text style={[styles.value, { textAlign: 'left' }, styles.compactText]}>{servicio.solucion || 'N/A'}</Text>
           </View>
         </View>
 
@@ -363,7 +367,7 @@ const Reporte = ({ data }: ReporteProps) => {
               </View>
             </View>
           </View>
-          
+
           <View style={styles.column}>
             <View style={styles.signatureSection}>
               <View style={styles.signatureBox}>

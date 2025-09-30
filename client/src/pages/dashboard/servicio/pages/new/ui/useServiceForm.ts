@@ -12,14 +12,14 @@ export function useServiceForm(usuarioId: string | undefined) {
   // Hooks de datos
   const { data: customersRaw, isLoading: loadingCustomers, refetch: refetchClients } = useFiltreClient(searchTerm);
   const { data: equiposRaw, isLoading: loadingEquipos, refetch: refetchEquipos } = useEquiposPorCliente(
-    selectedCustomer?.id || null
+    selectedCustomer?.id
   );
   const { data: allEquipos, isLoading: loadingAllEquipos, refetch: refetchAllEquipos } = useServicioEquipoHook(
     usuarioId,
     0,
     100
   );
-  const { data: motivosData, isLoading: loadingMotivos } = useMot_IngHook();
+  const { data: motivosData, isLoading: loadingMotivos, refetch: refetchMotivos } = useMot_IngHook(); // ✅ Agregado refetchMotivos
 
   // Mapear datos
   const customers: CustomerUI[] = customersRaw?.map((c: any) => ({
@@ -53,7 +53,7 @@ export function useServiceForm(usuarioId: string | undefined) {
     }
   })();
 
-  const availableEquipments = allEquipos?.data || allEquipos || [];
+  const availableEquipments = allEquipos || allEquipos || [];
 
   const safeMotivosData = (motivosData || []).map((m: any) => ({
     id: Number(m.idMotivo),
@@ -84,6 +84,7 @@ export function useServiceForm(usuarioId: string | undefined) {
     loadingMotivos,
     refetchClients,
     refetchAllEquipos,
+    refetchMotivos, // ✅ Agregado aquí
     handleRefetchEquipos
   };
 }

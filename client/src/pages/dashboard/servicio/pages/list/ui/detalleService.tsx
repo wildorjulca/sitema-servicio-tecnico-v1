@@ -2,10 +2,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useUser } from "@/hooks/useUser";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowLeft, Edit, Laptop, Calendar, User, DollarSign, Code,
-  Copy, CheckCheck, Package
-} from "lucide-react";
+import { ArrowLeft, Laptop, Calendar, User, DollarSign, Code, Copy, CheckCheck, Package } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useServiceyId } from "@/hooks/useService";
@@ -21,9 +18,6 @@ export function DetalleService() {
 
   const { data: ServiceData, isLoading, isError } = useServiceyId(usuarioId, id);
 
-  const handleEdit = () => {
-    navigate(`/service/edit/${id}`);
-  };
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(ServiceData?.codigoSeguimiento || "");
@@ -39,7 +33,11 @@ export function DetalleService() {
     return date.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
     });
   };
 
@@ -323,13 +321,6 @@ export function DetalleService() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Botones de acción */}
-          <div className="flex flex-col space-y-2">
-            <Button onClick={handleEdit} className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
-              <Edit className="mr-2 h-4 w-4" /> Editar servicio
-            </Button>
-          </div>
         </div>
       </div>
     </div>

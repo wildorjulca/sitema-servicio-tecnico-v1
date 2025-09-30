@@ -23,13 +23,12 @@ import { ClienteEdit } from '@/interface'
 import { AxiosError } from 'axios'
 import { getErrorMessage } from '@/lib/getErrorMessage'
 
-
 export default function New_Service() {
   const { user } = useUser()
   const usuarioId = user?.id
   const { serviceData, updateServiceData, submitService, isLoading, setPasoActual } = useService()
 
-  const navigate = useNavigate() // ← Agregar este hook
+  const navigate = useNavigate()
 
   // Estados del formulario
   const [motivoIngresoId, setMotivoIngresoId] = useState<string>('')
@@ -39,6 +38,9 @@ export default function New_Service() {
   const [showCustomerModal, setShowCustomerModal] = useState(false)
   const [showEquipmentModal, setShowEquipmentModal] = useState(false)
   const [showAvailableEquipments, setShowAvailableEquipments] = useState(false)
+  
+  // Estado para refrescar motivos
+  const [refreshMotivosKey, setRefreshMotivosKey] = useState(0)
 
   // Hooks personalizados
   const {
@@ -58,8 +60,17 @@ export default function New_Service() {
     loadingMotivos,
     refetchClients,
     refetchAllEquipos,
-    handleRefetchEquipos
+    handleRefetchEquipos,
+    refetchMotivos
   } = useServiceForm(usuarioId)
+
+  // Handler para cuando se agrega un nuevo motivo
+  const handleMotivoAdded = () => {
+    // Refrescar la lista de motivos
+    refetchMotivos?.();
+    setRefreshMotivosKey(prev => prev + 1);
+    toast.success("Nuevo motivo agregado, lista actualizada");
+  };
 
   // Hooks de mutación
   const addCliente = useAddClienteHook(usuarioId!)
@@ -232,7 +243,7 @@ export default function New_Service() {
       setIsSubmitting(false)
     }
   }
-  // En New_Service.tsx, agrega esta función
+
   const handleCancel = () => {
     if (window.confirm('¿Estás seguro de que quieres cancelar? Los datos no guardados se perderán.')) {
       navigate('/dashboard/list')
@@ -263,13 +274,9 @@ export default function New_Service() {
       if (result.success) {
         toast.success('Servicio registrado exitosamente!')
 
-        // Navegar a la lista después de un breve delay para que el usuario vea el mensaje
         setTimeout(() => {
-          navigate('/dashboard/list') // ← Navegación a la lista
+          navigate('/dashboard/list')
         }, 1000)
-
-        // Opcional: limpiar el formulario si quieres que se quede en la misma página
-        // handleClearSelection()
       } else {
         toast.error(`Error: ${result.error}`)
       }
@@ -280,6 +287,7 @@ export default function New_Service() {
       setIsSubmitting(false)
     }
   }
+
   // Variables para la barra de estado
   const clienteCompleto = !!serviceData.cliente_id
   const equipoCompleto = !!serviceData.servicio_equipos_id
@@ -322,6 +330,7 @@ export default function New_Service() {
 
             {selectedCustomer && selectedEquipment && (
               <ServiceDetailsSection
+                key={refreshMotivosKey}
                 motivoIngresoId={motivoIngresoId}
                 observacion={observacion}
                 descripcion_motivo={descripcion_motivo}
@@ -334,6 +343,8 @@ export default function New_Service() {
                 onObservacionChange={handleObservacionChange}
                 onDescripcionChange={handleDescripcionChange}
                 onSubmit={handleSubmitService}
+                onMotivoAdded={handleMotivoAdded}
+                usuarioId={usuarioId}
               />
             )}
 

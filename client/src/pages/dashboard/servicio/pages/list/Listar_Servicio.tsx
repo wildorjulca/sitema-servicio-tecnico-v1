@@ -177,16 +177,16 @@ export default function Listar_Servicio() {
 
         switch (estado) {
           case "Recibido":
-            className += " bg-blue-100 text-blue-800";
+            className += " bg-blue-400 text-blue-800";
             break;
           case "En Reparación":
-            className += " bg-orange-100 text-orange-800";
+            className += " bg-orange-400 text-orange-800";
             break;
           case "Terminado":
-            className += " bg-green-100 text-green-800";
+            className += " bg-green-400 text-green-800";
             break;
           case "Entregado":
-            className += " bg-gray-100 text-gray-800";
+            className += " bg-gray-400 text-gray-800";
             break;
           default:
             className += " bg-gray-100 text-gray-800";

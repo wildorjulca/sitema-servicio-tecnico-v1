@@ -1,14 +1,13 @@
+// components/motivo-ingreso/MotivoIngreso.tsx
 import { DataTable } from "../ui/table-reutilizable";
 import { useUser } from "@/hooks/useUser";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { MotivoIngresoPag } from "@/interface";
 import Loader from "@/components/sniper-carga/loader";
 import { useAddMotivoIngreso, useDeleteMotivoIngreso, useEditMotivoIngreso, useMotivoIngresoHook } from "@/hooks/useMotivoIngreso";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useEnterKey } from "@/utils/hotkeys";
 import toast from "react-hot-toast";
+import { MotivoIngresoModal } from "./ui/MotivoIngresoModal";
 
 interface Mot {
   id: number;
@@ -17,12 +16,9 @@ interface Mot {
   usuarioId?: number;
 }
 
-
 export function Motivo_Ingreso() {
   const { user } = useUser();
   const usuarioId = user?.id;
-
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -43,9 +39,6 @@ export function Motivo_Ingreso() {
   const [descripcion, setDescripcion] = useState("");
   const [precio_cobrar, setPrecio_cobrar] = useState("");
 
-  // Activar Enter para guardar
-  useEnterKey(handleSave, inputRef, dialogOpen);
-
   useEffect(() => {
     if (usuarioId && data) {
       console.log("Datos de useTipoDocHook:", { data, total });
@@ -55,7 +48,7 @@ export function Motivo_Ingreso() {
   }, [pageIndex, pageSize, usuarioId, total, refetch]);
 
   if (!usuarioId) return <div>Por favor inicia sesión para ver los motivos de Ingreso</div>;
-  if (isLoading) return <div> <Loader /></div>;
+  if (isLoading) return <div><Loader /></div>;
   if (isError) {
     console.error("Error details:", error);
     return (
@@ -75,47 +68,74 @@ export function Motivo_Ingreso() {
 
   // Abrir modal para editar
   const openEditModal = (brand: Mot) => {
-    setCurrentBrand({ id: brand.id, descripcion: brand.descripcion, precio_cobrar: brand.precio_cobrar, usuarioId });
-    setDescripcion(descripcion);
-    setPrecio_cobrar(precio_cobrar);
+    setCurrentBrand({ 
+      id: brand.id, 
+      descripcion: brand.descripcion, 
+      precio_cobrar: brand.precio_cobrar, 
+      usuarioId 
+    });
+    setDescripcion(brand.descripcion);
+    setPrecio_cobrar(brand.precio_cobrar.toString());
     setDialogOpen(true);
   };
 
   // Guardar cambios
-  function handleSave() {
+  const handleSave = () => {
     if (!descripcion.trim()) {
       toast.error("El nombre no puede estar vacío");
       return;
     }
 
+    const precioNumber = parseFloat(precio_cobrar) || 0;
+
     if (currentBrand) {
       editBrand.mutate(
-        { id: currentBrand.id, descripcion, precio_cobrar, usuarioId },
-        { onSuccess: () => setDialogOpen(false) }
+        { 
+          id: currentBrand.id, 
+          descripcion, 
+          precio_cobrar: precioNumber, 
+          usuarioId 
+        },
+        { 
+          onSuccess: () => {
+            setDialogOpen(false);
+            toast.success("Motivo actualizado correctamente");
+          },
+          onError: () => toast.error("Error al actualizar el motivo")
+        }
       );
     } else {
       addBrand.mutate(
-        { descripcion,precio_cobrar, usuarioId },
-        { onSuccess: () => setDialogOpen(false) }
+        { 
+          descripcion, 
+          precio_cobrar: precioNumber, 
+          usuarioId 
+        },
+        { 
+          onSuccess: () => {
+            setDialogOpen(false);
+            toast.success("Motivo agregado correctamente");
+          },
+          onError: () => toast.error("Error al agregar el motivo")
+        }
       );
     }
-  }
+  };
 
-  // Eliminar marca
+  // Eliminar motivo
   const handleDelete = (brand: Mot) => {
     if (!brand.id) {
-      toast.error("No se puede eliminar: ID de la marca no definido");
+      toast.error("No se puede eliminar: ID del motivo no definido");
       return;
     }
 
     deleteBrand.mutate(brand.id, {
-      onSuccess: () => toast.success("Marca eliminada"),
-      onError: () => toast.error("Error al eliminar la marca"),
+      onSuccess: () => toast.success("Motivo eliminado"),
+      onError: () => toast.error("Error al eliminar el motivo"),
     });
   };
 
-  // Mapear marcas para la tabla
-
+  // Mapear motivos para la tabla
   const mappedRol = data.map((tipo: MotivoIngresoPag) => ({
     id: tipo.idMotivo,
     descripcion: tipo.descripcion,
@@ -159,47 +179,28 @@ export function Motivo_Ingreso() {
         onEdit={openEditModal}
         onDelete={handleDelete}
         onRowSelect={(row) => {
-          setCurrentBrand({ id: row.id, descripcion: row.descripcion , precio_cobrar: row.precio_cobrar});
+          setCurrentBrand({ 
+            id: row.id, 
+            descripcion: row.descripcion, 
+            precio_cobrar: row.precio_cobrar 
+          });
           setDescripcion(row.descripcion);
         }}
         actions={<Button onClick={openAddModal}>Agregar Motivo</Button>}
       />
 
-
-      {/* ----------------- MODAL ----------------- */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{currentBrand ? "Editar Motivo Ingreso" : "Agregar Motivo Ingreso"}</DialogTitle>
-          </DialogHeader>
-
-          <Input
-            ref={inputRef}
-            placeholder="Nombre del Motivo Ingreso"
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-            className="mb-4"
-          />
-          <Input
-            ref={inputRef}
-            type="number"
-            placeholder="precio a cobrar"
-            value={precio_cobrar}
-            onChange={(e) => setPrecio_cobrar(e.target.value)}
-            className="mb-4"
-          />
-
-          <DialogFooter className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSave}>
-              {currentBrand ? "Actualizar" : "Agregar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Modal Component */}
+      <MotivoIngresoModal
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        currentBrand={currentBrand}
+        descripcion={descripcion}
+        precio_cobrar={precio_cobrar}
+        onDescripcionChange={setDescripcion}
+        onPrecioCobrarChange={setPrecio_cobrar}
+        onSave={handleSave}
+        isSaving={addBrand.isPending || editBrand.isPending}
+      />
     </div>
-
   );
 }

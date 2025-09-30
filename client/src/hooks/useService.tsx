@@ -251,7 +251,7 @@ export const useServicioReparacion2 = () => {
       // ✅ INVALIDAR MÚLTIPLES QUERIES
       queryClient.invalidateQueries({ queryKey: ["reparaciones"] });
       queryClient.invalidateQueries({ 
-        queryKey: ["servicio", variables.servicio_id.toString()] 
+        queryKey: ["servicio", variables.servicio_id] 
       });
 
       // Redirigir después de 1 segundo
