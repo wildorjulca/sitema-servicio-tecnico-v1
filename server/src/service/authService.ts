@@ -1,6 +1,5 @@
 import { coneccion } from "../config/conexion";
 import { ResultSetHeader, RowDataPacket } from 'mysql2'
-import { Technical } from "../interface";
 import bcryptjs from 'bcryptjs'
 import { createResponse } from "../utils/response";
 const cn = coneccion()
