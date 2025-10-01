@@ -2,31 +2,45 @@
 import { z } from "zod";
 
 export const clienteSchema = z.object({
-    nombre: z.string()
-        .min(1, { message: "El nombre es obligatorio." })
-        .max(75, { message: "El nombre debe tener máximo 75 caracteres." }),
-
-    apellidos: z.string()
-        .min(1, { message: "El apellido es obligatorio." })
-        .max(75, { message: "El apellido debe tener máximo 75 caracteres." }),
-
-    tipo_doc_id: z.string()
-        .min(1, { message: "Seleccione un tipo de documento." }),
-
-    numero_documento: z.string()
-        .regex(/^\d+$/, { message: "El número de documento debe contener solo números." })
-        .min(8, { message: "El número de documento debe tener mínimo 8 caracteres." })
-        .max(11, { message: "El número de documento debe tener máximo 11 caracteres." }),
-
-    direccion: z.string()
-        .max(75, { message: "La dirección debe tener máximo 75 caracteres." })
-        .optional(),
-
-    telefono: z.string()
-        .regex(/^\d+$/, { message: "El teléfono debe contener solo números." })
-        .max(15, { message: "El teléfono debe tener máximo 15 caracteres." })
-        .optional(),
+  nombre: z.string()
+    .min(1, "El campo 'nombre' es obligatorio.")
+    .max(100, "El campo 'nombre' no puede superar los 100 caracteres.")
+    .trim(),
+    
+  apellidos: z.string()
+    .min(1, "El campo 'apellidos' es obligatorio.")
+    .max(100, "El campo 'apellidos' no puede superar los 100 caracteres.")
+    .trim(),
+    
+  tipo_doc_id: z.number()
+    .int("El tipo de documento debe ser un número válido.")
+    .positive("El tipo de documento debe ser un número válido."),
+    
+  numero_documento: z.string()
+    .min(1, "El número de documento es obligatorio.")
+    .regex(/^\d+$/, "El número de documento debe contener solo números"),
+    
+  direccion: z.string()
+    .max(200, "La dirección no puede superar los 200 caracteres.")
+    .optional(),
+    
+  telefono: z.number()
+    .int("El teléfono debe ser un número entero.")
+    .positive("El teléfono debe ser un número válido.")
+    .optional(),
+    
+  usuarioId: z.number()
+    .int("El usuarioId debe ser un número entero.")
+    .positive("El usuarioId debe ser un número válido."),
+    
+  idCliente: z.number()
+    .int("El id del cliente debe ser un número entero.")
+    .positive("El id del cliente debe ser un número válido.")
+    .optional()
 });
+
+// Tipo TypeScript
+export type ClienteFormData = z.infer<typeof clienteSchema>;
 
 export const servicioSchema = z.object({
     MOTIVO_INGRESO_idMOTIVO_INGRESO: z.string()
@@ -110,3 +124,4 @@ export const usuarioUpdateSchema = usuarioSchema.extend({
 
 // Tipo TypeScript inferido del schema
 export type UsuarioFormData = z.infer<typeof usuarioSchema>;
+

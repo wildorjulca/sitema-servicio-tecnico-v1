@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -8,6 +7,10 @@ import { useTipoDocHook } from "@/hooks/useTipoDoc"
 import { TipoDoc } from "@/apis"
 import { ClienteFront } from "@/interface"
 import toast from "react-hot-toast"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { clienteSchema, ClienteFormData } from "@/lib/zods"
 
 interface CustomerModalProps {
   open: boolean
@@ -27,152 +30,298 @@ export default function CustomerModal({
   isSubmitting = false 
 }: CustomerModalProps) {
   const { data: tipo_doc } = useTipoDocHook(usuarioId)
-  
-  // Campos del formulario
-  const [nombre, setNombre] = useState("")
-  const [apellidos, setApellidos] = useState("")
-  const [tipoDoc, setTipoDoc] = useState<number | null>(null)
-  const [numero_documento, setNumeroDoc] = useState("")
-  const [direccion, setDireccion] = useState("")
-  const [telefono, setTelefono] = useState("")
+  const [selectedTipoDoc, setSelectedTipoDoc] = useState<TipoDoc | null>(null)
+
+  const form = useForm<ClienteFormData>({
+    resolver: zodResolver(clienteSchema),
+    defaultValues: {
+      nombre: "",
+      apellidos: "",
+      tipo_doc_id: undefined,
+      numero_documento: "",
+      direccion: "",
+      telefono: undefined,
+      usuarioId: usuarioId,
+      idCliente: undefined
+    }
+  })
+
+  // Observar cambios en el tipo de documento para validación dinámica
+  const watchTipoDocId = form.watch("tipo_doc_id")
+
+  useEffect(() => {
+    if (watchTipoDocId && tipo_doc) {
+      const tipoDocSeleccionado = tipo_doc.find((t: TipoDoc) => t.id_tipo === watchTipoDocId)
+      setSelectedTipoDoc(tipoDocSeleccionado || null)
+      
+      // Actualizar validación del número de documento
+      if (tipoDocSeleccionado) {
+        const numeroDocumento = form.getValues("numero_documento")
+        if (numeroDocumento) {
+          form.trigger("numero_documento")
+        }
+      }
+    } else {
+      setSelectedTipoDoc(null)
+    }
+  }, [watchTipoDocId, tipo_doc, form])
 
   // Resetear formulario cuando se abre/cierra el modal o cambia el currentCustomer
   useEffect(() => {
     if (open) {
       if (currentCustomer) {
-        setNombre(currentCustomer.nombre)
-        setApellidos(currentCustomer.apellidos)
-        setTipoDoc(currentCustomer.tipo_doc_id)
-        setNumeroDoc(currentCustomer.numero_documento.toString())
-        setDireccion(currentCustomer.direccion)
-        setTelefono(currentCustomer.telefono?.toString() || "")
+        const tipoDocSeleccionado = tipo_doc?.find((t: TipoDoc) => t.id_tipo === currentCustomer.tipo_doc_id)
+        setSelectedTipoDoc(tipoDocSeleccionado || null)
+        
+        form.reset({
+          nombre: currentCustomer.nombre || "",
+          apellidos: currentCustomer.apellidos || "",
+          tipo_doc_id: currentCustomer.tipo_doc_id || undefined,
+          numero_documento: currentCustomer.numero_documento?.toString() || "",
+          direccion: currentCustomer.direccion || "",
+          telefono: currentCustomer.telefono || undefined,
+          usuarioId: usuarioId,
+          idCliente: currentCustomer.idCliente || undefined
+        })
       } else {
-        resetForm()
+        setSelectedTipoDoc(null)
+        form.reset({
+          nombre: "",
+          apellidos: "",
+          tipo_doc_id: undefined,
+          numero_documento: "",
+          direccion: "",
+          telefono: undefined,
+          usuarioId: usuarioId,
+          idCliente: undefined
+        })
       }
     }
-  }, [open, currentCustomer])
+  }, [open, currentCustomer, form, usuarioId, tipo_doc])
 
-  const resetForm = () => {
-    setNombre("")
-    setApellidos("")
-    setTipoDoc(null)
-    setNumeroDoc("")
-    setDireccion("")
-    setTelefono("")
+  // Función de validación personalizada para el número de documento
+  const validateNumeroDocumento = (value: string) => {
+    if (!selectedTipoDoc) return true // Si no hay tipo seleccionado, no validar
+    
+    const digitCount = selectedTipoDoc.cant_digitos
+    const cleanValue = value.replace(/\D/g, '')
+    
+    if (cleanValue.length !== digitCount) {
+      return `El ${selectedTipoDoc.nombre_tipo} debe tener exactamente ${digitCount} dígitos`
+    }
+    
+    return true
   }
 
-  // Función para convertir seguro a número
-  const safeParseInt = (value: string): number | null => {
-    if (!value || value.trim() === '') return null
-    const parsed = parseInt(value.replace(/\D/g, ''), 10)
-    return isNaN(parsed) ? null : parsed
-  }
+  const onSubmit = async (data: ClienteFormData) => {
+    try {
+      // Validación adicional del número de documento
+      if (selectedTipoDoc) {
+        const digitCount = selectedTipoDoc.cant_digitos
+        const cleanNumeroDoc = data.numero_documento.replace(/\D/g, '')
+        
+        if (cleanNumeroDoc.length !== digitCount) {
+          toast.error(`El ${selectedTipoDoc.nombre_tipo} debe tener exactamente ${digitCount} dígitos`)
+          return
+        }
+      }
 
-  const handleSave = async () => {
-    if (!nombre || !apellidos || tipoDoc === null || !numero_documento) {
-      toast.error("Faltan campos obligatorios")
-      return
-    }
+      const tipoDocSeleccionado = tipo_doc?.find((t: TipoDoc) => t.id_tipo === data.tipo_doc_id)
 
-    // Validar número de documento
-    const numeroDocParsed = safeParseInt(numero_documento)
-    if (numeroDocParsed === null) {
-      toast.error("Número de documento inválido")
-      return
-    }
-
-    // Validar teléfono si se proporcionó
-    let telefonoParsed: number | null = null
-    if (telefono.trim() !== '') {
-      telefonoParsed = safeParseInt(telefono)
-      if (telefonoParsed === null) {
-        toast.error("Teléfono inválido")
+      if (!tipoDocSeleccionado) {
+        toast.error("Tipo de documento no válido")
         return
       }
-    }
 
-    const tipoDocSeleccionado = tipo_doc?.find((t: TipoDoc) => t.id_tipo === tipoDoc)
-
-    if (!tipoDocSeleccionado) {
-      toast.error("Tipo de documento no válido")
-      return
-    }
-
-    // Preparar payload
-    const payload: any = {
-      ...(currentCustomer?.idCliente && { idCliente: currentCustomer.idCliente }),
-      nombre,
-      apellidos,
-      tipo_doc_id: tipoDoc,
-      cod_tipo: tipoDocSeleccionado.cod_tipo,
-      numero_documento: numeroDocParsed,
-      direccion,
-      ...(telefonoParsed !== null && { telefono: telefonoParsed }),
-      usuarioId,
-    }
-
-    // Limpiar propiedades undefined o null
-    Object.keys(payload).forEach(key => {
-      if (payload[key] === undefined || payload[key] === null) {
-        delete payload[key]
+      // Preparar payload
+      const payload = {
+        ...data,
+        numero_documento: parseInt(data.numero_documento),
+        cod_tipo: tipoDocSeleccionado.cod_tipo,
+        // Limpiar campos undefined
+        ...(data.telefono === undefined && { telefono: undefined }),
+        ...(data.direccion === "" && { direccion: undefined }),
+        ...(!data.idCliente && { idCliente: undefined })
       }
-    })
 
-    onSave(payload)
+      onSave(payload)
+    } catch (error) {
+      toast.error("Error al procesar el formulario")
+    }
+  }
+
+  // Función para manejar el input del número de documento
+  const handleNumeroDocChange = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
+    const value = e.target.value.replace(/\D/g, '')
+    
+    // Limitar la longitud según el tipo de documento seleccionado
+    if (selectedTipoDoc) {
+      const maxLength = selectedTipoDoc.cant_digitos
+      field.onChange(value.slice(0, maxLength))
+    } else {
+      field.onChange(value)
+    }
+  }
+
+  // Función para manejar el input del teléfono
+  const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
+    const value = e.target.value.replace(/\D/g, '')
+    field.onChange(value ? parseInt(value) : undefined)
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{currentCustomer ? "Editar Cliente" : "Agregar Cliente"}</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            {currentCustomer ? "Editar Cliente" : "Agregar Cliente"}
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <Input placeholder="Nombre *" value={nombre} onChange={(e) => setNombre(e.target.value)} />
-          <Input placeholder="Apellidos *" value={apellidos} onChange={(e) => setApellidos(e.target.value)} />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="nombre"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ingrese el nombre" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Select
-            value={tipoDoc?.toString() || ""}
-            onValueChange={(v) => setTipoDoc(v ? Number(v) : null)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Seleccionar tipo documento *" />
-            </SelectTrigger>
-            <SelectContent>
-              {tipo_doc?.map((cat: TipoDoc) => (
-                <SelectItem key={cat.id_tipo} value={cat.id_tipo.toString()}>
-                  {cat.nombre_tipo}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              <FormField
+                control={form.control}
+                name="apellidos"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Apellidos *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ingrese los apellidos" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-          <Input
-            placeholder="N° Documento *"
-            value={numero_documento}
-            onChange={(e) => setNumeroDoc(e.target.value.replace(/\D/g, ''))}
-            type="text"
-            inputMode="numeric"
-          />
-          <Input placeholder="Dirección" value={direccion} onChange={(e) => setDireccion(e.target.value)} />
-          <Input
-            placeholder="Teléfono"
-            value={telefono}
-            onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
-            type="text"
-            inputMode="tel"
-          />
-        </div>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="tipo_doc_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Documento *</FormLabel>
+                    <Select
+                      value={field.value?.toString() || ""}
+                      onValueChange={(v) => field.onChange(Number(v))}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar tipo documento" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {tipo_doc?.map((cat: TipoDoc) => (
+                          <SelectItem key={cat.id_tipo} value={cat.id_tipo.toString()}>
+                            {cat.nombre_tipo} ({cat.cant_digitos} dígitos)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-            Cancelar
-          </Button>
-          <Button onClick={handleSave} disabled={isSubmitting}>
-            {isSubmitting ? "Procesando..." : (currentCustomer ? "Actualizar" : "Agregar")}
-          </Button>
-        </DialogFooter>
+              <FormField
+                control={form.control}
+                name="numero_documento"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      N° Documento *
+                      {selectedTipoDoc && (
+                        <span className="text-xs text-gray-500 ml-2">
+                          ({selectedTipoDoc.cant_digitos} dígitos)
+                        </span>
+                      )}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder={
+                          selectedTipoDoc 
+                            ? `Ingrese ${selectedTipoDoc.nombre_tipo}`
+                            : "Ingrese número de documento"
+                        }
+                        type="text"
+                        inputMode="numeric"
+                        {...field}
+                        onChange={(e) => handleNumeroDocChange(e, field)}
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    {selectedTipoDoc && field.value && (
+                      <div className="text-xs text-gray-500">
+                        {field.value.replace(/\D/g, '').length}/{selectedTipoDoc.cant_digitos} dígitos
+                      </div>
+                    )}
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="direccion"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Dirección</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ingrese la dirección" {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="telefono"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Teléfono</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ingrese el teléfono"
+                      type="text"
+                      inputMode="numeric"
+                      {...field}
+                      onChange={(e) => handleTelefonoChange(e, field)}
+                      value={field.value || ''}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Procesando..." : (currentCustomer ? "Actualizar" : "Agregar")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   )
