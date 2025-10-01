@@ -50,7 +50,7 @@ export const useServicioEquipoHook = (
 
 
 // ----------------------
-// Hook para servicio
+// Hook para servicio equipos
 // ----------------------
 
 export const useAddServicioEqHook = (usuarioId: number) => {
@@ -69,7 +69,7 @@ export const useAddServicioEqHook = (usuarioId: number) => {
 };
 
 // ----------------------
-// Hook para editar marca
+// Hook para editar servicio equipos
 // ----------------------
 export const useEditServicioEqHook = (usuarioId: number) => {
   const queryClient = useQueryClient();

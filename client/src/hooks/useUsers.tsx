@@ -1,8 +1,8 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useEffect } from 'react';
-import { fetchUsers, Users } from '@/apis/usuario';
+import { addUserAPI, deleteUserAPI, editUserAPI, fetchUsers, Users, Usuario } from '@/apis/usuario';
 
 // Definir la interfaz para un tipo de documento
 
@@ -37,3 +37,74 @@ export const useUserHook = (
     total: query.data?.total || 0, // Fallback para total
   };
 };
+
+// ----------------------
+// Hook para agregar usuario
+// ----------------------
+
+export const useAddUserHook = (usuarioId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (user: Usuario) =>
+      addUserAPI({ ...user, usuarioId }),
+    onSuccess: () => {
+      toast.success('Usuario agregado correctamente');
+      queryClient.invalidateQueries({ queryKey: ['userAll', usuarioId] });
+    },
+    onError: () => {
+      toast.error('Error al agregar usuario');
+    },
+  });
+};
+
+// ----------------------
+// Hook para editar usuario
+// ----------------------
+
+export const useEditUserHook = (usuarioId: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (user: Usuario) => {
+      console.log("➡️ editando usuario:", {
+        id: user.id,
+        nombre: user.nombre,
+        apellidos: user.apellidos,
+        dni: user.dni,
+        telefono: user.telefono,
+        usuario: user.usuario,
+        rol_id: user.rol_id,
+        usuarioId
+      });
+
+      return editUserAPI({ ...user, usuarioId });
+    },
+    onSuccess: () => {
+      toast.success('Usuario actualizado correctamente');
+      queryClient.invalidateQueries({ queryKey: ['userAll', usuarioId] });
+      queryClient.invalidateQueries({ queryKey: ['userAlls', usuarioId] }); // Invalidar cache individual
+    },
+    onError: () => {
+      toast.error('Error al actualizar usuario');
+    },
+  });
+};
+
+// ----------------------
+// Hook para eliminar usuario
+// ----------------------
+
+export const useDeleteUserHook = (usuarioId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => deleteUserAPI(id, usuarioId),
+    onSuccess: () => {
+      toast.success('Usuario eliminado correctamente');
+      queryClient.invalidateQueries({ queryKey: ['userAll', usuarioId] });
+    },
+    onError: () => {
+      toast.error('Error al eliminar usuario');
+    },
+  });
+};
+

@@ -1,8 +1,11 @@
 import { DataTable } from "../ui/table-reutilizable";
 import { useUser } from "@/hooks/useUser";
 import { useState, useEffect } from "react";
-import { useUserHook } from "@/hooks/useUsers";
+import { useAddUserHook, useDeleteUserHook, useEditUserHook, useUserHook } from "@/hooks/useUsers";
 import { Users } from "@/apis/usuario";
+import { Button } from "@/components/ui/button";
+import { UsuarioFormData } from "@/lib/zods"; // Asegúrate de tener este tipo
+import UsuarioModal from "./ui/modalUser";
 
 export function Usuarios() {
   const { user } = useUser();
@@ -11,20 +14,77 @@ export function Usuarios() {
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [totalRows, setTotalRows] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<Users | null>(null);
 
-  const { data, total, isLoading, isError, error, refetch } = useUserHook(
+  // Hooks de queries
+  const { data, total, isLoading, isError, error } = useUserHook(
     usuarioId,
     pageIndex,
     pageSize
   );
 
+  // Hooks de mutaciones
+  const addUserMutation = useAddUserHook(usuarioId!);
+  const editUserMutation = useEditUserHook(usuarioId!);
+  const deleteUserMutation = useDeleteUserHook(usuarioId!);
+
+  // Efecto para actualizar el total de filas
   useEffect(() => {
     if (usuarioId && data) {
       console.log("Datos de useUser:", { data, total });
       setTotalRows(total);
-      refetch();
     }
-  }, [pageIndex, pageSize, usuarioId, total, refetch]);
+  }, [data, total, usuarioId]);
+
+  // Función para abrir modal de agregar
+  const openAddModal = () => {
+    setCurrentUser(null);
+    setIsModalOpen(true);
+  };
+
+  // Función para abrir modal de editar
+  const openEditModal = (user: any) => {
+    setCurrentUser(user);
+    setIsModalOpen(true);
+  };
+
+  // Función para eliminar usuario
+  const handleDelete = (user: any) => {
+    if (window.confirm(`¿Estás seguro de eliminar al usuario ${user.nombre} ${user.apellidos}?`)) {
+      deleteUserMutation.mutate(user.id);
+    }
+  };
+
+// En tu componente principal, modifica la función handleSaveUser:
+const handleSaveUser = (userData: UsuarioFormData) => {
+  console.log("🔍 DEBUG handleSaveUser:");
+  console.log("currentUser:", currentUser);
+  console.log("currentUser.id:", currentUser?.id);
+  console.log("typeof currentUser.id:", typeof currentUser?.id);
+  console.log("userData:", userData);
+
+  if (currentUser) {
+    // Editar usuario existente
+    const editPayload = {
+      id: currentUser.id,
+      ...userData
+    };
+    console.log("📤 Edit payload completo:", editPayload);
+    
+    editUserMutation.mutate(editPayload);
+  } else {
+    // Crear nuevo usuario
+    addUserMutation.mutate(userData);
+  }
+  setIsModalOpen(false);
+};
+
+  // Cerrar modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setCurrentUser(null);
+  };
 
   if (!usuarioId) return <div>Por favor inicia sesión para ver los Usuarios</div>;
   if (isLoading) return <div>Cargando los Usuarios...</div>;
@@ -32,20 +92,23 @@ export function Usuarios() {
     console.error("Error details:", error);
     return (
       <div>
-        Error al cargar tipos de documento: {error?.message || "Unknown error"}
+        Error al cargar usuarios: {error?.message || "Unknown error"}
       </div>
     );
   }
 
+  // Mapear los datos para la tabla
   const mappedUser = data.map((user: Users) => ({
     id: user.id,
     nombre: user.nombre,
     apellidos: user.apellidos,
     dni: user.dni,
     telefono: user.telefono,
-    user : user.usuario,
-    contra : user.password,
-    rol : user.rol_id
+    user: user.usuario,
+    contra: user.password,
+    rol: user.rol_id,
+    // Incluir el objeto completo para usar en edición
+    original: user
   }));
 
   return (
@@ -55,10 +118,10 @@ export function Usuarios() {
         columns={[
           { accessorKey: "nombre", header: "Nombre" },
           { accessorKey: "apellidos", header: "Apellidos" },
-          { accessorKey: "dni", header: "Dni" },
+          { accessorKey: "dni", header: "DNI" },
           { accessorKey: "telefono", header: "Celular" },
           { accessorKey: "user", header: "Usuario" },
-          { accessorKey: "rol", header: "Id Rol" },
+          { accessorKey: "rol", header: "ID Rol" },
         ]}
         searchColumn="nombre"
         pageIndex={pageIndex}
@@ -66,6 +129,19 @@ export function Usuarios() {
         totalRows={totalRows}
         onPageChange={(newPage) => setPageIndex(newPage)}
         onPageSizeChange={(size) => setPageSize(size)}
+        onEdit={(row) => openEditModal(row.original)} // Pasar el usuario completo
+        onDelete={(row) => handleDelete(row.original)} // Pasar el usuario completo
+        actions={<Button onClick={openAddModal}>Agregar Usuario</Button>}
+      />
+
+      {/* Modal de Usuario */}
+      <UsuarioModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onSave={handleSaveUser}
+        currentUsuario={currentUser}
+        usuarioId={usuarioId}
+        isSubmitting={addUserMutation.isPending || editUserMutation.isPending}
       />
     </div>
   );
