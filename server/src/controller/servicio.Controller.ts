@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { createServicioEquipo, updateServicioEquipo } from "../service/servicio_equipos.Service";
-import { ServicioEquipo } from "../interface";
+
 import { actualizarServicioReparacion, buscarClienteServ, buscarProduct, entregarServicioCliente, iniciarReparacion, listEstadoServ, listMot_Ingreso, listServicio, obtenerEquiposPorCliente, registrarServicioBasico } from "../service/servicio.Service";
 
 
