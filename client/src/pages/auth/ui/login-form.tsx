@@ -113,9 +113,6 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                 {isPending && <Loader />}
                 Iniciar sesión
               </Button>
-              <Button variant="outline" className="w-full">
-                Iniciar sesión con email
-              </Button>
             </div>
           </form>
         </CardContent>

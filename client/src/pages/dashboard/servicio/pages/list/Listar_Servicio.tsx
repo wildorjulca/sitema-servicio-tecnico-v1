@@ -12,7 +12,7 @@ import { SelectWithCheckbox } from "@/components/chexbox/SelectWithCheckbox";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { DataTableService } from "../../../ui/table-service";
-import { Plus } from "lucide-react";
+import { Plus, Wifi, WifiOff, RefreshCw } from "lucide-react";
 
 interface X {
   id: number,
@@ -28,7 +28,8 @@ export default function Listar_Servicio() {
   const [filtros, setFiltros] = useState<{ estadoId?: number; clienteId?: number }>({});
   const [totalRows, setTotalRows] = useState(0);
 
-  const { data, total, isLoading, isError, error } = useServicioHook(
+  // 🔥 AGREGAR isConnected del hook
+  const { data, total, isLoading, isError, error, isConnected } = useServicioHook(
     usuarioId,
     pageIndex,
     pageSize,
@@ -37,7 +38,7 @@ export default function Listar_Servicio() {
 
   const { data: estados, isLoading: isLoadingEstados } = useEstadoHook();
   const { mutate: iniciarReparacion } = useIniciarReparacion();
-  const { mutate: entregarServicio, isPending: isDelivering } = useEntregarServicio();
+  const { mutate: entregarServicio } = useEntregarServicio();
 
   const estadosOptions = estados.map(est => ({
     value: est.idEstado,
@@ -46,10 +47,19 @@ export default function Listar_Servicio() {
 
   useEffect(() => {
     if (usuarioId && data) {
-      console.log("Datos de listar servicio:", { data, total });
+      console.log("📊 Datos de listar servicio:", { 
+        dataCount: data.length, 
+        total, 
+        isConnected 
+      });
       setTotalRows(total);
     }
-  }, [data, total, usuarioId]);
+  }, [data, total, usuarioId, isConnected]);
+
+  // 🔥 NUEVO: Debug para ver actualizaciones en tiempo real
+  useEffect(() => {
+    console.log("🔄 Estado WebSocket en componente:", isConnected);
+  }, [isConnected]);
 
   const handleFiltroEstadoChange = (value: number | null) => {
     setPageIndex(0);
@@ -59,7 +69,7 @@ export default function Listar_Servicio() {
     }));
   };
 
-  // Funciones para las acciones
+  // ... (tus funciones handleView, handleRepair, etc. se mantienen igual)
   const handleView = (servicio: X) => {
     navigate(`/dashboard/list/dex/${servicio.id}`);
   };
@@ -79,7 +89,6 @@ export default function Listar_Servicio() {
   };
 
   const handleDeliver = (servicio: X) => {
-    // Confirmación nativa del navegador
     const confirmar = window.confirm(
       `¿Estás seguro de que deseas marcar el servicio ${servicio.id} como entregado?\n\nEsta acción no se puede deshacer.`
     );
@@ -105,6 +114,11 @@ export default function Listar_Servicio() {
   const handleClearFilters = () => {
     setPageIndex(0);
     setFiltros({});
+  };
+
+  // 🔥 NUEVO: Función para forzar recarga
+  const handleForceRefresh = () => {
+    window.location.reload();
   };
 
   // Función para determinar el estado de los botones
@@ -149,7 +163,7 @@ export default function Listar_Servicio() {
   };
 
   const columns = [
-    { accessorKey: "id", header: "ID  " },
+    { accessorKey: "id", header: "ID" },
     { accessorKey: "cod", header: "Código" },
     { accessorKey: "cliente", header: "Cliente" },
     { accessorKey: "equipo", header: "Equipo" },
@@ -245,12 +259,47 @@ export default function Listar_Servicio() {
 
   return (
     <div className="w-full space-y-4 p-6">
+      {/* 🔥 NUEVO: Indicador de estado WebSocket */}
+      <div className={`p-1 rounded-md flex items-center justify-between ${
+        isConnected ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'
+      }`}>
+        <div className="flex items-center space-x-2">
+          {isConnected ? (
+            <Wifi className="h-5 w-5 text-green-600" />
+          ) : (
+            <WifiOff className="h-5 w-5 text-yellow-600" />
+          )}
+          <span className={`font-medium ${
+            isConnected ? 'text-green-700' : 'text-yellow-700'
+          }`}>
+            {isConnected ? ' Conectado en tiempo real' : ' Sin conexión en tiempo real'}
+          </span>
+        </div>
+        
+        {!isConnected && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleForceRefresh}
+            className="flex items-center space-x-1"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span>Reconectar</span>
+          </Button>
+        )}
+      </div>
+
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-2xl font-bold text-gray-800">Listado de Servicios</h1>
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-600">
             Mostrando {MapedService.length} de {totalRows} servicios
           </span>
+          {isConnected && (
+            <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+              ● En vivo
+            </span>
+          )}
         </div>
       </div>
 

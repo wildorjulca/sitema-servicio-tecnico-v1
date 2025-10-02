@@ -3,22 +3,24 @@ import toast from 'react-hot-toast';
 import { useEffect, useMemo } from 'react';
 
 import { Estado, Servicio } from '@/interface/types';
-import { 
-  entregarServicio, 
-  fetchEstadoServ, 
-  fetchMot_Ingreso, 
-  fetchService, 
-  filtreClient, 
-  filtroProduct, 
-  iniciarReparacionService, 
-  obtenerEquiposPorCliente, 
-  servicioReparacion1, 
-  servicioReparacion2 
+import {
+  entregarServicio,
+  fetchEstadoServ,
+  fetchMot_Ingreso,
+  fetchService,
+  filtreClient,
+  filtroProduct,
+  iniciarReparacionService,
+  obtenerEquiposPorCliente,
+  servicioReparacion1,
+  servicioReparacion2
 } from '@/apis/servicio';
 import { useNavigate } from 'react-router-dom';
+import { useWebSocket } from './useWebSocket';
+
 
 // ----------------------
-// Hook para listar servicios - OPTIMIZADO
+// Hook para listar servicios CON WEBSOCKET
 // ----------------------
 export const useServicioHook = (
   usuarioId?: number,
@@ -29,6 +31,9 @@ export const useServicioHook = (
     clienteId?: number;
   }
 ) => {
+  // 🔥 INICIALIZAR WEBSOCKET - IMPORTANTE: fuera del query
+  const { isConnected } = useWebSocket();
+
   const query = useQuery<{ data: Servicio[]; total: number }, Error>({
     queryKey: [
       "reparaciones",
@@ -47,9 +52,9 @@ export const useServicioHook = (
         filtros?.clienteId
       ),
     enabled: !!usuarioId,
-    staleTime: 1000 * 60 * 5, // ✅ 5 minutos
-    gcTime: 1000 * 60 * 10,   // ✅ 10 minutos en cache
-    placeholderData: (prev) => prev,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
@@ -58,10 +63,17 @@ export const useServicioHook = (
     }
   }, [query.isError, query.error]);
 
+  // 🔥 LOG para debug
+  useEffect(() => {
+    console.log('🔍 Estado WebSocket:', { isConnected });
+    console.log('🔍 Datos servicios:', query.data?.data?.length || 0);
+  }, [isConnected, query.data]);
+
   return {
     ...query,
     data: query.data?.data || [],
     total: query.data?.total || 0,
+    isConnected // 🔥 Para mostrar estado de conexión
   };
 };
 
@@ -72,8 +84,8 @@ export const useEstadoHook = () => {
   const query = useQuery<{ data: Estado[] }, Error>({
     queryKey: ["estados"],
     queryFn: fetchEstadoServ,
-    staleTime: 1000 * 60 * 30, // ✅ 30 minutos (datos estáticos)
-    gcTime: 1000 * 60 * 60,    // ✅ 1 hora en cache
+    staleTime: 1000 * 60 * 60, // ✅ 30 minutos (datos estáticos)
+    gcTime: 1000 * 60 * 120,    // ✅ 1 hora en cache
   });
 
   useEffect(() => {
@@ -219,18 +231,18 @@ export const useIniciarReparacion = () => {
     },
     onSuccess: (data, variables) => {
       toast.success("Reparación iniciada correctamente");
-      
+
       // ✅ INVALIDAR MÚLTIPLES QUERIES
       queryClient.invalidateQueries({ queryKey: ["reparaciones"] });
-      queryClient.invalidateQueries({ 
-        queryKey: ["servicio", variables.servicioId.toString()] 
+      queryClient.invalidateQueries({
+        queryKey: ["servicio", variables.servicioId.toString()]
       });
     },
     onError: (error: any) => {
       console.error('Error al iniciar reparación:', error);
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.mensaje || 
-                          "Error al iniciar la reparación";
+      const errorMessage = error.response?.data?.error ||
+        error.response?.data?.mensaje ||
+        "Error al iniciar la reparación";
       toast.error(errorMessage);
     },
   });
@@ -247,11 +259,11 @@ export const useServicioReparacion2 = () => {
     mutationFn: servicioReparacion2,
     onSuccess: (variables) => {
       toast.success("Servicio actualizado correctamente");
-      
+
       // ✅ INVALIDAR MÚLTIPLES QUERIES
       queryClient.invalidateQueries({ queryKey: ["reparaciones"] });
-      queryClient.invalidateQueries({ 
-        queryKey: ["servicio", variables.servicio_id] 
+      queryClient.invalidateQueries({
+        queryKey: ["servicio", variables.servicio_id]
       });
 
       // Redirigir después de 1 segundo
@@ -276,11 +288,11 @@ export const useEntregarServicio = () => {
     mutationFn: entregarServicio,
     onSuccess: (data, variables) => {
       toast.success("Servicio entregado correctamente");
-      
+
       // Invalidar las queries para refrescar datos
       queryClient.invalidateQueries({ queryKey: ["servicios"] });
-      queryClient.invalidateQueries({ 
-        queryKey: ["servicio", variables.servicio_id.toString()] 
+      queryClient.invalidateQueries({
+        queryKey: ["servicio", variables.servicio_id.toString()]
       });
     },
     onError: (error: any) => {
