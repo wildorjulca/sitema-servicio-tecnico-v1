@@ -23,6 +23,7 @@ import { routerServicioEquipos } from './router/servicio_equipos.Routes';
 import { routerMotivoIngreso } from './router/motivo_ingreso.Routes';
 import { routerCliente } from './router/cliente.Routes';
 import { routerReportes } from './router/reporte.Routes';
+import { routerEmail } from './router/emailRouter';
 // ... otros imports
 
 const PORT = process.env.PORT || 3005
@@ -148,6 +149,8 @@ app.use("/api/servicio", routerUsuario)
 app.use("/api/servicio", routerImg)
 app.use("/api/servicio", routerServicio)
 app.use("/api/servicio", routerReportes)
+
+app.use("/api/servicio", routerEmail)
 
 // 🔥 INICIAR SERVIDOR COMBINADO
 server.listen(PORT, () => {
