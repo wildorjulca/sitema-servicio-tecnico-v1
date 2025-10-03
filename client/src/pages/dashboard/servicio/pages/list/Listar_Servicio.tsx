@@ -258,7 +258,7 @@ export default function Listar_Servicio() {
   }));
 
   return (
-    <div className="w-full space-y-4 p-6">
+    <div className="w-full space-y-2">
       {/* 🔥 NUEVO: Indicador de estado WebSocket */}
       <div className={`p-1 rounded-md flex items-center justify-between ${
         isConnected ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'

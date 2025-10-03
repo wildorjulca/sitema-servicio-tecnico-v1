@@ -8,12 +8,18 @@ import { SimpleSelect } from './SimpleSelect';
 import { useState } from 'react';
 import { MotivoIngresoSimpleModal } from "@/pages/dashboard/motivo_ingreso/ui/MotivoIngresoSimpleModal";
 
+interface IF {
+  id:number,
+  descripcion:string,
+  precio_cobrar:number
+  
+}
 interface ServiceDetailsSectionProps {
   motivoIngresoId: string;
   observacion: string;
   descripcion_motivo: string;
-  selectedMotivo: any;
-  safeMotivosData: any[];
+  selectedMotivo: IF;
+  safeMotivosData: IF[];
   loadingMotivos: boolean;
   isSubmitting: boolean;
   isLoading: boolean;

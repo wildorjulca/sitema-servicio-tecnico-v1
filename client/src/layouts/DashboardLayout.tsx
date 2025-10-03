@@ -5,6 +5,7 @@ import { Outlet } from 'react-router-dom';
 import { Separator } from "@/components/ui/separator";
 import { ModeToggle } from '@/components/mode-toggle';
 import BreadcrumbDinamico from '@/components/Breadcrumb/BreadcrumbDinamico';
+import { PanelNotificaciones } from '@/pages/dashboard/alerts/PanelNotificaciones';
 
 const DashboardLayout: React.FC = () => {
   return (
@@ -18,15 +19,21 @@ const DashboardLayout: React.FC = () => {
             <div className="flex items-center gap-2 px-4 w-full">
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 h-4" />
-              
+
+
               {/* Breadcrumb dinámico */}
               <div className="flex flex-1 items-center justify-between">
                 <BreadcrumbDinamico />
-                <ModeToggle />
+                <div className='gap-4 flex'>
+                  {/* Botón de notificaciones */}
+                  <PanelNotificaciones />
+                  <ModeToggle />
+                </div>
+
               </div>
             </div>
           </header>
-          
+
           {/* main que se va a renderizar */}
           <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
             <Outlet />

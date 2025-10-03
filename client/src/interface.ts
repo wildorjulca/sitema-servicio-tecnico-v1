@@ -153,3 +153,56 @@ export interface ServicioEquipos {
   codigo_barras: string;
 }
 
+
+export interface Equipment {
+  idServicioEquipos: number;
+  EQUIPO_idEquipo: number;
+  nombre_equipo: string;
+  nombre_marca: string;
+  modelo: string;
+  serie: string;
+  // Puedes agregar más campos si el API los retorna
+}
+export interface ServicioEquipoRespo {
+  idServicioEquipos: number;
+  EQUIPO_idEquipo: number;
+  nombre_equipo: string;
+  nombre_marca: string;
+  modelo: string;
+  serie: string;
+  usuarioId: string;
+  MARCA_idMarca?: number;
+  // Puedes agregar más campos si el API los retorna
+}
+
+
+// services/new/ui/types/hookTypes.ts
+
+// Interfaces para los datos del API
+export interface ClienteRaw {
+  idCliente: number;
+  nombre: string;
+  apellidos: string;
+  numero_documento: string;
+  tipo_documento: string;
+  direccion: string;
+  telefono: string;
+}
+
+export interface EquipoRaw {
+  EQUIPO_idEquipo?: number;
+  idequipo?: number;
+  nombre_equipo?: string;
+  nombreequipo?: string;
+  nombre_marca?: string;
+  modelo?: string;
+  serie?: string;
+  ultimo_servicio?: string;
+  idServicioEquipos: number;
+}
+
+export interface MotivoIngresoRaw {
+  idMotivo: number | string;
+  descripcion?: string;
+  precio_cobrar?: number | string;
+}

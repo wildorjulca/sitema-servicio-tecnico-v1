@@ -26,6 +26,8 @@ import Estado_serv from '@/pages/dashboard/estado_serv/estado_serv';
 import { DetalleService } from '@/pages/dashboard/servicio/pages/list/ui/detalleService';
 import ReparacionPage from '@/pages/dashboard/servicio/pages/repare/ReparacionPage';
 import { ImprimirServicio } from '@/pages/dashboard/servicio/pages/print/ImprimirServicio';
+import { ReportesDashboard } from '@/pages/dashboard/report/ReportesDashboard';
+import { AlertasPanel } from '@/pages/dashboard/alerts/AlertasPanel';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -99,6 +101,10 @@ const AppRoutes = () => {
 
 
                     <Route path="perfil" element={<Perfil />} />
+
+                    <Route path="Report" element={<ReportesDashboard />} />
+                    <Route path="notif" element={<AlertasPanel />} />
+
 
 
                     <Route path="documentacion" element={<Documentacion />} />

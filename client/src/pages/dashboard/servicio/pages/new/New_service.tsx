@@ -19,7 +19,7 @@ import { EquipmentSelectionSection } from './ui/EquipmentSelectionSection'
 import { AvailableEquipmentsModal } from './ui/AvailableEquipmentsModal'
 import CustomerModal from '@/pages/dashboard/cliente/ui/CustomerModal '
 import { useNavigate } from 'react-router-dom'
-import { ClienteEdit } from '@/interface'
+import { ClienteEdit, Equipment, MotivoIngreso, ServicioEquipo } from '@/interface'
 import { AxiosError } from 'axios'
 import { getErrorMessage } from '@/lib/getErrorMessage'
 
@@ -38,7 +38,7 @@ export default function New_Service() {
   const [showCustomerModal, setShowCustomerModal] = useState(false)
   const [showEquipmentModal, setShowEquipmentModal] = useState(false)
   const [showAvailableEquipments, setShowAvailableEquipments] = useState(false)
-  
+
   // Estado para refrescar motivos
   const [refreshMotivosKey, setRefreshMotivosKey] = useState(0)
 
@@ -97,6 +97,8 @@ export default function New_Service() {
       setDescripcion_motivo(serviceData.descripcion_motivo)
     }
   }, [serviceData.motivo_ingreso_id, serviceData.observacion, serviceData.descripcion_motivo])
+
+
 
   // Handlers
   const handleSelectCustomer = (customer: CustomerUI) => {
@@ -195,7 +197,7 @@ export default function New_Service() {
     }
   }
 
-  const handleSelectExistingEquipment = (equipment: any) => {
+  const handleSelectExistingEquipment = (equipment: Equipment) => {
     const uiEquipment: EquipmentUI = {
       id: equipment.EQUIPO_idEquipo,
       customerId: selectedCustomer?.id || 0,
@@ -213,7 +215,7 @@ export default function New_Service() {
     setPasoActual(3)
   }
 
-  const handleCreateNewEquipment = async (equipmentData: any) => {
+  const handleCreateNewEquipment = async (equipmentData: ServicioEquipo) => {
     if (!selectedCustomer || !usuarioId) {
       toast.error("Seleccione un cliente primero")
       return
@@ -288,6 +290,25 @@ export default function New_Service() {
     }
   }
 
+  // En New_Service.tsx - Agrega esta función
+  const handleClearCustomer = () => {
+    setSelectedCustomer(null);
+    setSearchTerm('');
+    setSelectedEquipment(null);
+    setMotivoIngresoId('');
+    setObservacion('');
+    setDescripcion_motivo('');
+
+    updateServiceData({
+      cliente_id: null,
+      servicio_equipos_id: null,
+      motivo_ingreso_id: null,
+      descripcion_motivo: '',
+      observacion: ''
+    });
+
+    setPasoActual(1);
+  };
   // Variables para la barra de estado
   const clienteCompleto = !!serviceData.cliente_id
   const equipoCompleto = !!serviceData.servicio_equipos_id
@@ -301,7 +322,7 @@ export default function New_Service() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-4 ">
           <span className="text-2xl font-semibold text-gray-700 mb-2 font-mono">
-            Registro de Los Equipos  
+            Registro de Los Equipos
           </span>
         </div>
 
@@ -326,6 +347,8 @@ export default function New_Service() {
               onSearch={() => refetchClients()}
               onSelectCustomer={handleSelectCustomer}
               onOpenCustomerModal={() => setShowCustomerModal(true)}
+              selectedCustomer={selectedCustomer}
+              onClearCustomer={handleClearCustomer}
             />
 
             {selectedCustomer && selectedEquipment && (
@@ -421,7 +444,7 @@ export default function New_Service() {
 function ServiceSummaryCard({ customer, equipment, motivo }: {
   customer: CustomerUI;
   equipment: EquipmentUI;
-  motivo: any;
+  motivo: MotivoIngreso;
 }) {
   return (
     <Card className="bg-gradient-to-r from-[#1e7eeb] to-blue-600 text-white shadow-xl">

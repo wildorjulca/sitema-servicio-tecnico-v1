@@ -5,12 +5,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus } from 'lucide-react';
 import { ServicioEquipo } from '@/interface';
 
+interface A {
+  nombre: string
+}
+
 interface AvailableEquipmentsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   availableEquipments: ServicioEquipo[];
   loadingAllEquipos: boolean;
-  selectedCustomer: any;
+  selectedCustomer: A;
   onSelectEquipment: (equipment: ServicioEquipo) => void;
   onOpenEquipmentModal: () => void;
 }
@@ -33,11 +37,11 @@ export function AvailableEquipmentsModal({
             Elija un equipo de la lista para usarlo con el cliente {selectedCustomer?.nombre}
           </DialogDescription>
         </DialogHeader>
-        
+
         {loadingAllEquipos ? (
           <LoadingState />
         ) : availableEquipments.length > 0 ? (
-          <EquipmentTable 
+          <EquipmentTable
             equipments={availableEquipments}
             onSelectEquipment={onSelectEquipment}
           />

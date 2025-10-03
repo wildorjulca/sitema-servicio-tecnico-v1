@@ -6,11 +6,11 @@ import { Plus, Wifi, WifiOff } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useServicioHook } from "@/hooks/useService"
 import { useUser } from "@/hooks/useUser"
-import { useEffect, useMemo} from "react"
+import { useEffect, useMemo } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 
 // Colores para el gráfico
-const COLORS = ["#3b82f6", "#facc15", "#22c55e", "#ef4444", "#8b5cf6"]
+const COLORS = ["#3b82f9", "#FAA511", "#22c55e", "#ef4444", "#8b5cf6"]
 
 export default function Panel() {
   const { user } = useUser()
@@ -33,7 +33,7 @@ export default function Panel() {
     }
 
     const hoy = new Date().toDateString()
-    
+
     // Contar por estado
     const enReparacion = servicios.filter(s => s.estado_id === 2).length
     const listosParaEntregar = servicios.filter(s => s.estado_id === 3).length
@@ -74,7 +74,7 @@ export default function Panel() {
   const ultimosServicios = useMemo(() => {
     return servicios
       .sort((a, b) => new Date(b.fechaIngreso).getTime() - new Date(a.fechaIngreso).getTime())
-      .slice(0, 5)
+      .slice(0, 3)
       .map(servicio => ({
         id: servicio.idServicio,
         cliente: servicio.cliente,
@@ -93,7 +93,7 @@ export default function Panel() {
     }).reverse()
 
     return ultimaSemana.map(fecha => {
-      const serviciosDia = servicios.filter(s => 
+      const serviciosDia = servicios.filter(s =>
         new Date(s.fechaIngreso).toDateString() === fecha
       )
       return {
@@ -116,59 +116,58 @@ export default function Panel() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {/* 🔥 INDICADOR DE ESTADO EN TIEMPO REAL */}
-      <div className={`p-3 rounded-lg flex items-center justify-between ${
-        isConnected ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'
-      }`}>
-        <div className="flex items-center gap-4">
+      <div className={`p-1 pl-2 rounded-lg flex items-center justify-between ${isConnected ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'
+        }`}>
+        <div className="flex items-center gap-2 ">
           {isConnected ? (
             <Wifi className="h-5 w-5 text-green-600" />
           ) : (
             <WifiOff className="h-5 w-5 text-yellow-600" />
           )}
-          <span className={`font-medium ${
-            isConnected ? 'text-green-700' : 'text-yellow-700'
-          }`}>
+          <span className={`font-medium ${isConnected ? 'text-green-700' : 'text-yellow-700'
+            }`}>
             {isConnected ? 'Conectado en tiempo real' : ' Sin conexión en tiempo real'}
           </span>
-          <span className="text-sm text-gray-600">
-             {estadisticas.total} servicios cargados
-          </span>
         </div>
-        
+
+        <span className="text-sm text-gray-600">
+          {estadisticas.total} servicios cargados
+        </span>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500">
             Actualizado: {new Date().toLocaleTimeString()}
           </span>
         </div>
+
       </div>
 
       {/* 🔥 MÉTRICAS PRINCIPALES EN TIEMPO REAL */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard 
-          title="Servicios en curso" 
+        <MetricCard
+          title="Servicios en curso"
           value={estadisticas.enReparacion}
           description="Equipos en reparación activa"
           color="blue"
         />
-        
-        <MetricCard 
-          title="Equipos entregados hoy" 
+
+        <MetricCard
+          title="Equipos entregados hoy"
           value={estadisticas.entregadosHoy}
           description="Entregas del día de hoy"
           color="green"
         />
-        
-        <MetricCard 
-          title="Clientes únicos" 
+
+        <MetricCard
+          title="Clientes únicos"
           value={estadisticas.clientesNuevos}
           description="Total de clientes atendidos"
           color="purple"
         />
-        
-        <MetricCard 
-          title="Listos para entregar" 
+
+        <MetricCard
+          title="Listos para entregar"
           value={estadisticas.listosParaEntregar}
           description="Equipos reparados pendientes de entrega"
           color="yellow"
@@ -241,14 +240,9 @@ export default function Panel() {
 
       {/* 🔥 ÚLTIMOS SERVICIOS EN TIEMPO REAL */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Últimos servicios</CardTitle>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">
-              Total: {estadisticas.total} servicios
-            </span>
-          </div>
-        </CardHeader>
+        <div className="flex font-semibold items-center justify-center p-1">
+          Ultimos Registros
+        </div>
         <CardContent>
           {ultimosServicios.length > 0 ? (
             <Table>
@@ -268,7 +262,7 @@ export default function Panel() {
                     <TableCell>
                       <EstadoBadge estado={servicio.estado} />
                     </TableCell>
-                    <TableCell>{servicio.fechaIngreso}</TableCell>
+                    <TableCell className="font-medium">{servicio.fechaIngreso}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -286,15 +280,15 @@ export default function Panel() {
 
 // 🔥 COMPONENTES AUXILIARES
 
-const MetricCard = ({ title, value, description, color }: { 
-  title: string; 
-  value: number; 
+const MetricCard = ({ title, value, description, color }: {
+  title: string;
+  value: number;
   description: string;
   color: 'blue' | 'green' | 'purple' | 'yellow' | 'red';
 }) => {
   const colorClasses = {
     blue: 'border-blue-200 bg-blue-50',
-    green: 'border-green-200 bg-green-50', 
+    green: 'border-green-200 bg-green-50',
     purple: 'border-purple-200 bg-purple-50',
     yellow: 'border-yellow-200 bg-yellow-50',
     red: 'border-red-200 bg-red-50'

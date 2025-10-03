@@ -3,15 +3,15 @@ import * as React from "react"
 import {
     BookOpen,
     Box,
-    Frame,
-    Settings,
+
+    LineChart,
+
     Settings2,
     ShieldCheck,
     Wrench,
 } from "lucide-react"
 
 import { NavMain } from "./nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "./nav-user"
 import { TeamSwitcher } from "./team-switcher"
 
@@ -121,14 +121,21 @@ const data = {
             ],
         },
         {
+            title: "Reportes",
+            url: "#",
+            icon: LineChart,
+            items: [
+                { title: "Reporte", url: "Report" },
+                { title: "Alert", url: "notif" },
+
+            ],
+        },
+        {
             title: "Documentación",
             url: "#",
             icon: BookOpen,
             items: [
                 { title: "Introducción", url: "documentacion" },
-                { title: "Clientes", url: "/docs/clientes" },
-                { title: "Reparaciones", url: "/docs/reparaciones" },
-                { title: "Reportes", url: "/docs/reportes" },
             ],
         },
 
