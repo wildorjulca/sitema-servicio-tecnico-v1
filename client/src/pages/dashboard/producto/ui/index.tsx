@@ -111,6 +111,7 @@ export function Producto() {
     }));
 
     return (
+    
         <div className="w-full">
             <DataTableDetalle
                 data={mappedProduct}

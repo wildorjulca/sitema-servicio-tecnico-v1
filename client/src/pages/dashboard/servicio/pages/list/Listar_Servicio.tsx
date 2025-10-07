@@ -334,7 +334,7 @@ export default function Listar_Servicio() {
         onRepair={handleRepair}
         onDeliver={handleDeliver}
         onPrint={handlePrint}
-        onEdit={handleEdit}
+        // onEdit={handleEdit}
         getActionState={getActionState}
         actions={<Link to={'/dashboard/new'}>
           <Button size="sm" className="flex items-center gap-2">
