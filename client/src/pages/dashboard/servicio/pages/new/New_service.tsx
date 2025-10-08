@@ -252,7 +252,10 @@ export default function New_Service() {
     }
   }
 
-  const handleSubmitService = async () => {
+
+  // En New_Service.tsx - busca handleSubmitService y cámbialo por:
+
+  const handleSubmitService = async (precioFinal?: number) => {
     if (!serviceData.servicio_equipos_id) {
       toast.error("Falta seleccionar un equipo")
       return
@@ -264,17 +267,26 @@ export default function New_Service() {
 
     setIsSubmitting(true)
     try {
+      // Usar el precio final si viene, sino usar el precio del motivo
+      const precioARegistrar = precioFinal !== undefined ? precioFinal : selectedMotivo?.precio_cobrar || 0;
+
+      console.log('💰 Precio a registrar en frontend:', precioARegistrar);
+      console.log('📝 Precio recibido como parámetro:', precioFinal);
+      console.log('🎯 Precio del motivo:', selectedMotivo?.precio_cobrar);
+
+      // Actualizar el contexto (opcional)
       updateServiceData({
         motivo_ingreso_id: parseInt(motivoIngresoId),
         descripcion_motivo: descripcion_motivo,
-        observacion: observacion
+        observacion: observacion,
+        precio_final: precioARegistrar
       })
 
-      await new Promise(resolve => setTimeout(resolve, 50))
-      const result = await submitService()
+      // ✅✅✅ ESTA ES LA LÍNEA CLAVE - PASAR EL PARÁMETRO ✅✅✅
+      const result = await submitService(precioARegistrar);
 
       if (result.success) {
-        toast.success('Servicio registrado exitosamente!')
+        toast.success(`Servicio registrado exitosamente! Precio: S/. ${precioARegistrar}`)
 
         setTimeout(() => {
           navigate('/dashboard/list')
@@ -284,12 +296,11 @@ export default function New_Service() {
       }
     } catch (error: unknown) {
       toast.error(`Error: ${getErrorMessage(error)}`);
-      console.log(error)
+      console.log('💥 Error en handleSubmitService:', error);
     } finally {
       setIsSubmitting(false)
     }
   }
-
   // En New_Service.tsx - Agrega esta función
   const handleClearCustomer = () => {
     setSelectedCustomer(null);

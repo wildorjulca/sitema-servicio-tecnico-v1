@@ -12,13 +12,14 @@ interface ServiceData {
   servicio_equipos_id: number | null
   cliente_id: number | null
   pasoActual: number
+  precio_final?: number // <- Agregar este campo
 }
 
 interface ServiceContextType {
   serviceData: ServiceData
   updateServiceData: (data: Partial<ServiceData>) => void
   resetService: () => void
-  submitService: () => Promise<{ success: boolean; data?: any; error?: string }>
+  submitService: (precioFinal?: number) => Promise<{ success: boolean; data?: any; error?: string }> // <- CAMBIAR aquí
   isLoading: boolean
   setPasoActual: (paso: number) => void
 }
@@ -32,7 +33,8 @@ const initialServiceData: ServiceData = {
   usuario_recibe_id: null,
   servicio_equipos_id: null,
   cliente_id: null,
-  pasoActual: 1
+  pasoActual: 1,
+  precio_final: undefined // <- Agregar al initial
 }
 
 export function ServiceProvider({ children }: { children: React.ReactNode }) {
@@ -81,9 +83,11 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('serviceData')
   }
 
-  const submitService = async (): Promise<{ success: boolean; data?: any; error?: string }> => {
+  // ✅ FUNCIÓN submitService CORREGIDA - agregar parámetro precioFinal
+  const submitService = async (precioFinal?: number): Promise<{ success: boolean; data?: any; error?: string }> => {
     console.log('🔍 === INICIANDO ENVÍO DE SERVICIO ===');
     console.log('📦 serviceData completo:', JSON.stringify(serviceData, null, 2));
+    console.log('💰 Precio final recibido como parámetro:', precioFinal);
     
     // Validar campos obligatorios del SP
     const camposObligatorios = {
@@ -107,17 +111,25 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Preparar payload para enviar
-    const payload = {
-      motivo_ingreso_id: serviceData.motivo_ingreso_id,
+    // Preparar payload para enviar - USAR precioFinal del parámetro
+    const payload: any = {
+      motivo_ingreso_id: serviceData.motivo_ingreso_id!,
       descripcion_motivo: serviceData.descripcion_motivo,
       observacion: serviceData.observacion,
-      usuario_recibe_id: serviceData.usuario_recibe_id,
-      servicio_equipos_id: serviceData.servicio_equipos_id,
-      cliente_id: serviceData.cliente_id
+      usuario_recibe_id: serviceData.usuario_recibe_id!,
+      servicio_equipos_id: serviceData.servicio_equipos_id!,
+      cliente_id: serviceData.cliente_id!
     };
 
-    console.log('🚀 Payload a enviar:', JSON.stringify(payload, null, 2));
+    // DECISIÓN DE PRECIO: parámetro > contexto > motivo (en SP)
+    if (precioFinal !== undefined) {
+      payload.precio_final = precioFinal;
+      console.log('🎯 Usando precio del parámetro:', precioFinal);
+    } else {
+      console.log('🎯 No se especificó precio, SP usará precio del motivo');
+    }
+
+    console.log('🚀 Payload FINAL a enviar:', JSON.stringify(payload, null, 2));
     console.log('📤 Llamando a crearServicio...');
 
     try {
@@ -133,7 +145,6 @@ export function ServiceProvider({ children }: { children: React.ReactNode }) {
       console.error('📌 Mensaje de error:', error?.message);
       console.error('📌 Error completo:', error);
       
-      // Log adicional para errores de Axios
       if (error?.response) {
         console.error('📡 Response error:', error.response.data);
         console.error('🔧 Status:', error.response.status);

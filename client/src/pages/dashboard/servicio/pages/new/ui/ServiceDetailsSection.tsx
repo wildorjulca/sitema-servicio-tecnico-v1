@@ -1,19 +1,21 @@
 // services/new/ui/components/ServiceDetailsSection.tsx
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Save, Plus } from 'lucide-react';
+import { Input } from "@/components/ui/input"; // <- Agregar este import
+import { Calendar, Save, Plus, Edit, RotateCcw } from 'lucide-react';
 import { SimpleSelect } from './SimpleSelect';
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // <- Agregar useEffect
 import { MotivoIngresoSimpleModal } from "@/pages/dashboard/motivo_ingreso/ui/MotivoIngresoSimpleModal";
 
 interface IF {
-  id:number,
-  descripcion:string,
-  precio_cobrar:number
-  
+  id: number,
+  descripcion: string,
+  precio_cobrar: number
 }
+
 interface ServiceDetailsSectionProps {
   motivoIngresoId: string;
   observacion: string;
@@ -26,12 +28,12 @@ interface ServiceDetailsSectionProps {
   onMotivoChange: (value: string) => void;
   onObservacionChange: (value: string) => void;
   onDescripcionChange: (value: string) => void;
-  onSubmit: () => void;
+  onSubmit: (precioFinal: number) => void; // <- Cambiar para recibir precio
   onMotivoAdded?: () => void;
   usuarioId?: number;
 }
 
-export function ServiceDetailsSection({
+export function ServiceDetailsSection ({
   motivoIngresoId,
   observacion,
   descripcion_motivo,
@@ -48,13 +50,38 @@ export function ServiceDetailsSection({
   usuarioId
 }: ServiceDetailsSectionProps) {
   const [modalOpen, setModalOpen] = useState(false);
+  const [precioEditable, setPrecioEditable] = useState<number>(0);
+  const [isPrecioEditado, setIsPrecioEditado] = useState(false);
+
+  // Efecto para actualizar el precio cuando cambia el motivo
+  useEffect(() => {
+    if (selectedMotivo && !isPrecioEditado) {
+      setPrecioEditable(selectedMotivo.precio_cobrar);
+    }
+  }, [selectedMotivo, isPrecioEditado]);
 
   const handleNewMotivoSuccess = () => {
     setModalOpen(false);
     onMotivoAdded?.();
   };
 
-  // Verificar si no hay motivos disponibles
+  const handlePrecioChange = (value: string) => {
+    const numero = parseFloat(value) || 0;
+    setPrecioEditable(numero);
+    setIsPrecioEditado(true);
+  };
+
+  const handleResetPrecio = () => {
+    if (selectedMotivo) {
+      setPrecioEditable(selectedMotivo.precio_cobrar);
+      setIsPrecioEditado(false);
+    }
+  };
+
+  const handleSubmit = () => {
+    onSubmit(precioEditable); // Pasar el precio editable al submit
+  };
+
   const noMotivosAvailable = !loadingMotivos && safeMotivosData.length === 0;
 
   return (
@@ -65,7 +92,7 @@ export function ServiceDetailsSection({
             <Calendar className="h-5 w-5" />
             Detalles del Servicio
           </span>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="flex justify-between items-center">
@@ -85,7 +112,7 @@ export function ServiceDetailsSection({
                   </Button>
                 )}
               </div>
-              
+
               {loadingMotivos ? (
                 <div className="p-3 border rounded-md text-center text-muted-foreground">
                   Cargando motivos...
@@ -110,7 +137,10 @@ export function ServiceDetailsSection({
                 <SimpleSelect
                   options={safeMotivosData}
                   value={motivoIngresoId}
-                  onValueChange={onMotivoChange}
+                  onValueChange={(value) => {
+                    onMotivoChange(value);
+                    setIsPrecioEditado(false); // Resetear estado de edición al cambiar motivo
+                  }}
                   placeholder="Seleccione un motivo de ingreso..."
                   emptyMessage="No hay motivos disponibles"
                 />
@@ -118,12 +148,18 @@ export function ServiceDetailsSection({
             </div>
 
             {selectedMotivo && (
-              <PriceDisplay precio={selectedMotivo.precio_cobrar} />
+              <PriceInput 
+                precioDefault={selectedMotivo.precio_cobrar}
+                precioEditable={precioEditable}
+                isEditado={isPrecioEditado}
+                onPrecioChange={handlePrecioChange}
+                onResetPrecio={handleResetPrecio}
+              />
             )}
 
             <div className="space-y-2">
               <Label htmlFor="descripcion" className="text-sm font-medium">
-                Descripción Motivo Ingreso
+                Configuracion Extra
               </Label>
               <Textarea
                 id="descripcion"
@@ -148,13 +184,12 @@ export function ServiceDetailsSection({
             <SubmitButton
               disabled={isSubmitting || isLoading || !motivoIngresoId}
               isSubmitting={isSubmitting || isLoading}
-              onSubmit={onSubmit}
+              onSubmit={handleSubmit}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Modal simplificado para agregar nuevo motivo */}
       <MotivoIngresoSimpleModal
         open={modalOpen}
         onOpenChange={setModalOpen}
@@ -165,17 +200,68 @@ export function ServiceDetailsSection({
   );
 }
 
-function PriceDisplay({ precio }: { precio: number }) {
+// Componente para el precio editable
+function PriceInput({ 
+  precioDefault, 
+  precioEditable, 
+  isEditado, 
+  onPrecioChange, 
+  onResetPrecio 
+}: {
+  precioDefault: number;
+  precioEditable: number;
+  isEditado: boolean;
+  onPrecioChange: (value: string) => void;
+  onResetPrecio: () => void;
+}) {
   return (
-    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+    <div className={`p-4 border rounded-lg space-y-3 ${
+      isEditado ? 'bg-yellow-50 border-yellow-200' : 'bg-green-50 border-green-200'
+    }`}>
       <div className="flex justify-between items-center">
-        <span className="text-xs font-medium text-green-800">
-          Precio del servicio:
-        </span>
-        <span className="text-lg font-bold text-green-800">
-          S/. {precio}
+        <Label className="text-sm font-medium flex items-center gap-2">
+          <Edit className={`h-4 w-4 ${isEditado ? 'text-yellow-600' : 'text-green-600'}`} />
+          Precio del servicio {isEditado && '(Editado)'}
+        </Label>
+        {isEditado && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onResetPrecio}
+            className="text-xs h-7 px-2"
+          >
+            <RotateCcw className="h-3 w-3 mr-1" />
+            Original
+          </Button>
+        )}
+      </div>
+      
+      <div className="flex items-center gap-3">
+        <div className="flex-1">
+          <Input
+            type="number"
+            value={precioEditable}
+            onChange={(e) => onPrecioChange(e.target.value)}
+            className={`text-lg font-bold ${
+              isEditado ? 'text-yellow-800' : 'text-green-800'
+            }`}
+            min="0"
+            step="0.01"
+          />
+        </div>
+        <span className={`text-lg font-bold ${
+          isEditado ? 'text-yellow-800' : 'text-green-800'
+        }`}>
+          S/.
         </span>
       </div>
+      
+      {isEditado && (
+        <div className="text-xs text-muted-foreground">
+          Precio original: S/. {precioDefault}
+        </div>
+      )}
     </div>
   );
 }

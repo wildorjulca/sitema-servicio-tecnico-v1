@@ -145,10 +145,12 @@ export const servicioReparacion1 = async (payload: {
   usuario_recibe_id: number;
   servicio_equipos_id: number;
   cliente_id: number;
+  precio_final?: number; // <- Agregar este campo como opcional
 }) => {
   try {
     console.log('🌐 === INICIANDO LLAMADA API ===');
     console.log('📤 Enviando a /registro-basico:', JSON.stringify(payload, null, 2));
+    console.log('💰 Precio final en payload:', payload.precio_final);
 
     const response = await instance.post(`/registro-basico`, payload);
 
@@ -170,7 +172,6 @@ export const servicioReparacion1 = async (payload: {
     throw error;
   }
 };
-
 // NUEVO Servicio - Iniciar reparación (con tu formato)
 export const iniciarReparacionService = async (
   servicio_id: number,
