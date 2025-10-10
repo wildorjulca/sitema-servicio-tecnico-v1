@@ -27,7 +27,17 @@ import { Edit, MoreHorizontal, Search, Eye, Wrench, Truck, Printer, Package } fr
 import { useNavigate } from "react-router-dom";
 
 import { useBuscarCtrlB } from "@/utils/hotkeys";
-import { useUser } from "@/hooks/useUser"; // ✅ AGREGAR
+import { useUser } from "@/hooks/useUser";
+
+// ✅ MEJORAR LA INTERFACE CON TIPADO MÁS ESPECÍFICO
+interface ActionState {
+  canRepair?: boolean;
+  repairText?: string;
+  repairVariant?: "default" | "secondary" | "outline" | "ghost" | "link" | "destructive";
+  repairClassName?: string;
+  isDeliverDisabled?: boolean;
+  showEdit?: boolean;
+}
 
 interface DataTableDetalleProps<T> {
   columns: ColumnDef<T>[];
@@ -46,18 +56,13 @@ interface DataTableDetalleProps<T> {
   searchColumn?: keyof T;
   placeholderSearch?: string;
   actions?: React.ReactNode;
+  // ✅ ACTUALIZAR RUTAS POR DEFECTO PARA COINCIDIR CON TU ESTRUCTURA
   viewRoute?: string;
   repairRoute?: string;
   deliverRoute?: string;
   printRoute?: string;
   editRoute?: string;
-  getActionState?: (row: T) => {
-    canRepair?: boolean;
-    repairText?: string;
-    repairVariant?: "default" | "secondary" | "outline" | "ghost" | "link" | "destructive";
-    repairClassName?: string;
-    isDeliverDisabled?: boolean;
-  };
+  getActionState?: (row: T) => ActionState;
 }
 
 export function DataTableService<T extends { id: string | number }>({
@@ -75,13 +80,14 @@ export function DataTableService<T extends { id: string | number }>({
   onView,
   onRowSelect,
   searchColumn,
-  placeholderSearch,
+  placeholderSearch = "Buscar... o Ctrl + G",
   actions,
-  viewRoute = "/servicios",
-  repairRoute = "/servicios/reparar",
-  deliverRoute = "/servicios/entregar",
-  printRoute = "/servicios/imprimir",
-  editRoute = "/servicios/editar",
+  // ✅ RUTAS ACTUALIZADAS PARA COINCIDIR CON TU ESTRUCTURA
+  viewRoute = "/dashboard/list",
+  repairRoute = "/dashboard/list",
+  deliverRoute = "/dashboard/list",
+  printRoute = "/dashboard/list",
+  editRoute = "/dashboard/list",
   getActionState,
 }: DataTableDetalleProps<T>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -93,13 +99,14 @@ export function DataTableService<T extends { id: string | number }>({
   useBuscarCtrlB(searchInputRef);
 
   const navigate = useNavigate();
-  const { user } = useUser(); // ✅ OBTENER USUARIO
-  const isSecretaria = user?.rol === 'SECRETARIA'; // ✅ DETECTAR ROL
+  const { user } = useUser();
+  const isSecretaria = user?.rol === 'SECRETARIA';
 
+  // ✅ FUNCIONES DE NAVEGACIÓN ACTUALIZADAS
   const handleView = (row: T) => {
     if (onView) {
       onView(row);
-    } else if (viewRoute) {
+    } else {
       navigate(`${viewRoute}/${row.id}`);
     }
   };
@@ -107,15 +114,20 @@ export function DataTableService<T extends { id: string | number }>({
   const handleRepair = (row: T) => {
     if (onRepair) {
       onRepair(row);
-    } else if (repairRoute) {
-      navigate(`${repairRoute}/${row.id}`);
+    } else {
+      // ✅ PARA SECRETARIA: NAVEGA A RUTA DE REPUESTOS
+      if (isSecretaria) {
+        navigate(`${repairRoute}/${row.id}/repare`);
+      } else {
+        navigate(`${repairRoute}/${row.id}`);
+      }
     }
   };
 
   const handleDeliver = (row: T) => {
     if (onDeliver) {
       onDeliver(row);
-    } else if (deliverRoute) {
+    } else {
       navigate(`${deliverRoute}/${row.id}`);
     }
   };
@@ -123,15 +135,15 @@ export function DataTableService<T extends { id: string | number }>({
   const handlePrint = (row: T) => {
     if (onPrint) {
       onPrint(row);
-    } else if (printRoute) {
-      navigate(`${printRoute}/${row.id}`);
+    } else {
+      navigate(`${printRoute}/${row.id}/imprimir`);
     }
   };
 
   const handleEdit = (row: T) => {
     if (onEdit) {
       onEdit(row);
-    } else if (editRoute) {
+    } else {
       navigate(`${editRoute}/${row.id}`);
     }
   };
@@ -151,7 +163,9 @@ export function DataTableService<T extends { id: string | number }>({
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onPaginationChange: (updater) => {
-      const newState = typeof updater === "function" ? updater({ pageIndex, pageSize }) : updater;
+      const newState = typeof updater === "function" 
+        ? updater({ pageIndex, pageSize }) 
+        : updater;
       onPageChange?.(newState.pageIndex);
       onPageSizeChange?.(newState.pageSize);
     },
@@ -163,33 +177,33 @@ export function DataTableService<T extends { id: string | number }>({
     pageCount: Math.ceil(totalRows / pageSize),
   });
 
-  // ✅ FUNCIÓN PARA DETERMINAR ACCIONES SEGÚN ROL
+  // ✅ FUNCIÓN MEJORADA PARA DETERMINAR ACCIONES
   const getRoleBasedActions = (row: T) => {
-    const actionState = getActionState ? getActionState(row) : null;
+    const actionState = getActionState ? getActionState(row) : {};
     
     if (isSecretaria) {
-      // SECRETARIA: Solo puede agregar repuestos
       return {
-        canRepair: actionState?.canRepair ?? true, // Por defecto puede "agregar repuestos"
+        canRepair: actionState.canRepair ?? true,
         repairText: "Agregar Repuestos",
         repairVariant: "default" as const,
         repairClassName: "bg-purple-500 hover:bg-purple-600 text-white",
-        isDeliverDisabled: true, // Secretaria no entrega
+        isDeliverDisabled: true,
         showRepair: true,
-        showDeliver: false, // Ocultar entregar
-        showEdit: false // Ocultar editar (ya que usa repair para repuestos)
+        showDeliver: false,
+        showEdit: false,
+        ...actionState
       };
     } else {
-      // TÉCNICO: Lógica original
       return {
-        canRepair: actionState?.canRepair ?? true,
-        repairText: actionState?.repairText || "Reparar",
-        repairVariant: actionState?.repairVariant || "default",
-        repairClassName: actionState?.repairClassName || "",
-        isDeliverDisabled: actionState?.isDeliverDisabled ?? false,
+        canRepair: actionState.canRepair ?? true,
+        repairText: actionState.repairText || "Reparar",
+        repairVariant: actionState.repairVariant || "default",
+        repairClassName: actionState.repairClassName || "",
+        isDeliverDisabled: actionState.isDeliverDisabled ?? false,
         showRepair: true,
         showDeliver: true,
-        showEdit: true
+        showEdit: actionState.showEdit ?? true,
+        ...actionState
       };
     }
   };
@@ -205,7 +219,7 @@ export function DataTableService<T extends { id: string | number }>({
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 ref={searchInputRef}
-                placeholder={placeholderSearch || "Buscar... o Ctrl + G"}
+                placeholder={placeholderSearch}
                 value={(table.getColumn(String(searchColumn))?.getFilterValue() as string) ?? ""}
                 onChange={(e) =>
                   table.getColumn(String(searchColumn))?.setFilterValue(e.target.value)
@@ -230,7 +244,7 @@ export function DataTableService<T extends { id: string | number }>({
                       : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
-                {hasActions && <TableHead>Acciones</TableHead>}
+                {hasActions && <TableHead className="w-20">Acciones</TableHead>}
               </TableRow>
             ))}
           </TableHeader>
@@ -240,7 +254,11 @@ export function DataTableService<T extends { id: string | number }>({
                 const roleActions = getRoleBasedActions(row.original);
                 
                 return (
-                  <TableRow key={row.id} onClick={() => onRowSelect?.(row.original)}>
+                  <TableRow 
+                    key={row.id} 
+                    className={onRowSelect ? "cursor-pointer hover:bg-gray-50" : ""}
+                    onClick={() => onRowSelect?.(row.original)}
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -252,25 +270,25 @@ export function DataTableService<T extends { id: string | number }>({
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">
                               <span className="sr-only">Acciones</span>
-                              <MoreHorizontal />
+                              <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
 
                             {/* Ver más */}
-                            {onView && (
+                            {(onView || viewRoute) && (
                               <DropdownMenuItem
                                 onClick={() => handleView(row.original)}
-                                className="text-blue-600 hover:bg-blue-50 focus:bg-blue-50"
+                                className="text-blue-600 hover:bg-blue-50 focus:bg-blue-50 cursor-pointer"
                               >
                                 <Eye className="mr-2 h-4 w-4 text-blue-500" />
                                 Ver más
                               </DropdownMenuItem>
                             )}
 
-                            {/* Reparar/Agregar Repuestos - SEGÚN ROL */}
-                            {onRepair && roleActions.showRepair && (
+                            {/* Reparar/Agregar Repuestos */}
+                            {(onRepair || repairRoute) && roleActions.showRepair && (
                               <DropdownMenuItem
                                 onClick={() => handleRepair(row.original)}
                                 disabled={!roleActions.canRepair}
@@ -278,8 +296,8 @@ export function DataTableService<T extends { id: string | number }>({
                                   !roleActions.canRepair 
                                     ? 'text-gray-400 cursor-not-allowed' 
                                     : isSecretaria 
-                                      ? 'text-purple-600 hover:bg-purple-50 focus:bg-purple-50'
-                                      : 'text-orange-600 hover:bg-orange-50 focus:bg-orange-50'
+                                      ? 'text-purple-600 hover:bg-purple-50 focus:bg-purple-50 cursor-pointer'
+                                      : 'text-orange-600 hover:bg-orange-50 focus:bg-orange-50 cursor-pointer'
                                 }`}
                               >
                                 {isSecretaria ? (
@@ -292,14 +310,14 @@ export function DataTableService<T extends { id: string | number }>({
                             )}
 
                             {/* Entregar equipo - SOLO TÉCNICO */}
-                            {onDeliver && roleActions.showDeliver && (
+                            {(onDeliver || deliverRoute) && roleActions.showDeliver && (
                               <DropdownMenuItem
                                 onClick={() => handleDeliver(row.original)}
                                 disabled={roleActions.isDeliverDisabled}
                                 className={`${
                                   roleActions.isDeliverDisabled 
                                     ? 'text-gray-400 cursor-not-allowed' 
-                                    : 'text-green-600 hover:bg-green-50 focus:bg-green-50'
+                                    : 'text-green-600 hover:bg-green-50 focus:bg-green-50 cursor-pointer'
                                 }`}
                               >
                                 <Truck className="mr-2 h-4 w-4 text-green-500" />
@@ -308,10 +326,10 @@ export function DataTableService<T extends { id: string | number }>({
                             )}
 
                             {/* Imprimir */}
-                            {onPrint && (
+                            {(onPrint || printRoute) && (
                               <DropdownMenuItem
                                 onClick={() => handlePrint(row.original)}
-                                className="text-purple-600 hover:bg-purple-50 focus:bg-purple-50"
+                                className="text-purple-600 hover:bg-purple-50 focus:bg-purple-50 cursor-pointer"
                               >
                                 <Printer className="mr-2 h-4 w-4 text-purple-500" />
                                 Imprimir
@@ -319,10 +337,10 @@ export function DataTableService<T extends { id: string | number }>({
                             )}
 
                             {/* Editar - SOLO TÉCNICO */}
-                            {onEdit && roleActions.showEdit && (
+                            {(onEdit || editRoute) && roleActions.showEdit && (
                               <DropdownMenuItem
                                 onClick={() => handleEdit(row.original)}
-                                className="text-cyan-600 hover:bg-cyan-50 focus:bg-cyan-50"
+                                className="text-cyan-600 hover:bg-cyan-50 focus:bg-cyan-50 cursor-pointer"
                               >
                                 <Edit className="mr-2 h-4 w-4 text-cyan-500" />
                                 Editar
@@ -337,8 +355,11 @@ export function DataTableService<T extends { id: string | number }>({
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length + (hasActions ? 1 : 0)} className="h-24 text-center">
-                  Sin resultados.
+                <TableCell 
+                  colSpan={columns.length + (hasActions ? 1 : 0)} 
+                  className="h-24 text-center text-gray-500"
+                >
+                  No se encontraron resultados.
                 </TableCell>
               </TableRow>
             )}
@@ -346,7 +367,7 @@ export function DataTableService<T extends { id: string | number }>({
         </Table>
       </div>
 
-      {/* VERSIÓN MÓVIL - CON DETECCIÓN DE ROL */}
+      {/* VERSIÓN MÓVIL */}
       <div className="sm:hidden space-y-3">
         {table.getRowModel().rows.length ? (
           table.getRowModel().rows.map((row) => {
@@ -355,7 +376,7 @@ export function DataTableService<T extends { id: string | number }>({
             return (
               <div
                 key={row.id}
-                className="border rounded-lg p-3 shadow-sm bg-white cursor-pointer hover:bg-gray-50"
+                className="border rounded-lg p-3 shadow-sm bg-white hover:bg-gray-50 transition-colors"
                 onClick={() => onRowSelect?.(row.original)}
               >
                 {row.getVisibleCells().map((cell) => (
@@ -363,73 +384,90 @@ export function DataTableService<T extends { id: string | number }>({
                     <span className="font-medium text-gray-600">
                       {String(cell.column.columnDef.header)}:
                     </span>
-                    <span>{flexRender(cell.column.columnDef.cell, cell.getContext())}</span>
+                    <span className="text-right">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </span>
                   </div>
                 ))}
                 {hasActions && (
                   <div className="flex justify-end gap-2 pt-2 flex-wrap">
-                    {onView && (
+                    {(onView || viewRoute) && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleView(row.original)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleView(row.original);
+                        }}
                         className="border-blue-200 text-blue-600 hover:bg-blue-50"
                       >
-                        <Eye className="h-4 w-4 mr-1 text-blue-500" /> Ver
+                        <Eye className="h-4 w-4 mr-1" /> Ver
                       </Button>
                     )}
-                    {onRepair && roleActions.showRepair && (
+                    {(onRepair || repairRoute) && roleActions.showRepair && (
                       <Button
                         variant={roleActions.repairVariant}
                         size="sm"
-                        onClick={() => handleRepair(row.original)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRepair(row.original);
+                        }}
                         disabled={!roleActions.canRepair}
                         className={`${
                           roleActions.repairClassName || 
                           (isSecretaria 
-                            ? "border-purple-200 text-purple-600 hover:bg-purple-50" 
-                            : "border-orange-200 text-orange-600 hover:bg-orange-50")
+                            ? "bg-purple-500 hover:bg-purple-600 text-white" 
+                            : "")
                         } ${!roleActions.canRepair ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         {isSecretaria ? (
-                          <Package className="h-4 w-4 mr-1 text-purple-500" />
+                          <Package className="h-4 w-4 mr-1" />
                         ) : (
-                          <Wrench className="h-4 w-4 mr-1 text-orange-500" />
+                          <Wrench className="h-4 w-4 mr-1" />
                         )}
                         {roleActions.repairText}
                       </Button>
                     )}
-                    {onDeliver && roleActions.showDeliver && (
+                    {(onDeliver || deliverRoute) && roleActions.showDeliver && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDeliver(row.original)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeliver(row.original);
+                        }}
                         disabled={roleActions.isDeliverDisabled}
                         className={`border-green-200 text-green-600 hover:bg-green-50 ${
                           roleActions.isDeliverDisabled ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       >
-                        <Truck className="h-4 w-4 mr-1 text-green-500" /> Entregar
+                        <Truck className="h-4 w-4 mr-1" /> Entregar
                       </Button>
                     )}
-                    {onPrint && (
+                    {(onPrint || printRoute) && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handlePrint(row.original)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePrint(row.original);
+                        }}
                         className="border-purple-200 text-purple-600 hover:bg-purple-50"
                       >
-                        <Printer className="h-4 w-4 mr-1 text-purple-500" /> Imprimir
+                        <Printer className="h-4 w-4 mr-1" /> Imprimir
                       </Button>
                     )}
-                    {onEdit && roleActions.showEdit && (
+                    {(onEdit || editRoute) && roleActions.showEdit && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleEdit(row.original)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(row.original);
+                        }}
                         className="border-cyan-200 text-cyan-600 hover:bg-cyan-50"
                       >
-                        <Edit className="h-4 w-4 mr-1 text-cyan-500" /> Editar
+                        <Edit className="h-4 w-4 mr-1" /> Editar
                       </Button>
                     )}
                   </div>
@@ -438,13 +476,15 @@ export function DataTableService<T extends { id: string | number }>({
             );
           })
         ) : (
-          <p className="text-center text-gray-500">Sin resultados.</p>
+          <p className="text-center text-gray-500 py-4">No se encontraron resultados.</p>
         )}
       </div>
 
+      {/* PAGINACIÓN */}
       <div className="flex items-center justify-between py-4">
         <div className="text-sm text-gray-600">
-          Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
+          Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()} 
+          {totalRows > 0 && ` (Total: ${totalRows} registros)`}
         </div>
         <div className="flex items-center space-x-2">
           <Button

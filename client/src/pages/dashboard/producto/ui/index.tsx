@@ -132,10 +132,8 @@ export function Producto() {
                 onPageSizeChange={(size) => setPageSize(size)}
                 onEdit={openEditModal}
                 onDelete={handleDelete}
-                onView={(product) => {
-                    // Navegar a la página de detalle
-                    navigate(`/dashboard/producto/inf/${product.id}`);
-                }}
+                onView={(product) => {navigate(`/dashboard/producto/${product.id}`)}}
+                
                 actions={<Button onClick={openAddModal}>Agregar Producto</Button>}
             />
 

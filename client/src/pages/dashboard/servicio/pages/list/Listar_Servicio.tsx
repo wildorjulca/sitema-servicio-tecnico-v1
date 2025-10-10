@@ -71,7 +71,7 @@ export default function Listar_Servicio() {
 
   // ... (tus funciones handleView, handleRepair, etc. se mantienen igual)
   const handleView = (servicio: X) => {
-    navigate(`/dashboard/list/dex/${servicio.id}`);
+    navigate(`/dashboard/list/${servicio.id}`);
   };
 
   const handleRepair = (servicio: X) => {
@@ -79,7 +79,7 @@ export default function Listar_Servicio() {
 
     if (isSecretaria) {
       // ✅ SECRETARIA: Va directo sin iniciar reparación
-      navigate(`/dashboard/repare/${servicio.id}`);
+      navigate(`/dashboard/list/${servicio.id}/reparacion`);
     } else {
       // ✅ TÉCNICO: Inicia reparación normal
       iniciarReparacion(
@@ -89,7 +89,7 @@ export default function Listar_Servicio() {
         },
         {
           onSuccess: () => {
-            navigate(`/dashboard/repare/${servicio.id}`);
+            navigate(`/dashboard/list/${servicio.id}/reparacion`);
           }
         }
       );
@@ -112,7 +112,7 @@ export default function Listar_Servicio() {
   };
 
   const handlePrint = (servicio: X) => {
-    navigate(`/dashboard/imprimir/${servicio.id}`);
+    navigate(`/dashboard/list/${servicio.id}/imprimir`);
   };
 
   const handleClearFilters = () => {

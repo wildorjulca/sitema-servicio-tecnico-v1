@@ -67,7 +67,7 @@ const AppRoutes = () => {
 
                     <Route path="producto" element={<ProductLayout />}>
                         <Route index element={<Producto />} />
-                        <Route path="inf/:id" element={<DetalleProducto />} />
+                        <Route path=":id" element={<DetalleProducto />} />
                     </Route>
 
 
@@ -80,16 +80,18 @@ const AppRoutes = () => {
 
                     <Route path="list" element={<ServicioLayout />}>
                         <Route index element={<Listar_Servicio />} />
-                        <Route path="dex/:id" element={<DetalleService />} />
+                        <Route path=":id">
+                            <Route index element={<DetalleService />} />
+                            <Route path="reparacion" element={<ReparacionPage />} />
+                            <Route path="imprimir" element={<ImprimirServicio />} />
+                        </Route>
                     </Route>
 
                     {/* <Route path="list" element={<Listar_Servicio />} /> */}
 
                     <Route path="new" element={<New_Service />} />
-                    <Route path="repare/:id" element={<ReparacionPage  />} />
 
-                    <Route path="imprimir/:id" element={<ImprimirServicio  />} />
-                    
+
 
 
 
