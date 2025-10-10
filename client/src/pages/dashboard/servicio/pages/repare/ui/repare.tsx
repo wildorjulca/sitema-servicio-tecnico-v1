@@ -13,7 +13,6 @@ import RepuestosList from './RepuestosList';
 import { useUser } from '@/hooks/useUser';
 import { toast } from 'sonner';
 import { 
-  useServicioReparacion2, 
   useGuardarAvanceTecnico,
   useAgregarRepuestos,
   useFinalizarReparacion,
@@ -65,12 +64,11 @@ const Repare = ({ servicioData }: RepareProps) => {
   } = useObtenerRepuestosServicio(servicio.servicio_id);
 
   // ✅ USAR LOS NUEVOS HOOKS
-  const { mutate: actualizarServicio, isPending: isPendingAntiguo } = useServicioReparacion2();
   const { mutate: guardarAvance, isPending: isPendingAvance } = useGuardarAvanceTecnico();
   const { mutate: agregarRepuestos, isPending: isPendingRepuestos } = useAgregarRepuestos();
   const { mutate: finalizarReparacion, isPending: isPendingFinalizar } = useFinalizarReparacion();
 
-  const isPending = isPendingAntiguo || isPendingAvance || isPendingRepuestos || isPendingFinalizar;
+  const isPending = isPendingAvance || isPendingRepuestos || isPendingFinalizar;
 
   // ✅ EFFECT PARA SINCRONIZAR REPUESTOS AL CARGAR
   useEffect(() => {
@@ -307,7 +305,7 @@ const Repare = ({ servicioData }: RepareProps) => {
                 <Label htmlFor="diagnostico">Diagnóstico *</Label>
                 <Textarea
                   id="diagnostico"
-                  value={servicio.diagnostico}
+                  value={servicio.diagnostico}  
                   onChange={(e) => setServicio({ ...servicio, diagnostico: e.target.value })}
                   placeholder="Ingrese el diagnóstico..."
                   rows={3}

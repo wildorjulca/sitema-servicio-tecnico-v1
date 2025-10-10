@@ -28,6 +28,7 @@ import ReparacionPage from '@/pages/dashboard/servicio/pages/repare/ReparacionPa
 import { ImprimirServicio } from '@/pages/dashboard/servicio/pages/print/ImprimirServicio';
 import { ReportesDashboard } from '@/pages/dashboard/report/ReportesDashboard';
 import { AlertasPanel } from '@/pages/dashboard/alerts/AlertasPanel';
+import AsignarRol from '@/pages/dashboard/rol/AsignarRol';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -98,6 +99,7 @@ const AppRoutes = () => {
 
                     <Route path="permiso" element={<Permiso />} />
                     <Route path="roles" element={<Roles />} />
+                    <Route path="asiganrol" element={<AsignarRol />} />
 
 
                     <Route path="perfil" element={<Perfil />} />

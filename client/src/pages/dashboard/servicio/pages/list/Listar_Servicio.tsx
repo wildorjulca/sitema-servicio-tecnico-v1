@@ -21,7 +21,6 @@ interface X {
 export default function Listar_Servicio() {
   const { user } = useUser();
   const usuarioId = user?.id;
-  const isSecretaria = user?.rol === 'SECRETARIA'; // ✅ Detectar rol
   const navigate = useNavigate();
 
   const [pageIndex, setPageIndex] = useState(0);
@@ -48,10 +47,10 @@ export default function Listar_Servicio() {
 
   useEffect(() => {
     if (usuarioId && data) {
-      console.log("📊 Datos de listar servicio:", { 
-        dataCount: data.length, 
-        total, 
-        isConnected 
+      console.log("📊 Datos de listar servicio:", {
+        dataCount: data.length,
+        total,
+        isConnected
       });
       setTotalRows(total);
     }
@@ -76,17 +75,25 @@ export default function Listar_Servicio() {
   };
 
   const handleRepair = (servicio: X) => {
-    iniciarReparacion(
-      {
-        servicioId: servicio.id,
-        usuarioId: usuarioId
-      },
-      {
-        onSuccess: () => {
-          navigate(`/dashboard/repare/${servicio.id}`);
+    const isSecretaria = user?.rol === 'SECRETARIA';
+
+    if (isSecretaria) {
+      // ✅ SECRETARIA: Va directo sin iniciar reparación
+      navigate(`/dashboard/repare/${servicio.id}`);
+    } else {
+      // ✅ TÉCNICO: Inicia reparación normal
+      iniciarReparacion(
+        {
+          servicioId: servicio.id,
+          usuarioId: usuarioId
+        },
+        {
+          onSuccess: () => {
+            navigate(`/dashboard/repare/${servicio.id}`);
+          }
         }
-      }
-    );
+      );
+    }
   };
 
   const handleDeliver = (servicio: X) => {
@@ -108,10 +115,6 @@ export default function Listar_Servicio() {
     navigate(`/dashboard/imprimir/${servicio.id}`);
   };
 
-  const handleEdit = (servicio: X) => {
-    navigate(`/dashboard/repare/${servicio.id}`);
-  };
-
   const handleClearFilters = () => {
     setPageIndex(0);
     setFiltros({});
@@ -123,48 +126,48 @@ export default function Listar_Servicio() {
   };
 
   // ✅ EL getActionState SE MANTIENE IGUAL - la tabla lo maneja internamente
-// En Listar_Servicio - CORREGIDO
-const getActionState = (servicio: any) => {
-  const isSecretaria = user?.rol === 'SECRETARIA';
+  // En Listar_Servicio - CORREGIDO
+  const getActionState = (servicio: any) => {
+    const isSecretaria = user?.rol === 'SECRETARIA';
 
-  if (isSecretaria) {
-    return {
-      canRepair: servicio.estadoId !== 4,
-      repairText: "Agregar Repuestos",
-      repairVariant: "default" as const, // ✅ AGREGAR 'as const'
-      repairClassName: "bg-purple-500 hover:bg-purple-600 text-white",
-      isDeliverDisabled: true
-    };
-  } else {
-    const isRepairDisabled = servicio.estadoId === 3 || servicio.estadoId === 4 || 
-      (servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId);
-    
-    const repairText = servicio.estadoId === 3 ? "Ya Reparado" : 
-      servicio.estadoId === 4 ? "Entregado" :
-      servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId ? "En Reparación (Otro)" :
-      servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId ? "Continuar Reparación" : "Reparar";
-    
-    // ✅ TIPAR CORRECTAMENTE EL VARIANT
-    let repairVariant: "default" | "secondary" | "outline" | "ghost" | "link" | "destructive";
-    
-    if (servicio.estadoId === 3 || servicio.estadoId === 4) {
-      repairVariant = "outline";
-    } else if (servicio.estadoId === 2) {
-      repairVariant = "secondary";
+    if (isSecretaria) {
+      return {
+        canRepair: servicio.estadoId !== 4,
+        repairText: "Agregar Repuestos",
+        repairVariant: "default" as const, // ✅ AGREGAR 'as const'
+        repairClassName: "bg-purple-500 hover:bg-purple-600 text-white",
+        isDeliverDisabled: true
+      };
     } else {
-      repairVariant = "default";
+      const isRepairDisabled = servicio.estadoId === 3 || servicio.estadoId === 4 ||
+        (servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId);
+
+      const repairText = servicio.estadoId === 3 ? "Ya Reparado" :
+        servicio.estadoId === 4 ? "Entregado" :
+          servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId ? "En Reparación (Otro)" :
+            servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId ? "Continuar Reparación" : "Reparar";
+
+      // ✅ TIPAR CORRECTAMENTE EL VARIANT
+      let repairVariant: "default" | "secondary" | "outline" | "ghost" | "link" | "destructive";
+
+      if (servicio.estadoId === 3 || servicio.estadoId === 4) {
+        repairVariant = "outline";
+      } else if (servicio.estadoId === 2) {
+        repairVariant = "secondary";
+      } else {
+        repairVariant = "default";
+      }
+
+      return {
+        canRepair: !isRepairDisabled,
+        repairText,
+        repairVariant, // ✅ YA ESTÁ TIPADO
+        repairClassName: servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId ?
+          "bg-orange-500 hover:bg-orange-600 text-white" : "",
+        isDeliverDisabled: servicio.estadoId !== 3
+      };
     }
-    
-    return {
-      canRepair: !isRepairDisabled,
-      repairText,
-      repairVariant, // ✅ YA ESTÁ TIPADO
-      repairClassName: servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId ? 
-                      "bg-orange-500 hover:bg-orange-600 text-white" : "",
-      isDeliverDisabled: servicio.estadoId !== 3
-    };
-  }
-};
+  };
 
   const columns = [
     { accessorKey: "id", header: "ID" },
@@ -264,26 +267,24 @@ const getActionState = (servicio: any) => {
   return (
     <div className="w-full space-y-2">
       {/* 🔥 NUEVO: Indicador de estado WebSocket */}
-      <div className={`p-1 rounded-md flex items-center justify-between ${
-        isConnected ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'
-      }`}>
+      <div className={`p-1 rounded-md flex items-center justify-between ${isConnected ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'
+        }`}>
         <div className="flex items-center space-x-2">
           {isConnected ? (
             <Wifi className="h-5 w-5 text-green-600" />
           ) : (
             <WifiOff className="h-5 w-5 text-yellow-600" />
           )}
-          <span className={`font-medium ${
-            isConnected ? 'text-green-700' : 'text-yellow-700'
-          }`}>
+          <span className={`font-medium ${isConnected ? 'text-green-700' : 'text-yellow-700'
+            }`}>
             {isConnected ? ' Conectado en tiempo real' : ' Sin conexión en tiempo real'}
           </span>
         </div>
-        
+
         {!isConnected && (
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleForceRefresh}
             className="flex items-center space-x-1"
           >
@@ -338,7 +339,6 @@ const getActionState = (servicio: any) => {
         onRepair={handleRepair}
         onDeliver={handleDeliver}
         onPrint={handlePrint}
-        onEdit={handleEdit}
         getActionState={getActionState}
         actions={<Link to={'/dashboard/new'}>
           <Button size="sm" className="flex items-center gap-2">
