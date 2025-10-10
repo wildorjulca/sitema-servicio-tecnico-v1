@@ -70,7 +70,7 @@ export function emitNuevoServicio(servicioData: any): void {
     });
 }
 
-export function emitServicioActualizado(servicioId: number, nuevoEstado: number, servicioData: any = null): void {
+export function emitServicioActualizado(servicioId: number, nuevoEstado: number | null, servicioData: any = null): void {
     console.log('🔥 Emitiendo SERVICIO_ACTUALIZADO:', { servicioId, nuevoEstado });
     broadcast({
         type: 'SERVICIO_ACTUALIZADO',

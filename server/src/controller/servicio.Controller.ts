@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import { actualizarServicioReparacion, buscarClienteServ, buscarProduct, entregarServicioCliente, iniciarReparacion, listEstadoServ, listMot_Ingreso, listServicio, obtenerEquiposPorCliente, registrarServicioBasico } from "../service/servicio.Service";
+import { agregarRepuestosSecretaria, buscarClienteServ, buscarProduct, entregarServicioCliente, finalizarReparacion, guardarAvanceTecnico, iniciarReparacion, listEstadoServ, listMot_Ingreso, listServicio, obtenerEquiposPorCliente, obtenerRepuestosServicioService, registrarServicioBasico } from "../service/servicio.Service";
 
 
 const getAllServicioCTRL = async (req: Request, res: Response) => {
@@ -132,8 +132,12 @@ const registrarServicioBasicoCTRL = async (req: Request, res: Response) => {
       observacion,
       usuario_recibe_id,
       servicio_equipos_id,
-      cliente_id
+      cliente_id,
+      precio_final  // <- NUEVO CAMPO DEL BODY
     } = req.body;
+
+    console.log('📦 Body recibido:', req.body);
+    console.log('💰 Precio final recibido en controlador:', precio_final);
 
     // Validar campos obligatorios
     if (!motivo_ingreso_id || !usuario_recibe_id || !servicio_equipos_id || !cliente_id) {
@@ -147,11 +151,12 @@ const registrarServicioBasicoCTRL = async (req: Request, res: Response) => {
 
     const response = await registrarServicioBasico(
       motivo_ingreso_id,
-      descripcion_motivo,
+      descripcion_motivo || '',
       observacion || '',
       usuario_recibe_id,
       servicio_equipos_id,
-      cliente_id
+      cliente_id,
+      precio_final  // <- Pasar el nuevo parámetro
     );
 
     res.status(response.status).json(response);
@@ -197,61 +202,195 @@ const iniciarReparacionCTRL = async (req: Request, res: Response) => {
     });
   }
 };
-const actualizarServicioReparacionCTRL = async (req: Request, res: Response) => {
+
+// no sirve 
+// const actualizarServicioReparacionCTRL = async (req: Request, res: Response) => {
+//   try {
+//     const {
+//       servicio_id,
+//       diagnostico,
+//       solucion,
+//       precio_mano_obra,
+//       usuario_soluciona_id,
+//       estado_id,
+//       repuestos
+//     } = req.body;
+
+//     // Validar campos obligatorios
+//     if (!servicio_id || !diagnostico || !solucion ||
+//       !usuario_soluciona_id || !estado_id) {
+//       res.status(400).json({
+//         status: 400,
+//         success: false,
+//         mensaje: "Campos obligatorios faltantes: servicio_id, diagnostico, solucion, usuario_soluciona_id, estado_id"
+//       });
+//       return
+//     }
+
+//     // Validar que el estado sea válido (2 o 3)
+//     if (estado_id !== 2 && estado_id !== 3) {
+//       res.status(400).json({
+//         status: 400,
+//         success: false,
+//         mensaje: "Estado inválido. Use 2 para 'En reparación' o 3 para 'Reparado'"
+//       });
+//       return
+//     }
+
+//     const response = await actualizarServicioReparacion(
+//       servicio_id,
+//       diagnostico,
+//       solucion,
+//       precio_mano_obra || 0,
+//       usuario_soluciona_id,
+//       estado_id,
+//       repuestos || []
+//     );
+
+//     res.status(response.status).json(response);
+
+//   } catch (error: any) {
+//     console.error("Error en controlador actualizarServicioReparacionCTRL:", error);
+
+//     res.status(500).json({
+//       status: 500,
+//       success: false,
+//       mensaje: "Error interno del servidor",
+//       error: error.message
+//     });
+//     return
+//   }
+// };
+
+const guardarAvanceTecnicoCTRL = async (req: Request, res: Response) => {
+  const { servicio_id, diagnostico, solucion, precio_mano_obra, usuario_soluciona_id } = req.body;
+
   try {
-    const {
-      servicio_id,
-      diagnostico,
-      solucion,
-      precio_mano_obra,
-      usuario_soluciona_id,
-      estado_id,
-      repuestos
-    } = req.body;
-
-    // Validar campos obligatorios
-    if (!servicio_id || !diagnostico || !solucion ||
-      !usuario_soluciona_id || !estado_id) {
+    // Validaciones básicas
+    if (!servicio_id || !usuario_soluciona_id) {
       res.status(400).json({
-        status: 400,
         success: false,
-        mensaje: "Campos obligatorios faltantes: servicio_id, diagnostico, solucion, usuario_soluciona_id, estado_id"
+        mensaje: "Faltan campos obligatorios: servicio_id y usuario_soluciona_id"
       });
-      return
+      return;
     }
 
-    // Validar que el estado sea válido (2 o 3)
-    if (estado_id !== 2 && estado_id !== 3) {
-      res.status(400).json({
-        status: 400,
-        success: false,
-        mensaje: "Estado inválido. Use 2 para 'En reparación' o 3 para 'Reparado'"
-      });
-      return
-    }
-
-    const response = await actualizarServicioReparacion(
+    const response = await guardarAvanceTecnico(
       servicio_id,
-      diagnostico,
-      solucion,
+      diagnostico || "",
+      solucion || "",
       precio_mano_obra || 0,
-      usuario_soluciona_id,
-      estado_id,
-      repuestos || []
+      usuario_soluciona_id
     );
 
     res.status(response.status).json(response);
 
   } catch (error: any) {
-    console.error("Error en controlador actualizarServicioReparacionCTRL:", error);
-
+    console.error("Error en controller guardar avance:", error);
     res.status(500).json({
-      status: 500,
       success: false,
       mensaje: "Error interno del servidor",
       error: error.message
     });
-    return
+  }
+};
+
+const agregarRepuestosSecretariaCTRL = async (req: Request, res: Response) => {
+  const { servicio_id, repuestos, usuario_agrega_id } = req.body;
+
+  try {
+    // Validaciones básicas
+    if (!servicio_id || !usuario_agrega_id) {
+      res.status(400).json({
+        success: false,
+        mensaje: "Faltan campos obligatorios: servicio_id y usuario_agrega_id"
+      });
+      return;
+    }
+
+    if (!repuestos || !Array.isArray(repuestos) || repuestos.length === 0) {
+      res.status(400).json({
+        success: false,
+        mensaje: "El array de repuestos no puede estar vacío"
+      });
+      return;
+    }
+
+    const response = await agregarRepuestosSecretaria(
+      servicio_id,
+      repuestos,
+      usuario_agrega_id
+    );
+
+    res.status(response.status).json(response);
+
+  } catch (error: any) {
+    console.error("Error en controller agregar repuestos:", error);
+    res.status(500).json({
+      success: false,
+      mensaje: "Error interno del servidor",
+      error: error.message
+    });
+  }
+};
+
+const finalizarReparacionCTRL = async (req: Request, res: Response) => {
+  const { servicio_id, usuario_soluciona_id } = req.body;
+
+  try {
+    // Validaciones básicas
+    if (!servicio_id || !usuario_soluciona_id) {
+      res.status(400).json({
+        success: false,
+        mensaje: "Faltan campos obligatorios: servicio_id y usuario_soluciona_id"
+      });
+      return;
+    }
+
+    const response = await finalizarReparacion(
+      servicio_id,
+      usuario_soluciona_id
+    );
+
+    res.status(response.status).json(response);
+
+  } catch (error: any) {
+    console.error("Error en controller finalizar reparación:", error);
+    res.status(500).json({
+      success: false,
+      mensaje: "Error interno del servidor",
+      error: error.message
+    });
+  }
+};
+
+// controllers/servicioController.ts - AGREGAR ESTA FUNCIÓN
+const obtenerRepuestosServicioCTRL = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    // Validar que el ID sea un número válido
+    const servicioId = parseInt(id);
+    if (isNaN(servicioId) || servicioId <= 0) {
+      res.status(400).json({
+        success: false,
+        mensaje: "ID de servicio no válido"
+      });
+      return;
+    }
+
+    const response = await obtenerRepuestosServicioService(servicioId);
+
+    console.log('📦 Repuestos encontrados para servicio', servicioId, ':', response.data);
+
+    res.status(response.success ? 200 : 500).json(response);
+  } catch (error: any) {
+    console.error('Error en controller obtener repuestos:', error);
+    res.status(500).json({
+      success: false,
+      mensaje: "Error interno del servidor",
+      error: error.message
+    });
   }
 };
 
@@ -293,4 +432,4 @@ const entregarServicioCTRL = async (req: Request, res: Response) => {
 
 
 
-export { getAllServicioCTRL, getMot_IngresoCTRL, buscarProducCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL,iniciarReparacionCTRL, actualizarServicioReparacionCTRL, entregarServicioCTRL }
+export { guardarAvanceTecnicoCTRL, agregarRepuestosSecretariaCTRL, finalizarReparacionCTRL, obtenerRepuestosServicioCTRL, getAllServicioCTRL, getMot_IngresoCTRL, buscarProducCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL, iniciarReparacionCTRL, entregarServicioCTRL }

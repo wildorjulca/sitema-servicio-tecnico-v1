@@ -13,20 +13,22 @@ export const listarImagenesProducto = async (req: Request, res: Response) => {
         const { productoId } = req.params;
 
         if (!productoId || isNaN(Number(productoId))) {
-            res.status(400).json({
+            res.status(400).json({ // ← AGREGAR return
                 success: false,
                 mensaje: "ID de producto inválido"
             });
+            return;
         }
 
         const result = await listImagesClaud(Number(productoId));
 
-        res.status(result.status).json(result);
+        res.status(result.status).json(result); return // ← AGREGAR return
     } catch (error) {
-        res.status(500).json({
+        res.status(500).json({ // ← AGREGAR return
             success: false,
             mensaje: "Error interno del servidor"
         });
+        return
     }
 };
 
@@ -37,35 +39,39 @@ export const subirImagenProducto = async (req: Request, res: Response) => {
 
         // Validaciones
         if (!productoId || isNaN(Number(productoId))) {
-            res.status(400).json({
+            res.status(400).json({ // ← AGREGAR return
                 success: false,
                 mensaje: "ID de producto inválido"
             });
+            return
         }
 
         if (!url || !publicId) {
-            res.status(400).json({
+            res.status(400).json({ // ← AGREGAR return
                 success: false,
                 mensaje: "URL y publicId son requeridos"
             });
+            return
         }
 
         // Validar que la URL sea de Cloudinary
         if (!url.includes('cloudinary.com')) {
-            res.status(400).json({
+            res.status(400).json({ // ← AGREGAR return
                 success: false,
                 mensaje: "URL debe ser de Cloudinary"
             });
+            return
         }
 
         const result = await insertImageClaud(Number(productoId), url, publicId);
 
-        res.status(result.status).json(result);
+        res.status(result.status).json(result); return // ← AGREGAR return
     } catch (error) {
-        res.status(500).json({
+        res.status(500).json({ // ← AGREGAR return
             success: false,
             mensaje: "Error interno del servidor"
         });
+        return
     }
 };
 
@@ -75,20 +81,20 @@ export const eliminarImagen = async (req: Request, res: Response) => {
         const { id } = req.params;
 
         if (!id || isNaN(Number(id))) {
-            res.status(400).json({
+            res.status(400).json({ // ← AGREGAR return
                 success: false,
                 mensaje: "ID de imagen inválido"
-            });
+            }); return
         }
 
         const result = await deleteImageClaud(Number(id));
 
-        res.status(result.status).json(result);
+        res.status(result.status).json(result); return // ← AGREGAR return
     } catch (error) {
-        res.status(500).json({
+        res.status(500).json({ // ← AGREGAR return
             success: false,
             mensaje: "Error interno del servidor"
-        });
+        }); return
     }
 };
 
@@ -98,20 +104,20 @@ export const obtenerImagen = async (req: Request, res: Response) => {
         const { id } = req.params;
 
         if (!id || isNaN(Number(id))) {
-            res.status(400).json({
+            res.status(400).json({ // ← AGREGAR return
                 success: false,
                 mensaje: "ID de imagen inválido"
-            });
+            }); return
         }
 
         const result = await getImageById(Number(id));
 
-        res.status(result.status).json(result);
+        res.status(result.status).json(result); return // ← AGREGAR return
     } catch (error) {
-        res.status(500).json({
+        res.status(500).json({ // ← AGREGAR return
             success: false,
             mensaje: "Error interno del servidor"
-        });
+        }); return
     }
 };
 
@@ -121,20 +127,20 @@ export const eliminarTodasImagenesProducto = async (req: Request, res: Response)
         const { productoId } = req.params;
 
         if (!productoId || isNaN(Number(productoId))) {
-            res.status(400).json({
+            res.status(400).json({ // ← AGREGAR return
                 success: false,
                 mensaje: "ID de producto inválido"
-            });
+            }); return
         }
 
         const result = await deleteAllImagesByProduct(Number(productoId));
 
-        res.status(result.status).json(result);
+        res.status(result.status).json(result); return // ← AGREGAR return
     } catch (error) {
-        res.status(500).json({
+        res.status(500).json({ // ← AGREGAR return
             success: false,
             mensaje: "Error interno del servidor"
-        });
+        }); return
     }
 };
 
@@ -145,17 +151,17 @@ export const subirMultiplesImagenes = async (req: Request, res: Response) => {
 
         // Validaciones
         if (!productoId || isNaN(Number(productoId))) {
-            res.status(400).json({
+            res.status(400).json({ // ← AGREGAR return
                 success: false,
                 mensaje: "ID de producto inválido"
-            });
+            }); return
         }
 
         if (!imagenes || !Array.isArray(imagenes) || imagenes.length === 0) {
-            res.status(400).json({
+            res.status(400).json({ // ← AGREGAR return
                 success: false,
                 mensaje: "Array de imágenes es requerido"
-            });
+            }); return
         }
 
         // Subir cada imagen
@@ -174,15 +180,15 @@ export const subirMultiplesImagenes = async (req: Request, res: Response) => {
             resultados.push(result);
         }
 
-        res.status(201).json({
+        res.status(201).json({ // ← AGREGAR return
             success: true,
             mensaje: "Imágenes subidas correctamente",
             data: resultados
-        });
+        }); return
     } catch (error) {
-        res.status(500).json({
+        res.status(500).json({ // ← AGREGAR return
             success: false,
             mensaje: "Error interno del servidor"
-        });
+        }); return
     }
 };

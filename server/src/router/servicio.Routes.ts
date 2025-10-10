@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { actualizarServicioReparacionCTRL, buscarClienteServicioCTRL, buscarProducCTRL, entregarServicioCTRL, getAllServicioCTRL, getEstadoCTRL, getMot_IngresoCTRL, iniciarReparacionCTRL, obtenerEquiposPorClienteCTRL, registrarServicioBasicoCTRL } from "../controller/servicio.Controller";
+import { agregarRepuestosSecretariaCTRL, buscarClienteServicioCTRL, buscarProducCTRL, entregarServicioCTRL, finalizarReparacionCTRL, getAllServicioCTRL, getEstadoCTRL, getMot_IngresoCTRL, guardarAvanceTecnicoCTRL, iniciarReparacionCTRL, obtenerEquiposPorClienteCTRL, obtenerRepuestosServicioCTRL, registrarServicioBasicoCTRL } from "../controller/servicio.Controller";
 import { validate } from "../middlewares/validation";
-import { validateActualizarReparacion, validateRegistroBasico } from "../validation/servicioValidation";
+import { validateActualizarReparacion, validateAgregarRepuestos, validateFinalizarReparacion, validateGuardarAvance, validateRegistroBasico } from "../validation/servicioValidation";
 
 
 const routerServicio = Router()
@@ -16,9 +16,16 @@ routerServicio.get("/getService/:usuarioId", getAllServicioCTRL),
 routerServicio.post('/registro-basico', validate, validateRegistroBasico(), registrarServicioBasicoCTRL);
 routerServicio.post('/iniciar-repare', iniciarReparacionCTRL);
 
-// Ruta para el Paso 2 - Actualizar reparación (Estado 2 o 3)
-routerServicio.put('/actualizar-reparacion', validate, validateActualizarReparacion(), actualizarServicioReparacionCTRL);
+// Ruta para Guardar Avance (Técnico)
+routerServicio.put('/guardar-avance', validate, validateGuardarAvance(), guardarAvanceTecnicoCTRL);
 
+// Ruta para Agregar Repuestos (Secretaria)  
+routerServicio.post('/agregar-repuestos', validate, validateAgregarRepuestos(), agregarRepuestosSecretariaCTRL);
+
+// Ruta para Finalizar Reparación (Técnico)
+routerServicio.put('/finalizar-reparacion', validate, validateFinalizarReparacion(), finalizarReparacionCTRL);
+
+routerServicio.get('/repuestos/:id', obtenerRepuestosServicioCTRL)
 
 // Ruta para el Paso 3 - Entregar servicio al cliente (Estado 4)
 routerServicio.put('/entregar-servicio', entregarServicioCTRL);

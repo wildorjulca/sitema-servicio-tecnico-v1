@@ -177,14 +177,23 @@ const registrarServicioBasico = async (
     observacion: string,
     usuario_recibe_id: number,
     servicio_equipos_id: number,
-    cliente_id: number
+    cliente_id: number,
+    precio_final?: number  // <- NUEVO PARÁMETRO OPCIONAL
 ) => {
     try {
         const [results]: any = await cn
             .promise()
             .query(
-                "CALL sp_registrar_servicio_basico(?, ?, ?, ?, ?, ?)",
-                [motivo_ingreso_id, descripcion_motivo, observacion, usuario_recibe_id, servicio_equipos_id, cliente_id]
+                "CALL sp_registrar_servicio_basico(?, ?, ?, ?, ?, ?, ?)", // <- 7 parámetros ahora
+                [
+                    motivo_ingreso_id,
+                    descripcion_motivo,
+                    observacion,
+                    usuario_recibe_id,
+                    servicio_equipos_id,
+                    cliente_id,
+                    precio_final !== undefined ? precio_final : null  // <- Pasar NULL si no viene
+                ]
             );
 
         const servicioCreado = results[0][0];
@@ -203,6 +212,9 @@ const registrarServicioBasico = async (
             motivo_ingreso_id: motivo_ingreso_id,
             descripcion_motivo: descripcion_motivo
         });
+
+        console.log('✅ Servicio registrado - Precio usado:', precioTotal);
+        console.log('💰 Precio final recibido:', precio_final);
 
         return {
             status: 200,
@@ -242,7 +254,7 @@ const iniciarReparacion = async (
 
         // 🔥 EMITIR POR WEBSOCKET - Servicio en reparación
         emitServicioActualizado(
-            servicio_id, 
+            servicio_id,
             2, // Estado "En reparación"
             servicioActualizado
         );
@@ -264,56 +276,145 @@ const iniciarReparacion = async (
     }
 };
 
-// 🔥 NUEVO: Actualizar servicio con WebSocket
-const actualizarServicioReparacion = async (
+const guardarAvanceTecnico = async (
     servicio_id: number,
     diagnostico: string,
     solucion: string,
     precio_mano_obra: number,
-    usuario_soluciona_id: number,
-    estado_id: number,
-    repuestos: Array<{
-        producto_id: number;
-        cantidad: number;
-        precio_unitario: number;
-    }> = []
+    usuario_soluciona_id: number
 ) => {
     try {
-        const repuestosJSON = JSON.stringify(repuestos);
-
         const [results]: any = await cn
             .promise()
             .query(
-                "CALL sp_actualizar_servicio_reparacion(?, ?, ?, ?, ?, ?, ?)",
-                [servicio_id, diagnostico, solucion, precio_mano_obra, usuario_soluciona_id, estado_id, repuestosJSON]
+                "CALL sp_guardar_avance_tecnico(?, ?, ?, ?, ?)",
+                [servicio_id, diagnostico, solucion, precio_mano_obra, usuario_soluciona_id]
             );
 
-        const servicioActualizado = results[0][0];
-
-        // 🔥 EMITIR POR WEBSOCKET - Servicio actualizado
+        // 🔥 EMITIR POR WEBSOCKET - Avance guardado
         emitServicioActualizado(
-            servicio_id, 
-            estado_id, 
-            servicioActualizado
+            servicio_id,
+            2, // Estado "En reparación"
+            { diagnostico, solucion, precio_mano_obra }
         );
 
         return {
             status: 200,
             success: true,
-            data: servicioActualizado,
-            mensaje: estado_id === 2
-                ? "Servicio actualizado a 'En reparación'"
-                : "Servicio marcado como 'Reparado'"
+            data: { servicio_id, diagnostico, solucion, precio_mano_obra },
+            mensaje: "Avance guardado correctamente"
         };
     } catch (error: any) {
-        console.error("Error en actualizar servicio reparación:", error);
+        console.error("Error al guardar avance:", error);
         return {
             status: 500,
             success: false,
-            mensaje: "Error en la base de datos",
+            mensaje: "Error al guardar avance",
             error: error.sqlMessage || error.message,
         };
     }
+};
+
+const agregarRepuestosSecretaria = async (
+    servicio_id: number,
+    repuestos: Array<{
+        producto_id: number;
+        cantidad: number;
+        precio_unitario: number;
+    }>,
+    usuario_agrega_id: number
+) => {
+    try {
+        const repuestosJSON = JSON.stringify(repuestos);
+
+        await cn
+            .promise()
+            .query(
+                "CALL sp_agregar_repuestos_secretaria(?, ?, ?)",
+                [servicio_id, repuestosJSON, usuario_agrega_id]
+            );
+
+        // 🔥 EMITIR POR WEBSOCKET - Repuestos agregados
+        emitServicioActualizado(
+            servicio_id,
+            null, // No cambia estado
+            { repuestos_agregados: repuestos.length }
+        );
+
+        return {
+            status: 200,
+            success: true,
+            mensaje: `${repuestos.length} repuestos agregados correctamente`
+        };
+    } catch (error: any) {
+        console.error("Error al agregar repuestos:", error);
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error al agregar repuestos",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
+
+const finalizarReparacion = async (
+    servicio_id: number,
+    usuario_soluciona_id: number
+) => {
+    try {
+        const [results]: any = await cn
+            .promise()
+            .query(
+                "CALL sp_finalizar_reparacion(?, ?)",
+                [servicio_id, usuario_soluciona_id]
+            );
+
+        const servicioFinalizado = results[0] ? results[0][0] : null;
+
+        // 🔥 EMITIR POR WEBSOCKET - Servicio terminado
+        emitServicioActualizado(
+            servicio_id,
+            3, // Estado "Terminado"
+            servicioFinalizado
+        );
+
+        return {
+            status: 200,
+            success: true,
+            data: servicioFinalizado,
+            mensaje: "Reparación finalizada correctamente"
+        };
+    } catch (error: any) {
+        console.error("Error al finalizar reparación:", error);
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error al finalizar reparación",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
+
+// services/servicioService.ts - AGREGAR ESTA FUNCIÓN
+const obtenerRepuestosServicioService = async (servicioId: number) => {
+  try {
+    const [results]: any = await cn
+      .promise()
+      .query("CALL sp_obtener_repuestos_servicio(?)", [servicioId]);
+
+    return {
+      success: true,
+      data: results[0] || [],
+      count: results[0] ? results[0].length : 0
+    };
+  } catch (error: any) {
+    console.error('Error en servicio obtener repuestos:', error);
+    return {
+      success: false,
+      mensaje: "Error al obtener repuestos del servicio",
+      error: error.sqlMessage || error.message
+    };
+  }
 };
 
 // 🔥 NUEVO: Entregar servicio con WebSocket
@@ -354,15 +455,18 @@ const entregarServicioCliente = async (
     }
 };
 
-export { 
-    listServicio, 
-    listEstadoServ, 
-    listMot_Ingreso, 
-    iniciarReparacion, 
-    buscarProduct, 
-    buscarClienteServ, 
-    obtenerEquiposPorCliente, 
-    registrarServicioBasico, 
-    actualizarServicioReparacion, 
-    entregarServicioCliente 
+export {
+    listServicio,
+    listEstadoServ,
+    listMot_Ingreso,
+    iniciarReparacion,
+    buscarProduct,
+    buscarClienteServ,
+    obtenerEquiposPorCliente,
+    registrarServicioBasico,
+    guardarAvanceTecnico,
+    agregarRepuestosSecretaria,
+    finalizarReparacion,
+    obtenerRepuestosServicioService,
+    entregarServicioCliente
 };

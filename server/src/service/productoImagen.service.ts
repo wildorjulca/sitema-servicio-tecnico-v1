@@ -16,9 +16,11 @@ interface ImagenInsertResult extends ResultSetHeader {
 }
 
 // Listar imágenes de un producto
+
 const listImagesClaud = async (productoId: number) => {
+
   console.log("Parámetros enviados a sp_producto_imagen:", { productoId });
-  
+
   try {
     const [results]: any = await cn
       .promise()
@@ -28,7 +30,7 @@ const listImagesClaud = async (productoId: number) => {
       );
 
     console.log("Resultados de sp_producto_imagen", { data: results[0] });
-    
+
     return {
       status: 200,
       success: true,
@@ -48,7 +50,7 @@ const listImagesClaud = async (productoId: number) => {
 // Insertar imagen de producto
 const insertImageClaud = async (productoId: number, url: string, publicId: string) => {
   console.log("Insertando imagen:", { productoId, url, publicId });
-  
+
   try {
     const [results]: any = await cn
       .promise()
@@ -79,7 +81,7 @@ const insertImageClaud = async (productoId: number, url: string, publicId: strin
 // Eliminar imagen de producto
 const deleteImageClaud = async (id: number) => {
   console.log("Eliminando imagen:", { id });
-  
+
   try {
     const [results]: any = await cn
       .promise()
@@ -168,10 +170,10 @@ const deleteAllImagesByProduct = async (productoId: number) => {
   }
 };
 
-export { 
-  listImagesClaud, 
-  insertImageClaud, 
-  deleteImageClaud, 
+export {
+  listImagesClaud,
+  insertImageClaud,
+  deleteImageClaud,
   getImageById,
-  deleteAllImagesByProduct 
+  deleteAllImagesByProduct
 };

@@ -107,6 +107,51 @@ export const validateActualizarReparacion = () => [
     .withMessage("El precio unitario debe ser un número válido.")
 ];
 
+export const validateGuardarAvance = () => [
+  body("servicio_id").isInt({ min: 1 }).withMessage("ID del servicio inválido"),
+  
+  body("diagnostico")
+    .optional()
+    .trim()
+    .isLength({ max: 150 }).withMessage("Máximo 150 caracteres"),
+  
+  body("solucion")
+    .optional() 
+    .trim()
+    .isLength({ max: 150 }).withMessage("Máximo 150 caracteres"),
+  
+  body("precio_mano_obra")
+    .isFloat({ min: 0 }).withMessage("Precio mano obra inválido"),
+  
+  body("usuario_soluciona_id")
+    .isInt({ min: 1 }).withMessage("ID técnico inválido")
+];
+
+export const validateAgregarRepuestos = () => [
+  body("servicio_id").isInt({ min: 1 }).withMessage("ID servicio inválido"),
+  
+  body("usuario_agrega_id")
+    .isInt({ min: 1 }).withMessage("ID usuario agrega inválido"),
+  
+  body("repuestos")
+    .isArray({ min: 1 }).withMessage("Array de repuestos requerido"),
+  
+  body("repuestos.*.producto_id")
+    .isInt({ min: 1 }).withMessage("ID producto inválido"),
+  
+  body("repuestos.*.cantidad")
+    .isInt({ min: 1 }).withMessage("Cantidad inválida"),
+  
+  body("repuestos.*.precio_unitario")
+    .isFloat({ min: 0 }).withMessage("Precio unitario inválido")
+];
+
+export const validateFinalizarReparacion = () => [
+  body("servicio_id").isInt({ min: 1 }).withMessage("ID servicio inválido"),
+  
+  body("usuario_soluciona_id")
+    .isInt({ min: 1 }).withMessage("ID técnico inválido")
+];
 // Validación para entregar servicio (Paso 3)
 export const validateEntregarServicio = () => [
   body("servicio_id")
