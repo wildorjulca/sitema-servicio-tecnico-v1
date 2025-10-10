@@ -24,6 +24,7 @@ import { routerMotivoIngreso } from './router/motivo_ingreso.Routes';
 import { routerCliente } from './router/cliente.Routes';
 import { routerReportes } from './router/reporte.Routes';
 import { routerEmail } from './router/emailRouter';
+import routerPermiso from './router/rol_permiso.Routes';
 // ... otros imports
 
 const PORT = process.env.PORT || 3005
@@ -149,6 +150,7 @@ app.use("/api/servicio", routerUsuario)
 app.use("/api/servicio", routerImg)
 app.use("/api/servicio", routerServicio)
 app.use("/api/servicio", routerReportes)
+app.use("/api/servicio", routerPermiso)
 
 app.use("/api/servicio", routerEmail)
 
