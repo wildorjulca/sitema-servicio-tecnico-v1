@@ -4,14 +4,18 @@ import { useEffect, useMemo } from 'react';
 
 import { Estado, Servicio } from '@/interface/types';
 import {
+  agregarRepuestosSecretaria,
   entregarServicio,
   fetchEstadoServ,
   fetchMot_Ingreso,
   fetchService,
   filtreClient,
   filtroProduct,
+  finalizarReparacion,
+  guardarAvanceTecnico,
   iniciarReparacionService,
   obtenerEquiposPorCliente,
+  obtenerRepuestosServicio,
   servicioReparacion1,
   servicioReparacion2
 } from '@/apis/servicio';
@@ -275,6 +279,120 @@ export const useServicioReparacion2 = () => {
       console.error('Error al actualizar servicio:', error);
       toast.error("Error al actualizar el servicio");
     },
+  });
+};
+
+//  s ssjdj------------------
+
+
+// En hooks/useService.ts - MODIFICAR EL HOOK
+export const useGuardarAvanceTecnico = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: guardarAvanceTecnico,
+    onSuccess: (data, variables) => {
+      toast.success("Avance guardado correctamente");
+      
+      // ✅ ACTUALIZAR CACHE CON LOS NUEVOS DATOS Y REPUESTOS
+      queryClient.setQueryData(
+        ["servicio", variables.servicio_id],
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          
+          return {
+            ...oldData,
+            diagnostico: variables.diagnostico,
+            solucion: variables.solucion,
+            precio: variables.precio_mano_obra,
+            repuestos: data.repuestos || [] // ✅ ACTUALIZAR REPUESTOS
+          };
+        }
+      );
+
+      // ✅ INVALIDAR PARA ASEGURAR DATOS ACTUALIZADOS
+      queryClient.invalidateQueries({ 
+        queryKey: ["servicio", variables.servicio_id] 
+      });
+    },
+    onError: (error) => {
+      console.error('Error al guardar avance:', error);
+      toast.error("Error al guardar avance");
+    },
+  });
+};
+
+// En hooks/useService.ts - ACTUALIZAR EL HOOK
+export const useAgregarRepuestos = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: agregarRepuestosSecretaria,
+    onSuccess: (data, variables) => {
+      toast.success("Repuestos agregados correctamente");
+      
+      // ✅ ACTUALIZAR CACHE DEL SERVICIO CON NUEVOS TOTALES
+      queryClient.setQueryData(
+        ["servicio", variables.servicio_id],
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          
+          return {
+            ...oldData,
+            precioRepuestos: data.data?.total_repuestos || 0,
+            precioTotal: data.data?.precio_total || 0,
+            // También actualizar la lista de repuestos si es necesario
+          };
+        }
+      );
+
+      // ✅ INVALIDAR PARA REFRESCAR DATOS COMPLETOS
+      queryClient.invalidateQueries({ 
+        queryKey: ["servicio", variables.servicio_id] 
+      });
+    },
+    onError: (error) => {
+      console.error('Error al agregar repuestos:', error);
+      toast.error("Error al agregar repuestos");
+    },
+  });
+};
+
+export const useFinalizarReparacion = () => {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  return useMutation({
+    mutationFn: finalizarReparacion,
+    onSuccess: (data, variables) => {
+      toast.success("Reparación finalizada correctamente");
+
+      // Invalidar queries
+      queryClient.invalidateQueries({ queryKey: ["reparaciones"] });
+      queryClient.invalidateQueries({
+        queryKey: ["servicio", variables.servicio_id]
+      });
+
+      // Redirigir después de 1 segundo
+      setTimeout(() => {
+        navigate('/dashboard/list');
+      }, 1000);
+    },
+    onError: (error) => {
+      console.error('Error al finalizar reparación:', error);
+      toast.error("Error al finalizar reparación");
+    },
+  });
+};
+
+// hooks/useService.ts - AGREGAR ESTE HOOK
+export const useObtenerRepuestosServicio = (servicioId: number) => {
+  return useQuery({
+    queryKey: ['repuestos', servicioId],
+    queryFn: () => obtenerRepuestosServicio(servicioId),
+    enabled: !!servicioId && servicioId > 0,
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 2, // 5 minutos
   });
 };
 

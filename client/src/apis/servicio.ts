@@ -193,6 +193,7 @@ export const iniciarReparacionService = async (
     console.error("Error al iniciar reparación:", error);
   }
 };
+
 // ----------------------
 // reparacion del equipo paso 2
 // ----------------------
@@ -215,6 +216,75 @@ export const servicioReparacion2 = async (payload: {
     return data;
   } catch (error) {
     console.error("Error al actualizar reparación:", error);
+    throw error;
+  }
+};
+
+// serern__---------------------------------
+
+// En tu API service - MODIFICAR el endpoint
+export const guardarAvanceTecnico = async (payload: {
+  servicio_id: number;
+  diagnostico: string;
+  solucion: string;
+  precio_mano_obra?: number;
+  usuario_soluciona_id: number;
+}) => {
+  try {
+    const response = await instance.put(`/guardar-avance`, payload);
+    
+    // ✅ EL SP AHORA RETORNA LOS REPUESTOS EN results[0]
+    const data = response.data;
+    console.log("Respuesta al guardar avance:", data);
+
+    // ✅ EXTRAER LOS REPUESTOS DE LA RESPUESTA
+    const repuestos = data.data?.repuestos || [];
+    console.log("Repuestos cargados:", repuestos);
+
+    return {
+      ...data,
+      repuestos: repuestos // ✅ INCLUIR REPUESTOS EN LA RESPUESTA
+    };
+  } catch (error) {
+    console.error("Error al guardar avance:", error);
+    throw error;
+  }
+};
+
+export const agregarRepuestosSecretaria = async (payload: {
+  servicio_id: number;
+  repuestos: Array<{ producto_id: number; cantidad: number; precio_unitario: number }>;
+  usuario_agrega_id: number;
+}) => {
+  try {
+    const response = await instance.post(`/agregar-repuestos`, payload);
+    return response.data;
+  } catch (error) {
+    console.error("Error al agregar repuestos:", error);
+    throw error;
+  }
+};
+
+export const finalizarReparacion = async (payload: {
+  servicio_id: number;
+  usuario_soluciona_id: number;
+}) => {
+  try {
+    const response = await instance.put(`/finalizar-reparacion`, payload);
+    return response.data;
+  } catch (error) {
+    console.error("Error al finalizar reparación:", error);
+    throw error;
+  }
+};
+
+// api/servicioApi.ts - AGREGAR ESTA FUNCIÓN
+export const obtenerRepuestosServicio = async (servicioId: number) => {
+  try {
+    const response = await instance.get(`repuestos/${servicioId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener repuestos:", error);
     throw error;
   }
 };

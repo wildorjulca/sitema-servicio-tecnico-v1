@@ -21,6 +21,7 @@ interface X {
 export default function Listar_Servicio() {
   const { user } = useUser();
   const usuarioId = user?.id;
+  const isSecretaria = user?.rol === 'SECRETARIA'; // ✅ Detectar rol
   const navigate = useNavigate();
 
   const [pageIndex, setPageIndex] = useState(0);
@@ -108,7 +109,7 @@ export default function Listar_Servicio() {
   };
 
   const handleEdit = (servicio: X) => {
-    navigate(`/dashboard/editar/${servicio.id}`);
+    navigate(`/dashboard/repare/${servicio.id}`);
   };
 
   const handleClearFilters = () => {
@@ -121,46 +122,49 @@ export default function Listar_Servicio() {
     window.location.reload();
   };
 
-  // Función para determinar el estado de los botones
-  const getActionState = (servicio: any) => {
-    const isRepairDisabled =
-      servicio.estadoId === 3 ||
-      servicio.estadoId === 4 ||
+  // ✅ EL getActionState SE MANTIENE IGUAL - la tabla lo maneja internamente
+// En Listar_Servicio - CORREGIDO
+const getActionState = (servicio: any) => {
+  const isSecretaria = user?.rol === 'SECRETARIA';
+
+  if (isSecretaria) {
+    return {
+      canRepair: servicio.estadoId !== 4,
+      repairText: "Agregar Repuestos",
+      repairVariant: "default" as const, // ✅ AGREGAR 'as const'
+      repairClassName: "bg-purple-500 hover:bg-purple-600 text-white",
+      isDeliverDisabled: true
+    };
+  } else {
+    const isRepairDisabled = servicio.estadoId === 3 || servicio.estadoId === 4 || 
       (servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId);
-
-    const repairText =
-      servicio.estadoId === 3
-        ? "Ya Reparado"
-        : servicio.estadoId === 4
-          ? "Entregado"
-          : servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId
-            ? "En Reparación (Otro)"
-            : servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId
-              ? "Continuar Reparación"
-              : "Reparar";
-
-    const repairVariant =
-      servicio.estadoId === 3 || servicio.estadoId === 4
-        ? "outline"
-        : servicio.estadoId === 2
-          ? "secondary"
-          : "default";
-
-    const repairClassName =
-      servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId
-        ? "bg-orange-500 hover:bg-orange-600 text-white"
-        : "";
-
-    const isDeliverDisabled = servicio.estadoId !== 3;
-
+    
+    const repairText = servicio.estadoId === 3 ? "Ya Reparado" : 
+      servicio.estadoId === 4 ? "Entregado" :
+      servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId ? "En Reparación (Otro)" :
+      servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId ? "Continuar Reparación" : "Reparar";
+    
+    // ✅ TIPAR CORRECTAMENTE EL VARIANT
+    let repairVariant: "default" | "secondary" | "outline" | "ghost" | "link" | "destructive";
+    
+    if (servicio.estadoId === 3 || servicio.estadoId === 4) {
+      repairVariant = "outline";
+    } else if (servicio.estadoId === 2) {
+      repairVariant = "secondary";
+    } else {
+      repairVariant = "default";
+    }
+    
     return {
       canRepair: !isRepairDisabled,
       repairText,
-      repairVariant,
-      repairClassName,
-      isDeliverDisabled
+      repairVariant, // ✅ YA ESTÁ TIPADO
+      repairClassName: servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId ? 
+                      "bg-orange-500 hover:bg-orange-600 text-white" : "",
+      isDeliverDisabled: servicio.estadoId !== 3
     };
-  };
+  }
+};
 
   const columns = [
     { accessorKey: "id", header: "ID" },
@@ -334,7 +338,7 @@ export default function Listar_Servicio() {
         onRepair={handleRepair}
         onDeliver={handleDeliver}
         onPrint={handlePrint}
-        // onEdit={handleEdit}
+        onEdit={handleEdit}
         getActionState={getActionState}
         actions={<Link to={'/dashboard/new'}>
           <Button size="sm" className="flex items-center gap-2">

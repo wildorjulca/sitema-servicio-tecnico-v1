@@ -23,10 +23,11 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { Edit, MoreHorizontal, Search, Eye, Wrench, Truck, Printer } from "lucide-react";
+import { Edit, MoreHorizontal, Search, Eye, Wrench, Truck, Printer, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useBuscarCtrlB } from "@/utils/hotkeys";
+import { useUser } from "@/hooks/useUser"; // ✅ AGREGAR
 
 interface DataTableDetalleProps<T> {
   columns: ColumnDef<T>[];
@@ -50,7 +51,6 @@ interface DataTableDetalleProps<T> {
   deliverRoute?: string;
   printRoute?: string;
   editRoute?: string;
-  // NUEVA PROPS PARA VALIDACIONES
   getActionState?: (row: T) => {
     canRepair?: boolean;
     repairText?: string;
@@ -82,7 +82,7 @@ export function DataTableService<T extends { id: string | number }>({
   deliverRoute = "/servicios/entregar",
   printRoute = "/servicios/imprimir",
   editRoute = "/servicios/editar",
-  getActionState, // NUEVA PROPS
+  getActionState,
 }: DataTableDetalleProps<T>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -93,6 +93,8 @@ export function DataTableService<T extends { id: string | number }>({
   useBuscarCtrlB(searchInputRef);
 
   const navigate = useNavigate();
+  const { user } = useUser(); // ✅ OBTENER USUARIO
+  const isSecretaria = user?.rol === 'SECRETARIA'; // ✅ DETECTAR ROL
 
   const handleView = (row: T) => {
     if (onView) {
@@ -161,7 +163,37 @@ export function DataTableService<T extends { id: string | number }>({
     pageCount: Math.ceil(totalRows / pageSize),
   });
 
-  // Determinar si hay acciones para mostrar
+  // ✅ FUNCIÓN PARA DETERMINAR ACCIONES SEGÚN ROL
+  const getRoleBasedActions = (row: T) => {
+    const actionState = getActionState ? getActionState(row) : null;
+    
+    if (isSecretaria) {
+      // SECRETARIA: Solo puede agregar repuestos
+      return {
+        canRepair: actionState?.canRepair ?? true, // Por defecto puede "agregar repuestos"
+        repairText: "Agregar Repuestos",
+        repairVariant: "default" as const,
+        repairClassName: "bg-purple-500 hover:bg-purple-600 text-white",
+        isDeliverDisabled: true, // Secretaria no entrega
+        showRepair: true,
+        showDeliver: false, // Ocultar entregar
+        showEdit: false // Ocultar editar (ya que usa repair para repuestos)
+      };
+    } else {
+      // TÉCNICO: Lógica original
+      return {
+        canRepair: actionState?.canRepair ?? true,
+        repairText: actionState?.repairText || "Reparar",
+        repairVariant: actionState?.repairVariant || "default",
+        repairClassName: actionState?.repairClassName || "",
+        isDeliverDisabled: actionState?.isDeliverDisabled ?? false,
+        showRepair: true,
+        showDeliver: true,
+        showEdit: true
+      };
+    }
+  };
+
   const hasActions = onRepair || onDeliver || onPrint || onEdit || onView;
 
   return (
@@ -205,7 +237,7 @@ export function DataTableService<T extends { id: string | number }>({
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => {
-                const actionState = getActionState ? getActionState(row.original) : null;
+                const roleActions = getRoleBasedActions(row.original);
                 
                 return (
                   <TableRow key={row.id} onClick={() => onRowSelect?.(row.original)}>
@@ -237,29 +269,35 @@ export function DataTableService<T extends { id: string | number }>({
                               </DropdownMenuItem>
                             )}
 
-                            {/* Reparar - CON VALIDACIÓN */}
-                            {onRepair && (
+                            {/* Reparar/Agregar Repuestos - SEGÚN ROL */}
+                            {onRepair && roleActions.showRepair && (
                               <DropdownMenuItem
                                 onClick={() => handleRepair(row.original)}
-                                disabled={actionState && !actionState.canRepair}
+                                disabled={!roleActions.canRepair}
                                 className={`${
-                                  actionState && !actionState.canRepair 
+                                  !roleActions.canRepair 
                                     ? 'text-gray-400 cursor-not-allowed' 
-                                    : 'text-orange-600 hover:bg-orange-50 focus:bg-orange-50'
+                                    : isSecretaria 
+                                      ? 'text-purple-600 hover:bg-purple-50 focus:bg-purple-50'
+                                      : 'text-orange-600 hover:bg-orange-50 focus:bg-orange-50'
                                 }`}
                               >
-                                <Wrench className="mr-2 h-4 w-4 text-orange-500" />
-                                {actionState?.repairText || "Reparar"}
+                                {isSecretaria ? (
+                                  <Package className="mr-2 h-4 w-4 text-purple-500" />
+                                ) : (
+                                  <Wrench className="mr-2 h-4 w-4 text-orange-500" />
+                                )}
+                                {roleActions.repairText}
                               </DropdownMenuItem>
                             )}
 
-                            {/* Entregar equipo - CON VALIDACIÓN */}
-                            {onDeliver && (
+                            {/* Entregar equipo - SOLO TÉCNICO */}
+                            {onDeliver && roleActions.showDeliver && (
                               <DropdownMenuItem
                                 onClick={() => handleDeliver(row.original)}
-                                disabled={actionState?.isDeliverDisabled}
+                                disabled={roleActions.isDeliverDisabled}
                                 className={`${
-                                  actionState?.isDeliverDisabled 
+                                  roleActions.isDeliverDisabled 
                                     ? 'text-gray-400 cursor-not-allowed' 
                                     : 'text-green-600 hover:bg-green-50 focus:bg-green-50'
                                 }`}
@@ -280,8 +318,8 @@ export function DataTableService<T extends { id: string | number }>({
                               </DropdownMenuItem>
                             )}
 
-                            {/* Editar */}
-                            {onEdit && (
+                            {/* Editar - SOLO TÉCNICO */}
+                            {onEdit && roleActions.showEdit && (
                               <DropdownMenuItem
                                 onClick={() => handleEdit(row.original)}
                                 className="text-cyan-600 hover:bg-cyan-50 focus:bg-cyan-50"
@@ -308,11 +346,11 @@ export function DataTableService<T extends { id: string | number }>({
         </Table>
       </div>
 
-      {/* VERSIÓN MÓVIL - CON VALIDACIONES */}
+      {/* VERSIÓN MÓVIL - CON DETECCIÓN DE ROL */}
       <div className="sm:hidden space-y-3">
         {table.getRowModel().rows.length ? (
           table.getRowModel().rows.map((row) => {
-            const actionState = getActionState ? getActionState(row.original) : null;
+            const roleActions = getRoleBasedActions(row.original);
             
             return (
               <div
@@ -340,28 +378,35 @@ export function DataTableService<T extends { id: string | number }>({
                         <Eye className="h-4 w-4 mr-1 text-blue-500" /> Ver
                       </Button>
                     )}
-                    {onRepair && (
+                    {onRepair && roleActions.showRepair && (
                       <Button
-                        variant={actionState?.repairVariant || "outline"}
+                        variant={roleActions.repairVariant}
                         size="sm"
                         onClick={() => handleRepair(row.original)}
-                        disabled={actionState && !actionState.canRepair}
+                        disabled={!roleActions.canRepair}
                         className={`${
-                          actionState?.repairClassName || "border-orange-200 text-orange-600 hover:bg-orange-50"
-                        } ${actionState && !actionState.canRepair ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          roleActions.repairClassName || 
+                          (isSecretaria 
+                            ? "border-purple-200 text-purple-600 hover:bg-purple-50" 
+                            : "border-orange-200 text-orange-600 hover:bg-orange-50")
+                        } ${!roleActions.canRepair ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
-                        <Wrench className="h-4 w-4 mr-1 text-orange-500" /> 
-                        {actionState?.repairText || "Reparar"}
+                        {isSecretaria ? (
+                          <Package className="h-4 w-4 mr-1 text-purple-500" />
+                        ) : (
+                          <Wrench className="h-4 w-4 mr-1 text-orange-500" />
+                        )}
+                        {roleActions.repairText}
                       </Button>
                     )}
-                    {onDeliver && (
+                    {onDeliver && roleActions.showDeliver && (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleDeliver(row.original)}
-                        disabled={actionState?.isDeliverDisabled}
+                        disabled={roleActions.isDeliverDisabled}
                         className={`border-green-200 text-green-600 hover:bg-green-50 ${
-                          actionState?.isDeliverDisabled ? 'opacity-50 cursor-not-allowed' : ''
+                          roleActions.isDeliverDisabled ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       >
                         <Truck className="h-4 w-4 mr-1 text-green-500" /> Entregar
@@ -377,7 +422,7 @@ export function DataTableService<T extends { id: string | number }>({
                         <Printer className="h-4 w-4 mr-1 text-purple-500" /> Imprimir
                       </Button>
                     )}
-                    {onEdit && (
+                    {onEdit && roleActions.showEdit && (
                       <Button
                         variant="outline"
                         size="sm"

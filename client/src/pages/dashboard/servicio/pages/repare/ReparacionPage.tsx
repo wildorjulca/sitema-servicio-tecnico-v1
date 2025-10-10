@@ -1,4 +1,4 @@
-// ReparacionPage.tsx - Versión simplificada
+// ReparacionPage.tsx - Versión corregida
 import { useParams, useNavigate } from 'react-router-dom';
 import { useUser } from '@/hooks/useUser';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,6 @@ const ReparacionPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useUser();
-  const usuarioId = user?.id;
 
   // Validar que el ID existe
   if (!id) {
@@ -42,14 +41,13 @@ const ReparacionPage = () => {
     );
   }
 
-  // Datos para el formulario - el estado YA ES 2 desde la lista
+  // ✅ DATOS CORREGIDOS - SIN usuario_soluciona_id automático
   const servicioData = {
     servicio_id: servicioId,
     idServicio: servicioId,
     diagnostico: '',
     solucion: '',
     precio_mano_obra: 0,
-    usuario_soluciona_id: usuarioId,
     estado_id: 2, // Ya está en estado 2 desde que se hizo clic en "Reparar"
     repuestos: []
   };
