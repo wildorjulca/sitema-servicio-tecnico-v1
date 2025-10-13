@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import { agregarRepuestosSecretaria, buscarClienteServ, buscarProduct, entregarServicioCliente, finalizarReparacion, guardarAvanceTecnico, iniciarReparacion, listEstadoServ, listMot_Ingreso, listServicio, obtenerEquiposPorCliente, obtenerRepuestosServicioService, registrarServicioBasico } from "../service/servicio.Service";
+import { agregarRepuestosSecretaria, buscarClienteServ, buscarProduct, eliminarRepuestosSecretaria, entregarServicioCliente, finalizarReparacion, guardarAvanceTecnico, iniciarReparacion, listEstadoServ, listMot_Ingreso, listServicio, obtenerEquiposPorCliente, obtenerRepuestosServicioService, registrarServicioBasico } from "../service/servicio.Service";
 
 
 const getAllServicioCTRL = async (req: Request, res: Response) => {
@@ -334,6 +334,56 @@ const agregarRepuestosSecretariaCTRL = async (req: Request, res: Response) => {
   }
 };
 
+const eliminarRepuestosSecretariaCTRL = async (req: Request, res: Response) => {
+  const { servicio_id, repuestos_ids, usuario_elimina_id } = req.body;
+
+  try {
+    // Validaciones básicas
+    if (!servicio_id || !usuario_elimina_id) {
+      res.status(400).json({
+        success: false,
+        mensaje: "Faltan campos obligatorios: servicio_id y usuario_elimina_id"
+      });
+      return;
+    }
+
+    if (!repuestos_ids || !Array.isArray(repuestos_ids) || repuestos_ids.length === 0) {
+      res.status(400).json({
+        success: false,
+        mensaje: "El array de repuestos_ids no puede estar vacío"
+      });
+      return;
+    }
+
+    // Validar que todos los IDs sean números válidos
+    const idsInvalidos = repuestos_ids.filter(id => !Number.isInteger(id) || id <= 0);
+    if (idsInvalidos.length > 0) {
+      res.status(400).json({
+        success: false,
+        mensaje: "Algunos IDs de repuestos no son válidos",
+        ids_invalidos: idsInvalidos
+      });
+      return;
+    }
+
+    const response = await eliminarRepuestosSecretaria(
+      servicio_id,
+      repuestos_ids,
+      usuario_elimina_id
+    );
+
+    res.status(response.status).json(response);
+
+  } catch (error: any) {
+    console.error("Error en controller eliminar repuestos:", error);
+    res.status(500).json({
+      success: false,
+      mensaje: "Error interno del servidor",
+      error: error.message
+    });
+  }
+};
+
 const finalizarReparacionCTRL = async (req: Request, res: Response) => {
   const { servicio_id, usuario_soluciona_id } = req.body;
 
@@ -432,4 +482,4 @@ const entregarServicioCTRL = async (req: Request, res: Response) => {
 
 
 
-export { guardarAvanceTecnicoCTRL, agregarRepuestosSecretariaCTRL, finalizarReparacionCTRL, obtenerRepuestosServicioCTRL, getAllServicioCTRL, getMot_IngresoCTRL, buscarProducCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL, iniciarReparacionCTRL, entregarServicioCTRL }
+export { guardarAvanceTecnicoCTRL, agregarRepuestosSecretariaCTRL,eliminarRepuestosSecretariaCTRL, finalizarReparacionCTRL, obtenerRepuestosServicioCTRL, getAllServicioCTRL, getMot_IngresoCTRL, buscarProducCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL, iniciarReparacionCTRL, entregarServicioCTRL }

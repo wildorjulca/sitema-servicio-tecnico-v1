@@ -5,6 +5,7 @@ import { useEffect, useMemo } from 'react';
 import { Estado, Servicio } from '@/interface/types';
 import {
   agregarRepuestosSecretaria,
+  eliminarRepuestosSecretaria,
   entregarServicio,
   fetchEstadoServ,
   fetchMot_Ingreso,
@@ -353,11 +354,51 @@ export const useAgregarRepuestos = () => {
     },
     onError: (error) => {
       console.error('Error al agregar repuestos:', error);
-      toast.error("Error al agregar repuestos");
+      toast.error("No se pueden agregar repuestos a servicios terminados o entregados");
     },
   });
 };
 
+// ✅ HOOK PARA ELIMINAR REPUESTOS (VERSIÓN CORRECTA)
+// hooks/useService.ts - MODIFICA EL HOOK DE ELIMINAR
+export const useEliminarRepuestos = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: eliminarRepuestosSecretaria,
+    onSuccess: (data, variables) => {
+      toast.success("Repuestos eliminados correctamente");
+      
+      // ✅ ACTUALIZAR CACHE DEL SERVICIO
+      queryClient.setQueryData(
+        ["servicio", variables.servicio_id],
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          
+          return {
+            ...oldData,
+            precioRepuestos: data.data?.total_repuestos || 0,
+            precioTotal: data.data?.precio_total || 0,
+          };
+        }
+      );
+
+      // ✅ FORZAR REFRESCO DE REPUESTOS - ESTO ES LO MÁS IMPORTANTE
+      queryClient.invalidateQueries({ 
+        queryKey: ["repuestos-servicio", variables.servicio_id] 
+      });
+
+      // ✅ TAMBIÉN INVALIDAR EL SERVICIO GENERAL
+      queryClient.invalidateQueries({ 
+        queryKey: ["servicio", variables.servicio_id] 
+      });
+    },
+    onError: (error) => {
+      console.error('Error al eliminar repuestos:', error);
+      toast.error("Error al eliminar repuestos");
+    },
+  });
+};
 export const useFinalizarReparacion = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();

@@ -98,28 +98,32 @@ export const editUserAPI = async ({
   rol_id
 }: Usuario) => {
   try {
-    console.log("➡️ payload de usuario:", {
-      id,
-      usuarioId,
+    console.log("🔍 DEBUG editUserAPI - INICIO:");
+    console.log("id recibido:", id, "tipo:", typeof id);
+    console.log("usuarioId recibido:", usuarioId, "tipo:", typeof usuarioId);
+
+    // ✅ CREAR PAYLOAD EXPLÍCITAMENTE
+    const payload = {
+      id: id,           // ← Asegurar que se incluya
+      usuarioId: usuarioId,
       nombre,
       apellidos,
       dni,
       telefono,
+      password,
       usuario,
-      password: password ? "***" : "null", // Ocultar password en logs
       rol_id
-    });
+    };
     
-    const response = await instance.put(`/userEdit/${id}`, {
-      usuarioId,
-      nombre,
-      apellidos,
-      dni,
-      telefono,
-      usuario,
-      password: password || undefined, // Enviar undefined si está vacío
-      rol_id
-    });
+    // ✅ Solo incluir password si tiene valor
+    if (password && password.trim() !== '') {
+      payload.password = password;
+    }
+    
+    console.log("📤 Payload COMPLETO para backend:", payload);
+    console.log("📤 Keys del payload:", Object.keys(payload));
+    
+    const response = await instance.put(`/userEdit`, payload);
     
     console.log("✅ Usuario actualizado:", response.data);
     return response.data;

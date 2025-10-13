@@ -1,4 +1,4 @@
-// Repare.tsx - VERSIÓN COMPLETA CON HOOK DE REPUESTOS
+// components/Repare.tsx - VERSIÓN COMPLETA CON BOTÓN "GUARDAR CAMBIOS"
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,17 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Loader2, ReceiptIndianRupee, Package } from 'lucide-react';
+import { Save, Loader2, ReceiptIndianRupee, Package, Trash2 } from 'lucide-react';
 import BuscarRepuestos from './BuscarRepuestos';
 import ResumenCostos from './ResumenCostos';
 import RepuestosList from './RepuestosList';
 import { useUser } from '@/hooks/useUser';
 import { toast } from 'sonner';
-import { 
+import {
   useGuardarAvanceTecnico,
   useAgregarRepuestos,
+  useEliminarRepuestos,
   useFinalizarReparacion,
-  useObtenerRepuestosServicio // ✅ NUEVO HOOK
+  useObtenerRepuestosServicio
 } from '@/hooks/useService';
 
 interface ServicioData {
@@ -34,17 +35,13 @@ interface RepareProps {
 }
 
 const Repare = ({ servicioData }: RepareProps) => {
+  
   const { user } = useUser();
   const usuarioId = user?.id;
   const isSecretaria = user?.rol === 'SECRETARIA';
 
-  console.log('servicioData recibido en Repare:', servicioData);
-  console.log('Rol del usuario:', user?.rol);
-
-  // ✅ ESTADO INICIAL CORREGIDO
   const [servicio, setServicio] = useState(() => {
     const servicioId = servicioData?.servicio_id || servicioData?.idServicio || 0;
-
     return {
       servicio_id: servicioId,
       diagnostico: servicioData?.diagnostico || '',
@@ -55,25 +52,25 @@ const Repare = ({ servicioData }: RepareProps) => {
     };
   });
 
-  // ✅ HOOK PARA OBTENER REPUESTOS
-  const { 
-    data: repuestosData, 
-    refetch: refetchRepuestos, 
+  const [repuestosSeleccionados, setRepuestosSeleccionados] = useState<number[]>([]);
+  const [modoSeleccion, setModoSeleccion] = useState(false);
+
+  const {
+    data: repuestosData,
+    refetch: refetchRepuestos,
     isLoading: isLoadingRepuestos,
-    error: errorRepuestos 
+    error: errorRepuestos
   } = useObtenerRepuestosServicio(servicio.servicio_id);
 
-  // ✅ USAR LOS NUEVOS HOOKS
   const { mutate: guardarAvance, isPending: isPendingAvance } = useGuardarAvanceTecnico();
-  const { mutate: agregarRepuestos, isPending: isPendingRepuestos } = useAgregarRepuestos();
+  const { mutate: agregarRepuestos, isPending: isPendingAgregar } = useAgregarRepuestos();
+  const { mutate: eliminarRepuestos, isPending: isPendingEliminar } = useEliminarRepuestos();
   const { mutate: finalizarReparacion, isPending: isPendingFinalizar } = useFinalizarReparacion();
 
-  const isPending = isPendingAvance || isPendingRepuestos || isPendingFinalizar;
+  const isPending = isPendingAvance || isPendingAgregar || isPendingEliminar || isPendingFinalizar;
 
-  // ✅ EFFECT PARA SINCRONIZAR REPUESTOS AL CARGAR
   useEffect(() => {
     if (repuestosData?.success && repuestosData.data) {
-      console.log('📦 Repuestos cargados:', repuestosData.data);
       setServicio(prev => ({
         ...prev,
         repuestos: repuestosData.data
@@ -81,46 +78,166 @@ const Repare = ({ servicioData }: RepareProps) => {
     }
   }, [repuestosData]);
 
-  // ✅ EFFECT PARA RECARGAR REPUESTOS DESPUÉS DE ACCIONES
   useEffect(() => {
-    if (!isPending) {
-      refetchRepuestos();
+    if (repuestosData?.success) {
+      setRepuestosSeleccionados([]);
     }
-  }, [isPending, refetchRepuestos]);
+  }, [repuestosData]);
 
-  // ✅ EFFECT PARA DEBUG
-  useEffect(() => {
-    console.log('🔍 DEBUG REPUESTOS:');
-    console.log('servicio_id:', servicio.servicio_id);
-    console.log('repuestosData:', repuestosData);
-    console.log('servicio.repuestos:', servicio.repuestos);
-    console.log('errorRepuestos:', errorRepuestos);
-  }, [servicio.servicio_id, repuestosData, servicio.repuestos, errorRepuestos]);
-
-  // Si no hay servicio_id válido, mostrar error
-  if (servicio.servicio_id === 0) {
-    return (
-      <div className="container mx-auto p-6 flex justify-center items-center h-64">
-        <div className="text-center">
-          <p className="text-red-500 mb-2">Error: No se pudo cargar el servicio</p>
-          <p className="text-sm text-gray-500">Verifica que el servicio exista</p>
-        </div>
-      </div>
-    );
-  }
-
-  // ✅ FUNCIONES PARA REPUESTOS CON VALIDACIÓN DE ROL
-  const agregarRepuesto = (producto: any) => {
-    if (!isSecretaria) {
-      toast.error('Solo la secretaria puede agregar repuestos');
+  // ✅ FUNCIÓN NUEVA: GUARDAR TODOS LOS CAMBIOS
+  const handleGuardarTodosLosCambios = async () => {
+    if (!usuarioId) {
+      toast.error('Usuario no autenticado');
       return;
     }
 
-    const repuestoExistente = servicio.repuestos.find((r: any) => r.producto_id === producto.id);
+    if (!isSecretaria) {
+      toast.error('Solo la secretaria puede guardar cambios');
+      return;
+    }
 
-    if (repuestoExistente) {
-      const nuevosRepuestos = servicio.repuestos.map((repuesto: any) =>
-        repuesto.producto_id === producto.id
+    // 1️⃣ ELIMINAR repuestos seleccionados
+    const eliminacionesPromesas = [];
+    if (repuestosSeleccionados.length > 0) {
+      eliminacionesPromesas.push(
+        eliminarRepuestos({
+          servicio_id: servicio.servicio_id,
+          repuestos_ids: repuestosSeleccionados,
+          usuario_elimina_id: usuarioId
+        })
+      );
+    }
+
+    // 2️⃣ AGREGAR repuestos nuevos
+    const repuestosNuevos = servicio.repuestos.filter(repuesto => !repuesto.id);
+    const agregadosPromesas = [];
+    if (repuestosNuevos.length > 0) {
+      agregadosPromesas.push(
+        agregarRepuestos({
+          servicio_id: servicio.servicio_id,
+          repuestos: repuestosNuevos.map((repuesto: any) => ({
+            producto_id: repuesto.producto_id,
+            cantidad: Number(repuesto.cantidad),
+            precio_unitario: Number(repuesto.precio_unitario)
+          })),
+          usuario_agrega_id: usuarioId
+        })
+      );
+    }
+
+    // Si no hay cambios
+    if (eliminacionesPromesas.length === 0 && agregadosPromesas.length === 0) {
+      toast.info('No hay cambios para guardar');
+      return;
+    }
+
+    try {
+      await Promise.all([...eliminacionesPromesas, ...agregadosPromesas]);
+      refetchRepuestos();
+      setModoSeleccion(false);
+      setRepuestosSeleccionados([]);
+      toast.success('Todos los cambios guardados correctamente');
+    } catch (error) {
+      console.error('Error al guardar cambios:', error);
+      toast.error('Error al guardar cambios');
+    }
+  };
+
+  // ✅ FUNCIÓN NUEVA: VERIFICAR CAMBIOS PENDIENTES
+  const hayCambiosPendientes = () => {
+    const repuestosNuevos = servicio.repuestos.filter(repuesto => !repuesto.id).length;
+    const repuestosAEliminar = repuestosSeleccionados.length;
+    return repuestosNuevos > 0 || repuestosAEliminar > 0;
+  };
+
+  // ... (mantén el resto de tus funciones existentes igual)
+  const handleSeleccionRepuesto = (repuestoId: number, seleccionado: boolean) => {
+    if (seleccionado) {
+      setRepuestosSeleccionados(prev => [...prev, repuestoId]);
+    } else {
+      setRepuestosSeleccionados(prev => prev.filter(id => id !== repuestoId));
+    }
+  };
+
+  const handleActivarModoSeleccion = () => {
+    setModoSeleccion(true);
+    setRepuestosSeleccionados([]);
+  };
+
+  const handleCancelarSeleccion = () => {
+    setModoSeleccion(false);
+    setRepuestosSeleccionados([]);
+  };
+
+  // En tu Repare.tsx - ACTUALIZA ESTA FUNCIÓN
+  const handleEliminarRepuestosSeleccionados = async () => {
+    if (!isSecretaria || !usuarioId) return;
+
+    if (repuestosSeleccionados.length === 0) {
+      toast.error('Selecciona al menos un repuesto para eliminar');
+      return;
+    }
+
+    try {
+      await eliminarRepuestos({
+        servicio_id: servicio.servicio_id,
+        repuestos_ids: repuestosSeleccionados,
+        usuario_elimina_id: usuarioId
+      }, {
+        onSuccess: () => {
+          // ✅ LIMPIAR SELECCIÓN INMEDIATAMENTE
+          setRepuestosSeleccionados([]);
+          setModoSeleccion(false);
+
+          // ✅ FORZAR ACTUALIZACIÓN DE DATOS
+          refetchRepuestos();
+
+          toast.success(`${repuestosSeleccionados.length} repuesto(s) eliminado(s)`);
+        }
+      });
+    } catch (error) {
+      console.error('Error al eliminar repuestos:', error);
+    }
+  };
+
+  // En tu Repare.tsx - ACTUALIZA ESTA FUNCIÓN TAMBIÉN
+  const handleEliminarRepuestoIndividual = async (repuesto: any, index: number) => {
+    if (!isSecretaria) return;
+
+    if (repuesto.id) {
+      try {
+        await eliminarRepuestos({
+          servicio_id: servicio.servicio_id,
+          repuestos_ids: [repuesto.id],
+          usuario_elimina_id: usuarioId!
+        }, {
+          onSuccess: () => {
+            // ✅ FORZAR ACTUALIZACIÓN DESPUÉS DE ELIMINAR INDIVIDUAL
+            refetchRepuestos();
+            toast.success('Repuesto eliminado correctamente');
+          }
+        });
+      } catch (error) {
+        console.error('Error al eliminar repuesto:', error);
+      }
+    } else {
+      // Si es local, solo actualizar estado
+      const nuevosRepuestos = servicio.repuestos.filter((_, i) => i !== index);
+      setServicio({ ...servicio, repuestos: nuevosRepuestos });
+      toast.success('Repuesto eliminado localmente');
+    }
+  };
+
+  const agregarRepuesto = (producto: any) => {
+    if (!isSecretaria) return;
+
+    const repuestoExistenteIndex = servicio.repuestos.findIndex(
+      (r: any) => !r.id && r.producto_id === producto.id
+    );
+
+    if (repuestoExistenteIndex !== -1) {
+      const nuevosRepuestos = servicio.repuestos.map((repuesto: any, index: number) =>
+        index === repuestoExistenteIndex
           ? { ...repuesto, cantidad: repuesto.cantidad + 1 }
           : repuesto
       );
@@ -139,23 +256,15 @@ const Repare = ({ servicioData }: RepareProps) => {
     }
   };
 
-  const eliminarRepuesto = (index: number) => {
-    if (!isSecretaria) {
-      toast.error('Solo la secretaria puede eliminar repuestos');
-      return;
-    }
-
-    const nuevosRepuestos = servicio.repuestos.filter((_, i) => i !== index);
-    setServicio({ ...servicio, repuestos: nuevosRepuestos });
-  };
-
   const actualizarCantidadRepuesto = (index: number, nuevaCantidad: number) => {
-    if (!isSecretaria) {
-      toast.error('Solo la secretaria puede modificar repuestos');
+    if (!isSecretaria) return;
+    if (nuevaCantidad < 1) return;
+
+    const repuesto = servicio.repuestos[index];
+    if (repuesto.id) {
+      toast.error('No puedes modificar repuestos ya guardados');
       return;
     }
-
-    if (nuevaCantidad < 1) return;
 
     const nuevosRepuestos = servicio.repuestos.map((repuesto: any, i: number) =>
       i === index ? { ...repuesto, cantidad: nuevaCantidad } : repuesto
@@ -163,16 +272,33 @@ const Repare = ({ servicioData }: RepareProps) => {
     setServicio({ ...servicio, repuestos: nuevosRepuestos });
   };
 
-  const calcularTotales = () => {
-    const totalRepuestos = servicio.repuestos.reduce((sum: number, repuesto: any) =>
-      sum + (repuesto.cantidad * repuesto.precio_unitario), 0
-    );
-    const precioTotal = servicio.precio_mano_obra + totalRepuestos;
+  const handleAgregarRepuestos = () => {
+    if (!usuarioId || !isSecretaria) return;
 
-    return { totalRepuestos, precioTotal };
+    const repuestosNuevos = servicio.repuestos.filter(repuesto => !repuesto.id);
+    if (repuestosNuevos.length === 0) {
+      toast.error('No hay repuestos nuevos para guardar');
+      return;
+    }
+
+    const payload = {
+      servicio_id: servicio.servicio_id,
+      repuestos: repuestosNuevos.map((repuesto: any) => ({
+        producto_id: repuesto.producto_id,
+        cantidad: Number(repuesto.cantidad),
+        precio_unitario: Number(repuesto.precio_unitario)
+      })),
+      usuario_agrega_id: usuarioId
+    };
+
+    agregarRepuestos(payload, {
+      onSuccess: () => {
+        refetchRepuestos();
+        toast.success('Repuestos guardados correctamente');
+      }
+    });
   };
-
-  // ✅ FUNCIONES CORREGIDAS CON VALIDACIÓN DE ROL
+  // ✅ AGREGA ESTA FUNCIÓN DESPUÉS DE handleAgregarRepuestos
   const handleGuardarAvance = () => {
     if (!usuarioId) {
       toast.error('Usuario no autenticado');
@@ -193,40 +319,24 @@ const Repare = ({ servicioData }: RepareProps) => {
     };
 
     console.log('Técnico - Guardando avance:', payload);
-    guardarAvance(payload);
-  };
-
-  const handleAgregarRepuestos = () => {
-    if (!usuarioId) {
-      toast.error('Usuario no autenticado');
-      return;
-    }
-
-    if (!isSecretaria) {
-      toast.error('Solo la secretaria puede agregar repuestos');
-      return;
-    }
-
-    const payload = {
-      servicio_id: servicio.servicio_id,
-      repuestos: servicio.repuestos.map((repuesto: any) => ({
-        producto_id: repuesto.producto_id,
-        cantidad: Number(repuesto.cantidad),
-        precio_unitario: Number(repuesto.precio_unitario)
-      })),
-      usuario_agrega_id: usuarioId
-    };
-
-    console.log('Secretaria - Agregando repuestos:', payload);
-    agregarRepuestos(payload, {
-      onSuccess: () => {
-        // ✅ RECARGAR REPUESTOS DESPUÉS DE AGREGAR
-        refetchRepuestos();
-        toast.success('Repuestos guardados correctamente');
+    guardarAvance(payload, {
+      onSuccess: (data) => {
+        // Si el SP retorna repuestos, actualizar el estado
+        if (data.repuestos) {
+          setServicio(prev => ({
+            ...prev,
+            repuestos: data.repuestos
+          }));
+        }
+        toast.success('Avance guardado correctamente');
+      },
+      onError: (error) => {
+        toast.error('Error al guardar avance');
       }
     });
   };
 
+  // ✅ Y también agrega handleFinalizarReparacion si no la tienes:
   const handleFinalizarReparacion = () => {
     if (!usuarioId) {
       toast.error('Usuario no autenticado');
@@ -244,13 +354,35 @@ const Repare = ({ servicioData }: RepareProps) => {
     };
 
     console.log('Finalizando reparación:', payload);
-    finalizarReparacion(payload);
+    finalizarReparacion(payload, {
+      onSuccess: () => {
+        toast.success('Reparación finalizada correctamente');
+        // Opcional: redirigir o actualizar estado
+        setServicio(prev => ({
+          ...prev,
+          estado_id: 3 // Estado "Reparado"
+        }));
+      },
+      onError: (error) => {
+        toast.error('Error al finalizar reparación');
+      }
+    });
+  };
+  const calcularTotales = () => {
+    const totalRepuestos = servicio.repuestos.reduce((sum: number, repuesto: any) =>
+      sum + (repuesto.cantidad * parseFloat(repuesto.precio_unitario)), 0
+    );
+    const precioTotal = servicio.precio_mano_obra + totalRepuestos;
+    return { totalRepuestos, precioTotal };
   };
 
   const { totalRepuestos, precioTotal } = calcularTotales();
+  const repuestosGuardados = servicio.repuestos.filter(r => r.id).length;
+  const repuestosNuevos = servicio.repuestos.filter(r => !r.id).length;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {/* HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">
           {isSecretaria ? "📦 Agregar Repuestos" : "🔧 Completar Reparación - Paso 2"}
@@ -266,52 +398,35 @@ const Repare = ({ servicioData }: RepareProps) => {
         </div>
       </div>
 
-      {/* ✅ INDICADOR DE REPUESTOS CARGADOS */}
-      {repuestosData?.success && (
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-          <div className="flex items-center gap-2">
-            <Package className="h-4 w-4 text-blue-600" />
-            <span className="text-blue-700 text-sm">
-              {servicio.repuestos.length} repuesto(s) cargados
-              {servicio.repuestos.length > 0 && ' - Actualizado en tiempo real'}
-            </span>
-          </div>
+      {/* INDICADOR */}
+      <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+        <div className="flex items-center gap-2">
+          <Package className="h-4 w-4 text-blue-600" />
+          <span className="text-blue-700 text-sm">
+            {repuestosGuardados} repuesto(s) guardados • {repuestosNuevos} repuesto(s) nuevo(s) • {repuestosSeleccionados.length} seleccionado(s) para eliminar
+          </span>
         </div>
-      )}
-
-      {/* ✅ ERROR AL CARGAR REPUESTOS */}
-      {errorRepuestos && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3">
-          <div className="flex items-center gap-2">
-            <span className="text-red-700 text-sm">
-              Error al cargar repuestos: {errorRepuestos.message}
-            </span>
-          </div>
-        </div>
-      )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* ✅ SECCIÓN DIAGNÓSTICO/SOLUCIÓN - SOLO TÉCNICO */}
+        {/* SECCIÓN TÉCNICO */}
         {!isSecretaria && (
           <Card>
             <CardHeader>
               <CardTitle>Completar Reparación</CardTitle>
-              <CardDescription>
-                Servicio ID: #{servicio.servicio_id}
-              </CardDescription>
+              <CardDescription>Servicio ID: #{servicio.servicio_id}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="diagnostico">Diagnóstico *</Label>
                 <Textarea
                   id="diagnostico"
-                  value={servicio.diagnostico}  
+                  value={servicio.diagnostico}
                   onChange={(e) => setServicio({ ...servicio, diagnostico: e.target.value })}
                   placeholder="Ingrese el diagnóstico..."
                   rows={3}
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="solucion">Solución Aplicada *</Label>
                 <Textarea
@@ -322,7 +437,6 @@ const Repare = ({ servicioData }: RepareProps) => {
                   rows={3}
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="precio_mano_obra">Precio Mano de Obra ($)</Label>
                 <Input
@@ -339,7 +453,7 @@ const Repare = ({ servicioData }: RepareProps) => {
         )}
 
         <div className="space-y-6">
-          {/* ✅ SECCIÓN REPUESTOS - VISIBLE PARA AMBOS */}
+          {/* SECCIÓN REPUESTOS */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div>
@@ -347,11 +461,51 @@ const Repare = ({ servicioData }: RepareProps) => {
                 <CardDescription className="text-sm">
                   {servicio.repuestos.length} repuesto(s)
                   {!isSecretaria && " - Solo lectura"}
-                  {!isSecretaria && servicio.repuestos.length > 0 && " (Agregados por secretaria)"}
+                  {modoSeleccion && " - Modo selección activado"}
                 </CardDescription>
               </div>
-              {/* BUSCAR REPUESTOS SOLO PARA SECRETARIA */}
-              {isSecretaria && <BuscarRepuestos agregarRepuesto={agregarRepuesto} />}
+
+              <div className="flex items-center gap-2">
+                {isSecretaria && !modoSeleccion && <BuscarRepuestos agregarRepuesto={agregarRepuesto} />}
+
+                {isSecretaria && repuestosGuardados > 0 && (
+                  <>
+                    {!modoSeleccion ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleActivarModoSeleccion}
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Eliminar Repuestos
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCancelarSeleccion}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={handleEliminarRepuestosSeleccionados}
+                          disabled={repuestosSeleccionados.length === 0 || isPendingEliminar}
+                        >
+                          {isPendingEliminar ? (
+                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4 mr-1" />
+                          )}
+                          Eliminar ({repuestosSeleccionados.length})
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="pt-0">
               {isLoadingRepuestos ? (
@@ -362,46 +516,74 @@ const Repare = ({ servicioData }: RepareProps) => {
               ) : (
                 <RepuestosList
                   repuestos={servicio.repuestos}
-                  actualizarCantidadRepuesto={isSecretaria ? actualizarCantidadRepuesto : undefined}
-                  eliminarRepuesto={isSecretaria ? eliminarRepuesto : undefined}
+                  actualizarCantidadRepuesto={isSecretaria && !modoSeleccion ? actualizarCantidadRepuesto : undefined}
+                  eliminarRepuesto={isSecretaria && !modoSeleccion ? handleEliminarRepuestoIndividual : undefined}
                   modoLectura={!isSecretaria}
                   mostrarAgregadoPor={!isSecretaria}
+                  repuestosSeleccionados={repuestosSeleccionados}
+                  onSeleccionRepuesto={handleSeleccionRepuesto}
+                  modoSeleccion={modoSeleccion}
                 />
               )}
             </CardContent>
           </Card>
 
-          {/* ✅ RESUMEN DE COSTOS - VISIBLE PARA AMBOS */}
+          {/* RESUMEN DE COSTOS */}
           <ResumenCostos
             manoObra={servicio.precio_mano_obra}
             totalRepuestos={totalRepuestos}
             precioTotal={precioTotal}
           />
 
-          {/* ✅ BOTONES SEGÚN ROL */}
+          {/* ✅ BOTONES MEJORADOS */}
           <div className='xl:grid-cols-2 grid gap-3 sm:grid-cols-1'>
             {isSecretaria ? (
-              // ✅ BOTONES SECRETARIA
-              <Button
-                onClick={handleAgregarRepuestos}
-                className="w-full bg-purple-600 hover:bg-purple-700"
-                disabled={isPending}
-                size="lg"
-              >
-                {isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Guardando...
-                  </>
-                ) : (
-                  <>
+              // ✅ BOTONES SECRETARIA MEJORADOS
+              <div className="space-y-3 w-full">
+                {/* BOTÓN PRINCIPAL: GUARDAR TODOS LOS CAMBIOS */}
+                <Button
+                  onClick={handleGuardarTodosLosCambios}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={isPending || !hayCambiosPendientes()}
+                  size="lg"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Guardando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Guardar Todos los Cambios
+                    </>
+                  )}
+                </Button>
+
+                {/* BOTÓN SECUNDARIO: SOLO GUARDAR NUEVOS */}
+                {repuestosNuevos > 0 && (
+                  <Button
+                    onClick={handleAgregarRepuestos}
+                    variant="outline"
+                    className="w-full"
+                    disabled={isPending}
+                    size="sm"
+                  >
                     <Save className="w-4 h-4 mr-2" />
-                    Guardar Repuestos
-                  </>
+                    Solo Guardar Repuestos Nuevos ({repuestosNuevos})
+                  </Button>
                 )}
-              </Button>
+
+                {/* INDICADOR */}
+                <div className="text-xs text-center text-gray-500">
+                  {repuestosNuevos > 0 && `${repuestosNuevos} nuevo(s) `}
+                  {repuestosNuevos > 0 && repuestosSeleccionados.length > 0 && "• "}
+                  {repuestosSeleccionados.length > 0 && `${repuestosSeleccionados.length} por eliminar`}
+                  {!hayCambiosPendientes() && "No hay cambios pendientes"}
+                </div>
+              </div>
             ) : (
-              // ✅ BOTONES TÉCNICO
+              // BOTONES TÉCNICO (se mantienen igual)
               <>
                 <Button
                   onClick={handleGuardarAvance}

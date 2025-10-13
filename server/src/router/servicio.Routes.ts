@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { agregarRepuestosSecretariaCTRL, buscarClienteServicioCTRL, buscarProducCTRL, entregarServicioCTRL, finalizarReparacionCTRL, getAllServicioCTRL, getEstadoCTRL, getMot_IngresoCTRL, guardarAvanceTecnicoCTRL, iniciarReparacionCTRL, obtenerEquiposPorClienteCTRL, obtenerRepuestosServicioCTRL, registrarServicioBasicoCTRL } from "../controller/servicio.Controller";
+import { agregarRepuestosSecretariaCTRL, buscarClienteServicioCTRL, buscarProducCTRL, eliminarRepuestosSecretariaCTRL, entregarServicioCTRL, finalizarReparacionCTRL, getAllServicioCTRL, getEstadoCTRL, getMot_IngresoCTRL, guardarAvanceTecnicoCTRL, iniciarReparacionCTRL, obtenerEquiposPorClienteCTRL, obtenerRepuestosServicioCTRL, registrarServicioBasicoCTRL } from "../controller/servicio.Controller";
 import { validate } from "../middlewares/validation";
 import { validateActualizarReparacion, validateAgregarRepuestos, validateFinalizarReparacion, validateGuardarAvance, validateRegistroBasico } from "../validation/servicioValidation";
 
@@ -21,6 +21,7 @@ routerServicio.put('/guardar-avance', validate, validateGuardarAvance(), guardar
 
 // Ruta para Agregar Repuestos (Secretaria)  
 routerServicio.post('/agregar-repuestos', validate, validateAgregarRepuestos(), agregarRepuestosSecretariaCTRL);
+routerServicio.delete('/delete-repuestos', eliminarRepuestosSecretariaCTRL);
 
 // Ruta para Finalizar Reparación (Técnico)
 routerServicio.put('/finalizar-reparacion', validate, validateFinalizarReparacion(), finalizarReparacionCTRL);

@@ -75,7 +75,7 @@ const createUser = async (user: any) => {
 };
 
 // Actualizar usuario
-const updateUser = async (user: any) => {
+const updateUser = async (user: any) => {  // ← Solo 1 parámetro
     try {
         console.log("📝 Datos recibidos para actualizar:", {
             id: user.id,
@@ -97,8 +97,10 @@ const updateUser = async (user: any) => {
             console.log("🔐 Contraseña encriptada");
         } else {
             console.log("🔓 No se cambió la contraseña");
+            // ⚠️ Aquí está el problema - no podemos enviar NULL
         }
 
+        // ⚠️ PROBLEMA: Si passwordHash es NULL, tu BD da error
         const [rows]: any = await cn
             .promise()
             .query("CALL sp_usuarios_crud(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
@@ -109,12 +111,10 @@ const updateUser = async (user: any) => {
                 user.dni,
                 user.telefono || null,
                 user.usuario,
-                passwordHash, // ← Puede ser null si no se cambia
+                passwordHash, // ← Este es NULL y causa el error
                 user.rol_id,
                 user.usuarioId
             ]);
-
-        console.log("📊 Resultado del procedimiento:", rows);
 
         const filasAfectadas = rows[0][0]?.filas_afectadas || 0;
 

@@ -265,6 +265,20 @@ export const agregarRepuestosSecretaria = async (payload: {
   }
 };
 
+export const eliminarRepuestosSecretaria = async (payload: {
+  servicio_id: number;
+  repuestos_ids: number[];
+  usuario_elimina_id: number;
+}) => {
+  try {
+    const response = await instance.delete(`/delete-repuestos`, { data: payload });
+    return response.data;
+  } catch (error) {
+    console.error("Error al eliminar repuestos:", error);
+    throw error;
+  }
+};
+
 export const finalizarReparacion = async (payload: {
   servicio_id: number;
   usuario_soluciona_id: number;

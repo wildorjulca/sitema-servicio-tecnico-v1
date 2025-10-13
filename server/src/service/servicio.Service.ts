@@ -357,6 +357,44 @@ const agregarRepuestosSecretaria = async (
     }
 };
 
+const eliminarRepuestosSecretaria = async (
+    servicio_id: number,
+    repuestos_ids: number[], // Array de IDs de repuestos a eliminar [1, 3, 5]
+    usuario_elimina_id: number
+) => {
+    try {
+        const repuestosIdsJSON = JSON.stringify(repuestos_ids);
+
+        await cn
+            .promise()
+            .query(
+                "CALL sp_eliminar_repuestos_cliente(?, ?, ?)",
+                [servicio_id, repuestosIdsJSON, usuario_elimina_id]
+            );
+
+        // 🔥 EMITIR POR WEBSOCKET - Repuestos eliminados
+        emitServicioActualizado(
+            servicio_id,
+            null, // No cambia estado
+            { repuestos_eliminados: repuestos_ids.length }
+        );
+
+        return {
+            status: 200,
+            success: true,
+            mensaje: `${repuestos_ids.length} repuesto(s) eliminado(s) correctamente`
+        };
+    } catch (error: any) {
+        console.error("Error al eliminar repuestos:", error);
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error al eliminar repuestos",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
+
 const finalizarReparacion = async (
     servicio_id: number,
     usuario_soluciona_id: number
@@ -466,6 +504,7 @@ export {
     registrarServicioBasico,
     guardarAvanceTecnico,
     agregarRepuestosSecretaria,
+    eliminarRepuestosSecretaria,
     finalizarReparacion,
     obtenerRepuestosServicioService,
     entregarServicioCliente

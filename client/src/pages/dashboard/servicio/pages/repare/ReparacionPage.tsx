@@ -1,6 +1,5 @@
 // ReparacionPage.tsx - Versión corregida
 import { useParams, useNavigate } from 'react-router-dom';
-import { useUser } from '@/hooks/useUser';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Repare from './ui/repare';
@@ -8,7 +7,7 @@ import Repare from './ui/repare';
 const ReparacionPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useUser();
+
 
   // Validar que el ID existe
   if (!id) {

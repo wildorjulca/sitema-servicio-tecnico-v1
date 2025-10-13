@@ -21,7 +21,7 @@ const getAllUserCTRL = async (req: Request, res: Response): Promise<void> => {
 const createUserCTRL = async (req: Request, res: Response): Promise<void> => {
   try {
     const userData = req.body;
-    
+
     if (!userData.usuarioId) {
       res.status(400).json({
         status: 400,
@@ -42,22 +42,39 @@ const createUserCTRL = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// controllers/usuario.controller.ts - CORREGIR
 const updateUserCTRL = async (req: Request, res: Response): Promise<void> => {
   try {
     const userData = req.body;
-    
-    if (!userData.usuarioId) {
+
+    console.log("🔍 BACKEND - updateUserCTRL:");
+    console.log("Body completo:", userData);
+    console.log("userData.id:", userData.id);
+    console.log("userData.usuarioId:", userData.usuarioId);
+    console.log("Tipo de userData.id:", typeof userData.id);
+    console.log("Tipo de userData.usuarioId:", typeof userData.usuarioId);
+
+    // ✅ MODIFICAR VALIDACIÓN - mostrar valores específicos
+    if (!userData.id || !userData.usuarioId) {
+      console.log("❌ VALIDACIÓN FALLIDA:");
+      console.log("userData.id es falsy?:", !userData.id);
+      console.log("userData.usuarioId es falsy?:", !userData.usuarioId);
+      console.log("userData.id valor:", userData.id);
+      console.log("userData.usuarioId valor:", userData.usuarioId);
+
       res.status(400).json({
         status: 400,
         success: false,
-        mensaje: "El campo usuarioId es obligatorio"
+        mensaje: `Los campos id y usuarioId son obligatorios. id: ${userData.id}, usuarioId: ${userData.usuarioId}`
       });
       return;
     }
 
+    console.log("✅ Validación pasada, llamando a updateUser...");
     const result = await updateUser(userData);
     res.status(result.status).json(result);
   } catch (error) {
+    console.error("❌ Error en controller:", error);
     res.status(500).json({
       status: 500,
       success: false,
@@ -70,7 +87,7 @@ const deleteUserCTRL = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { usuarioId } = req.body;
-    
+
     if (!usuarioId) {
       res.status(400).json({
         status: 400,

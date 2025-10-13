@@ -56,27 +56,39 @@ export function Usuarios() {
     }
   };
 
-// En tu componente principal, modifica la función handleSaveUser:
+  // En tu componente principal, modifica la función handleSaveUser:
 const handleSaveUser = (userData: UsuarioFormData) => {
   console.log("🔍 DEBUG handleSaveUser:");
+  console.log("usuarioId:", usuarioId); // ← VERIFICA QUE NO SEA UNDEFINED
   console.log("currentUser:", currentUser);
-  console.log("currentUser.id:", currentUser?.id);
-  console.log("typeof currentUser.id:", typeof currentUser?.id);
-  console.log("userData:", userData);
+
+  // ✅ VALIDAR QUE usuarioId EXISTA
+  if (!usuarioId) {
+    toast.error("Error: Usuario no autenticado");
+    return;
+  }
 
   if (currentUser) {
-    // Editar usuario existente
+    // ✅ EDITAR - Enviar ambos IDs claramente
     const editPayload = {
-      id: currentUser.id,
-      ...userData
+      id: currentUser.id,           // ID del registro a editar
+      ...userData,
+      usuarioId: usuarioId          // ID de QUIÉN edita (asegurar que no es undefined)
     };
-    console.log("📤 Edit payload completo:", editPayload);
     
+    console.log("📤 Payload para EDITAR:", editPayload);
     editUserMutation.mutate(editPayload);
   } else {
-    // Crear nuevo usuario
-    addUserMutation.mutate(userData);
+    // ✅ CREAR - También necesita saber QUIÉN crea
+    const createPayload = {
+      ...userData,
+      usuarioId: usuarioId          // ID de QUIÉN crea
+    };
+    
+    console.log("📤 Payload para CREAR:", createPayload);
+    addUserMutation.mutate(createPayload);
   }
+  
   setIsModalOpen(false);
 };
 
@@ -95,6 +107,9 @@ const handleSaveUser = (userData: UsuarioFormData) => {
         Error al cargar usuarios: {error?.message || "Unknown error"}
       </div>
     );
+  }
+  if (!usuarioId) {
+    return <div>Error: Usuario no autenticado</div>;
   }
 
   // Mapear los datos para la tabla
