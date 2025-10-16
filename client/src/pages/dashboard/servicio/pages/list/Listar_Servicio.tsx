@@ -74,27 +74,28 @@ export default function Listar_Servicio() {
     navigate(`/dashboard/list/${servicio.id}`);
   };
 
-  const handleRepair = (servicio: X) => {
-    const isSecretaria = user?.rol === 'SECRETARIA';
+// En Listar_Servicio.tsx - SIMPLIFICAR
+const handleRepair = (servicio: any) => {
+  const isSecretaria = user?.rol === 'SECRETARIA';
 
-    if (isSecretaria) {
-      // ✅ SECRETARIA: Va directo sin iniciar reparación
-      navigate(`/dashboard/list/${servicio.id}/reparacion`);
-    } else {
-      // ✅ TÉCNICO: Inicia reparación normal
-      iniciarReparacion(
-        {
-          servicioId: servicio.id,
-          usuarioId: usuarioId
-        },
-        {
-          onSuccess: () => {
-            navigate(`/dashboard/list/${servicio.id}/reparacion`);
-          }
+  if (isSecretaria) {
+    // ✅ SOLO NAVEGAR - Repare obtendrá sus propios datos
+    navigate(`/dashboard/list/${servicio.id}/reparacion`);
+  } else {
+    // ✅ TÉCNICO: Iniciar reparación y navegar
+    iniciarReparacion(
+      {
+        servicioId: servicio.id,
+        usuarioId: usuarioId
+      },
+      {
+        onSuccess: () => {
+          navigate(`/dashboard/list/${servicio.id}/reparacion`);
         }
-      );
-    }
-  };
+      }
+    );
+  }
+};
 
   const handleDeliver = (servicio: X) => {
     const confirmar = window.confirm(
@@ -176,7 +177,6 @@ export default function Listar_Servicio() {
     { accessorKey: "equipo", header: "Equipo" },
     { accessorKey: "marca", header: "Marca" },
     { accessorKey: "modelo", header: "Modelo" },
-    { accessorKey: "motivoIngreso", header: "Motivo Ingreso" },
     { accessorKey: "usuarioRecibe", header: "Técnico Recibe" },
     { accessorKey: "usuarioSoluciona", header: "Técnico Soluciona" },
     { accessorKey: "fechaIngreso", header: "Fecha Ingreso" },
@@ -295,9 +295,9 @@ export default function Listar_Servicio() {
       </div>
 
       <div className="flex justify-between items-center mb-2">
-        <h1 className="text-2xl font-bold text-gray-800">Listado de Servicios</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Listado de Servicios</h1>
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-gray-600 dark:text-gray-50">
             Mostrando {MapedService.length} de {totalRows} servicios
           </span>
           {isConnected && (

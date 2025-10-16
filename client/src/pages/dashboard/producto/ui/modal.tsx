@@ -143,7 +143,7 @@ export function ProductDialog({
                       <Input
                         type="number"
                         step="0.01"
-                        min="0.01"
+                        min={0}
                         {...field}
                         onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
                       />
@@ -162,7 +162,7 @@ export function ProductDialog({
                       <Input
                         type="number"
                         step="0.01"
-                        min="0.01"
+                        min={0}
                         {...field}
                         onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
                       />
@@ -184,7 +184,7 @@ export function ProductDialog({
                     <FormControl>
                       <Input
                         type="number"
-                        min="0"
+                        min={0}
                         {...field}
                         onChange={e => field.onChange(parseInt(e.target.value) || 0)}
                       />

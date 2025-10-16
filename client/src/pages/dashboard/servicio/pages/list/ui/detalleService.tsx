@@ -253,23 +253,54 @@ export function DetalleService() {
               <CardTitle className="text-xl text-gray-800 dark:text-gray-100">Detalles del servicio</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Motivo de ingreso</div>
-                  <div className="font-medium text-gray-800 dark:text-gray-100">{ServiceData.motivo_ingreso}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{ServiceData.descripcion_motivo}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Motivos de ingreso ({ServiceData.motivos?.length || 0})</div>
+                  {ServiceData.motivos && ServiceData.motivos.length > 0 ? (
+                    <div className="space-y-2">
+                      {ServiceData.motivos.map((motivo, index) => (
+                        <div key={index} className="p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="font-medium text-gray-800 dark:text-gray-100 text-base">
+                                {motivo.motivo_ingreso}
+                              </div>
+                              {/* Si quieres mostrar el precio individual de cada motivo */}
+                              <div className="text-xs text-green-600 dark:text-green-400 ">
+                                Precio: {formatCurrency(motivo.precio_motivo)}
+                              </div>
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">
+                              #{index + 1}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {/* Resumen de precios de motivos */}
+                      <div className="pt-2 border-t border-gray-200 dark:border-gray-600">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Total motivos:</span>
+                          <span className="font-semibold text-green-600 dark:text-green-400">
+                            {formatCurrency(ServiceData.motivos.reduce((total, motivo) => total + motivo.precio_motivo, 0))}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-gray-500 dark:text-gray-400 italic">No se especificaron motivos</div>
+                  )}
                 </div>
 
-                <div className="space-y-2">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Diagnóstico</div>
-                  <div className="text-gray-800 dark:text-gray-100">{ServiceData.diagnostico || "Sin diagnóstico"}</div>
-                </div>
-              </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Diagnóstico</div>
+                    <div className="text-gray-800 dark:text-gray-100">{ServiceData.diagnostico || "Sin diagnóstico"}</div>
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Solución aplicada</div>
-                  <div className="text-gray-800 dark:text-gray-100">{ServiceData.solucion || "Sin solución especificada"}</div>
+                  <div className="space-y-1">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Solución aplicada</div>
+                    <div className="text-gray-800 dark:text-gray-100">{ServiceData.solucion || "Sin solución especificada"}</div>
+                  </div>
                 </div>
 
                 <div className="space-y-1">

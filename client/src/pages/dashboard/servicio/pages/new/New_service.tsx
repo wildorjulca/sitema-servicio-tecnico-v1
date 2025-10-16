@@ -19,9 +19,16 @@ import { EquipmentSelectionSection } from './ui/EquipmentSelectionSection'
 import { AvailableEquipmentsModal } from './ui/AvailableEquipmentsModal'
 import CustomerModal from '@/pages/dashboard/cliente/ui/CustomerModal '
 import { useNavigate } from 'react-router-dom'
-import { ClienteEdit, Equipment, MotivoIngreso, ServicioEquipo } from '@/interface'
+import { ClienteEdit, Equipment, ServicioEquipo } from '@/interface'
 import { AxiosError } from 'axios'
 import { getErrorMessage } from '@/lib/getErrorMessage'
+
+// NUEVA INTERFACE para los motivos seleccionados
+interface MotivoSeleccionado {
+  motivo_ingreso_id: number;
+  precio_motivo: number;
+  motivo_nombre?: string;
+}
 
 export default function New_Service() {
   const { user } = useUser()
@@ -30,10 +37,9 @@ export default function New_Service() {
 
   const navigate = useNavigate()
 
-  // Estados del formulario
-  const [motivoIngresoId, setMotivoIngresoId] = useState<string>('')
+  // Estados del formulario - CAMBIO: Ahora manejamos array de motivos
+  const [motivosSeleccionados, setMotivosSeleccionados] = useState<MotivoSeleccionado[]>([]);
   const [observacion, setObservacion] = useState('')
-  const [descripcion_motivo, setDescripcion_motivo] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showCustomerModal, setShowCustomerModal] = useState(false)
   const [showEquipmentModal, setShowEquipmentModal] = useState(false)
@@ -66,7 +72,6 @@ export default function New_Service() {
 
   // Handler para cuando se agrega un nuevo motivo
   const handleMotivoAdded = () => {
-    // Refrescar la lista de motivos
     refetchMotivos?.();
     setRefreshMotivosKey(prev => prev + 1);
     toast.success("Nuevo motivo agregado, lista actualizada");
@@ -87,36 +92,24 @@ export default function New_Service() {
   }, [serviceData.cliente_id, selectedCustomer, customers])
 
   useEffect(() => {
-    if (serviceData.motivo_ingreso_id !== null && serviceData.motivo_ingreso_id !== undefined) {
-      setMotivoIngresoId(serviceData.motivo_ingreso_id.toString())
-    }
     if (serviceData.observacion !== undefined) {
       setObservacion(serviceData.observacion)
     }
-    if (serviceData.descripcion_motivo !== undefined) {
-      setDescripcion_motivo(serviceData.descripcion_motivo)
-    }
-  }, [serviceData.motivo_ingreso_id, serviceData.observacion, serviceData.descripcion_motivo])
-
-
+  }, [serviceData.observacion])
 
   // Handlers
   const handleSelectCustomer = (customer: CustomerUI) => {
     setSelectedCustomer(customer)
     setSelectedEquipment(null)
+    setMotivosSeleccionados([]); // Limpiar motivos al cambiar cliente
 
     updateServiceData({
       cliente_id: customer.id,
       servicio_equipos_id: null,
-      motivo_ingreso_id: null,
-      descripcion_motivo: '',
       observacion: ''
     })
 
-    setMotivoIngresoId('')
     setObservacion('')
-    setDescripcion_motivo('')
-
     handleRefetchEquipos()
     setPasoActual(2)
   }
@@ -131,34 +124,38 @@ export default function New_Service() {
     setSelectedCustomer(null)
     setSelectedEquipment(null)
     setSearchTerm('')
-    setMotivoIngresoId('')
+    setMotivosSeleccionados([])
     setObservacion('')
-    setDescripcion_motivo('')
 
     updateServiceData({
       cliente_id: null,
       servicio_equipos_id: null,
-      motivo_ingreso_id: null,
-      descripcion_motivo: '',
       observacion: ''
     })
 
     setPasoActual(1)
   }
 
-  const handleMotivoChange = (value: string) => {
-    setMotivoIngresoId(value)
-    updateServiceData({ motivo_ingreso_id: value ? parseInt(value) : null })
-  }
+  // NUEVOS HANDLERS para manejar múltiples motivos
+  const handleMotivoAdd = (motivo: MotivoSeleccionado) => {
+    setMotivosSeleccionados(prev => [...prev, motivo]);
+    toast.success("Motivo agregado");
+  };
+
+  const handleMotivoRemove = (index: number) => {
+    setMotivosSeleccionados(prev => prev.filter((_, i) => i !== index));
+    toast.success("Motivo eliminado");
+  };
+
+  const handleMotivoUpdate = (index: number, motivoActualizado: MotivoSeleccionado) => {
+    setMotivosSeleccionados(prev => 
+      prev.map((m, i) => i === index ? motivoActualizado : m)
+    );
+  };
 
   const handleObservacionChange = (value: string) => {
     setObservacion(value)
     updateServiceData({ observacion: value })
-  }
-
-  const handleDescripcionChange = (value: string) => {
-    setDescripcion_motivo(value)
-    updateServiceData({ descripcion_motivo: value })
   }
 
   const handleCustomerCreated = async (payload: ClienteEdit) => {
@@ -252,41 +249,37 @@ export default function New_Service() {
     }
   }
 
-
-  // En New_Service.tsx - busca handleSubmitService y cámbialo por:
-
-  const handleSubmitService = async (precioFinal?: number) => {
+  // CAMBIO: Ahora manejamos múltiples motivos
+  const handleSubmitService = async (precioTotal?: number) => {
     if (!serviceData.servicio_equipos_id) {
       toast.error("Falta seleccionar un equipo")
       return
     }
-    if (!motivoIngresoId) {
-      toast.error("Seleccione un motivo de ingreso")
+    if (motivosSeleccionados.length === 0) {
+      toast.error("Debe agregar al menos un motivo de ingreso")
       return
     }
 
     setIsSubmitting(true)
     try {
-      // Usar el precio final si viene, sino usar el precio del motivo
-      const precioARegistrar = precioFinal !== undefined ? precioFinal : selectedMotivo?.precio_cobrar || 0;
+      // Calcular precio total si no viene (suma de todos los motivos)
+      const precioARegistrar = precioTotal !== undefined ? precioTotal : 
+        motivosSeleccionados.reduce((total, motivo) => total + motivo.precio_motivo, 0);
 
-      console.log('💰 Precio a registrar en frontend:', precioARegistrar);
-      console.log('📝 Precio recibido como parámetro:', precioFinal);
-      console.log('🎯 Precio del motivo:', selectedMotivo?.precio_cobrar);
+      console.log('💰 Precio total a registrar:', precioARegistrar);
+      console.log('🔧 Motivos a registrar:', motivosSeleccionados);
 
-      // Actualizar el contexto (opcional)
+      // Actualizar el contexto
       updateServiceData({
-        motivo_ingreso_id: parseInt(motivoIngresoId),
-        descripcion_motivo: descripcion_motivo,
         observacion: observacion,
         precio_final: precioARegistrar
       })
 
-      // ✅✅✅ ESTA ES LA LÍNEA CLAVE - PASAR EL PARÁMETRO ✅✅✅
-      const result = await submitService(precioARegistrar);
+      // Enviar el servicio con múltiples motivos
+      const result = await submitService(precioARegistrar, motivosSeleccionados);
 
       if (result.success) {
-        toast.success(`Servicio registrado exitosamente! Precio: S/. ${precioARegistrar}`)
+        toast.success(`Servicio registrado exitosamente con ${motivosSeleccionados.length} motivo(s)! Precio: S/. ${precioARegistrar}`)
 
         setTimeout(() => {
           navigate('/dashboard/list')
@@ -301,30 +294,27 @@ export default function New_Service() {
       setIsSubmitting(false)
     }
   }
-  // En New_Service.tsx - Agrega esta función
+
   const handleClearCustomer = () => {
     setSelectedCustomer(null);
     setSearchTerm('');
     setSelectedEquipment(null);
-    setMotivoIngresoId('');
+    setMotivosSeleccionados([]);
     setObservacion('');
-    setDescripcion_motivo('');
 
     updateServiceData({
       cliente_id: null,
       servicio_equipos_id: null,
-      motivo_ingreso_id: null,
-      descripcion_motivo: '',
       observacion: ''
     });
 
     setPasoActual(1);
   };
-  // Variables para la barra de estado
+
+  // Variables para la barra de estado - CAMBIO: ahora verificamos si hay motivos
   const clienteCompleto = !!serviceData.cliente_id
   const equipoCompleto = !!serviceData.servicio_equipos_id
-  const motivoCompleto = !!serviceData.motivo_ingreso_id
-  const selectedMotivo = safeMotivosData.find(m => m.id === parseInt(motivoIngresoId))
+  const motivoCompleto = motivosSeleccionados.length > 0  // CAMBIO: Verificar array no vacío
 
   if (!usuarioId) return <div>Por favor inicia sesión para crear servicios</div>
 
@@ -365,17 +355,16 @@ export default function New_Service() {
             {selectedCustomer && selectedEquipment && (
               <ServiceDetailsSection
                 key={refreshMotivosKey}
-                motivoIngresoId={motivoIngresoId}
+                motivosSeleccionados={motivosSeleccionados}  // CAMBIO: Pasar array de motivos
                 observacion={observacion}
-                descripcion_motivo={descripcion_motivo}
-                selectedMotivo={selectedMotivo}
                 safeMotivosData={safeMotivosData}
                 loadingMotivos={loadingMotivos}
                 isSubmitting={isSubmitting}
                 isLoading={isLoading}
-                onMotivoChange={handleMotivoChange}
+                onMotivoAdd={handleMotivoAdd}  // NUEVO: Handlers para múltiples motivos
+                onMotivoRemove={handleMotivoRemove}
+                onMotivoUpdate={handleMotivoUpdate}
                 onObservacionChange={handleObservacionChange}
-                onDescripcionChange={handleDescripcionChange}
                 onSubmit={handleSubmitService}
                 onMotivoAdded={handleMotivoAdded}
                 usuarioId={usuarioId}
@@ -408,7 +397,7 @@ export default function New_Service() {
                   <ServiceSummaryCard
                     customer={selectedCustomer}
                     equipment={selectedEquipment}
-                    motivo={selectedMotivo}
+                    motivos={motivosSeleccionados}  // CAMBIO: Pasar array de motivos
                   />
                 )}
               </>
@@ -451,12 +440,14 @@ export default function New_Service() {
   );
 }
 
-// Componentes auxiliares locales
-function ServiceSummaryCard({ customer, equipment, motivo }: {
+// Componentes auxiliares locales - CAMBIO: Ahora recibe array de motivos
+function ServiceSummaryCard({ customer, equipment, motivos }: {
   customer: CustomerUI;
   equipment: EquipmentUI;
-  motivo: MotivoIngreso;
+  motivos: MotivoSeleccionado[];
 }) {
+  const precioTotal = motivos.reduce((total, motivo) => total + motivo.precio_motivo, 0);
+
   return (
     <Card className="bg-gradient-to-r from-[#1e7eeb] to-blue-600 text-white shadow-xl">
       <CardContent className="p-6">
@@ -481,11 +472,21 @@ function ServiceSummaryCard({ customer, equipment, motivo }: {
             <p className="font-semibold">{equipment.serialNumber}</p>
           </div>
         </div>
-        {motivo && (
+        {motivos.length > 0 && (
           <div className="mt-3 p-3 bg-white/20 rounded-lg">
-            <p className="text-blue-100">Motivo seleccionado:</p>
-            <p className="font-semibold">{motivo.descripcion}</p>
-            <p className="text-blue-100">Precio: S/. {motivo.precio_cobrar}</p>
+            <p className="text-blue-100">Motivos seleccionados ({motivos.length}):</p>
+            {motivos.map((motivo, index) => (
+              <div key={index} className="mt-1">
+                <p className="font-semibold text-sm">{motivo.motivo_nombre}</p>
+                {motivo.descripcion_adicional && (
+                  <p className="text-blue-100 text-xs">{motivo.descripcion_adicional}</p>
+                )}
+                <p className="text-blue-100 text-xs">Precio: S/. {motivo.precio_motivo}</p>
+              </div>
+            ))}
+            <div className="mt-2 pt-2 border-t border-white/30">
+              <p className="font-semibold">Precio Total: S/. {precioTotal}</p>
+            </div>
           </div>
         )}
       </CardContent>

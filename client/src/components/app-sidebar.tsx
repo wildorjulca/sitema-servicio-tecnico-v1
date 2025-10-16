@@ -126,6 +126,7 @@ const data = {
             icon: LineChart,
             items: [
                 { title: "Reporte", url: "Report" },
+                { title: "Tecnico", url: "tecnico" },
                 { title: "Alert", url: "notif" },
 
             ],

@@ -229,7 +229,7 @@ export default function CustomerModal({
                       <SelectContent>
                         {tipo_doc?.map((cat: TipoDoc) => (
                           <SelectItem key={cat.id_tipo} value={cat.id_tipo.toString()}>
-                            {cat.nombre_tipo} ({cat.cant_digitos} dígitos)
+                            {cat.cod_tipo} ({cat.cant_digitos} dígitos)
                           </SelectItem>
                         ))}
                       </SelectContent>

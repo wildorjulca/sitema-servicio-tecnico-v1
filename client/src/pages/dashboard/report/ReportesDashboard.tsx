@@ -80,6 +80,7 @@ export const ReportesDashboard = () => {
         tipoPeriodo,
         fechaBase
       };
+      
 
       // Generar PDF en memoria como Blob
       const blob = await generarPDFBlob(datosExportacion);

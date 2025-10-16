@@ -139,18 +139,22 @@ export const obtenerEquiposPorCliente = async (cliente_id: number) => {
 
 // hooks/useService.ts
 export const servicioReparacion1 = async (payload: {
-  motivo_ingreso_id: number;
-  descripcion_motivo: string;
+  motivos: {  // CAMBIO: Array de motivos en lugar de campos individuales
+    motivo_ingreso_id: number;
+    descripcion_adicional: string;  // CAMBIO: nombre del campo
+    precio_motivo: number;          // NUEVO: precio individual por motivo
+  }[];
   observacion: string;
   usuario_recibe_id: number;
   servicio_equipos_id: number;
   cliente_id: number;
-  precio_final?: number; // <- Agregar este campo como opcional
+  precio_total?: number;  // CAMBIO: precio_final -> precio_total
 }) => {
   try {
     console.log('🌐 === INICIANDO LLAMADA API ===');
     console.log('📤 Enviando a /registro-basico:', JSON.stringify(payload, null, 2));
-    console.log('💰 Precio final en payload:', payload.precio_final);
+    console.log('🔧 Motivos enviados:', payload.motivos);
+    console.log('💰 Precio total en payload:', payload.precio_total);
 
     const response = await instance.post(`/registro-basico`, payload);
 
@@ -172,6 +176,7 @@ export const servicioReparacion1 = async (payload: {
     throw error;
   }
 };
+
 // NUEVO Servicio - Iniciar reparación (con tu formato)
 export const iniciarReparacionService = async (
   servicio_id: number,

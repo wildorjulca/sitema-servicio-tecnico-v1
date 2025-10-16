@@ -1,5 +1,6 @@
-// components/Repare.tsx - VERSIÓN COMPLETA CON BOTÓN "GUARDAR CAMBIOS"
+// components/Repare.tsx - VERSIÓN MEJORADA CON HOOK PROPIO
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom'; // ✅ AGREGAR
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,39 +18,31 @@ import {
   useAgregarRepuestos,
   useEliminarRepuestos,
   useFinalizarReparacion,
-  useObtenerRepuestosServicio
+  useObtenerRepuestosServicio,
+  useServiceyId // ✅ AGREGAR ESTE HOOK
 } from '@/hooks/useService';
 
-interface ServicioData {
-  idServicio?: number;
-  servicio_id?: number;
-  diagnostico?: string;
-  solucion?: string;
-  precio_mano_obra?: number;
-  estado_id?: number;
-  repuestos?: any[];
-}
-
+// ✅ INTERFACE ACTUALIZADA (puedes mantener servicioData como opcional)
 interface RepareProps {
-  servicioData: ServicioData;
+  servicioData?: any; // Opcional, por si acaso
 }
 
 const Repare = ({ servicioData }: RepareProps) => {
-  
+  const { id } = useParams<{ id: string }>(); // ✅ OBTENER ID DE LA URL
   const { user } = useUser();
   const usuarioId = user?.id;
   const isSecretaria = user?.rol === 'SECRETARIA';
 
-  const [servicio, setServicio] = useState(() => {
-    const servicioId = servicioData?.servicio_id || servicioData?.idServicio || 0;
-    return {
-      servicio_id: servicioId,
-      diagnostico: servicioData?.diagnostico || '',
-      solucion: servicioData?.solucion || '',
-      precio_mano_obra: servicioData?.precio_mano_obra || 0,
-      estado_id: servicioData?.estado_id || 2,
-      repuestos: servicioData?.repuestos || []
-    };
+  // ✅ OBTENER DATOS COMPLETOS DEL SERVICIO CON EL HOOK
+  const { data: servicioCompleto, isLoading: isLoadingServicio, error: errorServicio } = useServiceyId(usuarioId, id);
+
+  const [servicio, setServicio] = useState({
+    servicio_id: parseInt(id || '0'),
+    diagnostico: '',
+    solucion: '',
+    precio_mano_obra: 0,
+    estado_id: 2,
+    repuestos: []
   });
 
   const [repuestosSeleccionados, setRepuestosSeleccionados] = useState<number[]>([]);
@@ -69,6 +62,22 @@ const Repare = ({ servicioData }: RepareProps) => {
 
   const isPending = isPendingAvance || isPendingAgregar || isPendingEliminar || isPendingFinalizar;
 
+  // ✅ INICIALIZAR CON DATOS DEL SERVICIO CUANDO LLEGUEN
+  useEffect(() => {
+    if (servicioCompleto) {
+      console.log('🎯 Datos completos del servicio cargados:', servicioCompleto);
+      setServicio(prev => ({
+        ...prev,
+        servicio_id: servicioCompleto.idServicio,
+        diagnostico: servicioCompleto.diagnostico || '',
+        solucion: servicioCompleto.solucion || '',
+        precio_mano_obra: servicioCompleto.precio || 0, // precio es mano de obra
+        estado_id: servicioCompleto.estado_id || prev.estado_id
+      }));
+    }
+  }, [servicioCompleto]);
+
+  // ✅ ACTUALIZAR REPUESTOS CUANDO LLEGUEN DEL HOOK
   useEffect(() => {
     if (repuestosData?.success && repuestosData.data) {
       setServicio(prev => ({
@@ -84,7 +93,44 @@ const Repare = ({ servicioData }: RepareProps) => {
     }
   }, [repuestosData]);
 
-  // ✅ FUNCIÓN NUEVA: GUARDAR TODOS LOS CAMBIOS
+  // ✅ MOSTRAR LOADING MIENTRAS CARGA EL SERVICIO
+  if (isLoadingServicio) {
+    return (
+      <div className="container mx-auto p-6 flex justify-center items-center min-h-64">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Cargando datos del servicio...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ MOSTRAR ERROR SI FALLA LA CARGA
+  if (errorServicio || !servicioCompleto) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center py-8 text-red-600">
+          <h2 className="text-xl font-bold mb-2">Error al cargar el servicio</h2>
+          <p>No se pudieron cargar los datos del servicio. Verifica que el servicio exista.</p>
+          <Button 
+            onClick={() => window.history.back()} 
+            className="mt-4"
+            variant="outline"
+          >
+            Volver atrás
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ DEBUG: Verificar datos cargados
+  console.log('📊 Estado actual del servicio:', servicio);
+
+  // ... (TODAS TUS FUNCIONES EXISTENTES SE MANTIENEN IGUAL)
+  // handleGuardarTodosLosCambios, handleSeleccionRepuesto, handleActivarModoSeleccion, etc.
+  // ⚠️ SOLO COPIAR DESDE AQUÍ HACIA ABAJO LAS FUNCIONES QUE YA TIENES
+
   const handleGuardarTodosLosCambios = async () => {
     if (!usuarioId) {
       toast.error('Usuario no autenticado');
@@ -143,14 +189,12 @@ const Repare = ({ servicioData }: RepareProps) => {
     }
   };
 
-  // ✅ FUNCIÓN NUEVA: VERIFICAR CAMBIOS PENDIENTES
   const hayCambiosPendientes = () => {
     const repuestosNuevos = servicio.repuestos.filter(repuesto => !repuesto.id).length;
     const repuestosAEliminar = repuestosSeleccionados.length;
     return repuestosNuevos > 0 || repuestosAEliminar > 0;
   };
 
-  // ... (mantén el resto de tus funciones existentes igual)
   const handleSeleccionRepuesto = (repuestoId: number, seleccionado: boolean) => {
     if (seleccionado) {
       setRepuestosSeleccionados(prev => [...prev, repuestoId]);
@@ -169,7 +213,6 @@ const Repare = ({ servicioData }: RepareProps) => {
     setRepuestosSeleccionados([]);
   };
 
-  // En tu Repare.tsx - ACTUALIZA ESTA FUNCIÓN
   const handleEliminarRepuestosSeleccionados = async () => {
     if (!isSecretaria || !usuarioId) return;
 
@@ -185,13 +228,9 @@ const Repare = ({ servicioData }: RepareProps) => {
         usuario_elimina_id: usuarioId
       }, {
         onSuccess: () => {
-          // ✅ LIMPIAR SELECCIÓN INMEDIATAMENTE
           setRepuestosSeleccionados([]);
           setModoSeleccion(false);
-
-          // ✅ FORZAR ACTUALIZACIÓN DE DATOS
           refetchRepuestos();
-
           toast.success(`${repuestosSeleccionados.length} repuesto(s) eliminado(s)`);
         }
       });
@@ -200,7 +239,6 @@ const Repare = ({ servicioData }: RepareProps) => {
     }
   };
 
-  // En tu Repare.tsx - ACTUALIZA ESTA FUNCIÓN TAMBIÉN
   const handleEliminarRepuestoIndividual = async (repuesto: any, index: number) => {
     if (!isSecretaria) return;
 
@@ -212,7 +250,6 @@ const Repare = ({ servicioData }: RepareProps) => {
           usuario_elimina_id: usuarioId!
         }, {
           onSuccess: () => {
-            // ✅ FORZAR ACTUALIZACIÓN DESPUÉS DE ELIMINAR INDIVIDUAL
             refetchRepuestos();
             toast.success('Repuesto eliminado correctamente');
           }
@@ -221,7 +258,6 @@ const Repare = ({ servicioData }: RepareProps) => {
         console.error('Error al eliminar repuesto:', error);
       }
     } else {
-      // Si es local, solo actualizar estado
       const nuevosRepuestos = servicio.repuestos.filter((_, i) => i !== index);
       setServicio({ ...servicio, repuestos: nuevosRepuestos });
       toast.success('Repuesto eliminado localmente');
@@ -298,7 +334,7 @@ const Repare = ({ servicioData }: RepareProps) => {
       }
     });
   };
-  // ✅ AGREGA ESTA FUNCIÓN DESPUÉS DE handleAgregarRepuestos
+
   const handleGuardarAvance = () => {
     if (!usuarioId) {
       toast.error('Usuario no autenticado');
@@ -321,22 +357,33 @@ const Repare = ({ servicioData }: RepareProps) => {
     console.log('Técnico - Guardando avance:', payload);
     guardarAvance(payload, {
       onSuccess: (data) => {
-        // Si el SP retorna repuestos, actualizar el estado
+        if (data.data) {
+          const servicioActualizado = data.data;
+          setServicio(prev => ({
+            ...prev,
+            diagnostico: servicioActualizado.diagnostico || prev.diagnostico,
+            solucion: servicioActualizado.solucion || prev.solucion,
+            precio_mano_obra: servicioActualizado.precio_mano_obra || prev.precio_mano_obra,
+            estado_id: servicioActualizado.estado_id || prev.estado_id
+          }));
+        }
+
         if (data.repuestos) {
           setServicio(prev => ({
             ...prev,
             repuestos: data.repuestos
           }));
         }
+
         toast.success('Avance guardado correctamente');
       },
       onError: (error) => {
+        console.error('Error al guardar avance:', error);
         toast.error('Error al guardar avance');
       }
     });
   };
 
-  // ✅ Y también agrega handleFinalizarReparacion si no la tienes:
   const handleFinalizarReparacion = () => {
     if (!usuarioId) {
       toast.error('Usuario no autenticado');
@@ -357,10 +404,9 @@ const Repare = ({ servicioData }: RepareProps) => {
     finalizarReparacion(payload, {
       onSuccess: () => {
         toast.success('Reparación finalizada correctamente');
-        // Opcional: redirigir o actualizar estado
         setServicio(prev => ({
           ...prev,
-          estado_id: 3 // Estado "Reparado"
+          estado_id: 3
         }));
       },
       onError: (error) => {
@@ -368,6 +414,7 @@ const Repare = ({ servicioData }: RepareProps) => {
       }
     });
   };
+
   const calcularTotales = () => {
     const totalRepuestos = servicio.repuestos.reduce((sum: number, repuesto: any) =>
       sum + (repuesto.cantidad * parseFloat(repuesto.precio_unitario)), 0
@@ -379,6 +426,9 @@ const Repare = ({ servicioData }: RepareProps) => {
   const { totalRepuestos, precioTotal } = calcularTotales();
   const repuestosGuardados = servicio.repuestos.filter(r => r.id).length;
   const repuestosNuevos = servicio.repuestos.filter(r => !r.id).length;
+
+  // ... (EL JSX SE MANTIENE EXACTAMENTE IGUAL)
+  // ⚠️ COPIAR DESDE AQUÍ HACIA ABAJO TODO EL RETURN QUE YA TIENES
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -438,11 +488,9 @@ const Repare = ({ servicioData }: RepareProps) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="precio_mano_obra">Precio Mano de Obra ($)</Label>
+                <Label htmlFor="precio_mano_obra">Precio Mano de Obra (S/.)</Label>
                 <Input
                   id="precio_mano_obra"
-                  type="number"
-                  step="0"
                   min={0}
                   value={servicio.precio_mano_obra}
                   onChange={(e) => setServicio({ ...servicio, precio_mano_obra: parseFloat(e.target.value) || 0 })}

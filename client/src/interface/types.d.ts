@@ -3,9 +3,10 @@ export interface Servicio {
     idServicio: number;
     codigoSeguimiento: string;
     fechaIngreso: Date;
-    motivo_ingreso_id: number;
-    motivo_ingreso: string;
-    descripcion_motivo: string;
+    // MANTENER como opcional para compatibilidad
+    motivo_ingreso_id?: number;
+    motivo_ingreso?: string;
+    descripcion_motivo?: string;
     observacion: string;
     diagnostico: string;
     solucion: string;
@@ -28,8 +29,11 @@ export interface Servicio {
     codigo_barras: string;
     cliente_id: number;
     cliente: string;
+    
+    // NUEVOS CAMPOS
+    motivos: MotivoServicio[];
+    repuestos: RepuestoServicio[] | null;
 }
-
 export interface ServicioResponse {
     status: number;
     success: boolean;

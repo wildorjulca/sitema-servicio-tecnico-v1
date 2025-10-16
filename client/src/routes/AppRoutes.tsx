@@ -29,6 +29,7 @@ import { ImprimirServicio } from '@/pages/dashboard/servicio/pages/print/Imprimi
 import { ReportesDashboard } from '@/pages/dashboard/report/ReportesDashboard';
 import { AlertasPanel } from '@/pages/dashboard/alerts/AlertasPanel';
 import AsignarRol from '@/pages/dashboard/rol/AsignarRol';
+import TecnicoReporte from '@/pages/dashboard/report/tecnico/TecnicoReporte';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -100,6 +101,7 @@ const AppRoutes = () => {
 
 
                     <Route path="permiso" element={<Permiso />} />
+                    <Route path="tecnico" element={<TecnicoReporte />} />
                     <Route path="roles" element={<Roles />} />
                     <Route path="asiganrol" element={<AsignarRol />} />
 

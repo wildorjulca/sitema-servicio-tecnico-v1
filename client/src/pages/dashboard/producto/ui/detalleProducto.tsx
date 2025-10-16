@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useUser } from "@/hooks/useUser";
 import { useProductoById } from "@/hooks/useProductoHook";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit, Trash2, Plus, X } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDeleteProducto } from "@/hooks/useProductoHook";
 import toast from "react-hot-toast";
@@ -85,10 +85,6 @@ export function DetalleProducto() {
       },
       onError: () => toast.error("Error al eliminar producto"),
     });
-  };
-
-  const handleEdit = () => {
-    navigate(`/producto/edit/${id}`);
   };
 
   const handleAddImage = () => {
@@ -338,9 +334,7 @@ export function DetalleProducto() {
 
             {/* Acciones */}
             <div className="flex space-x-4 pt-4">
-              <Button onClick={handleEdit}>
-                <Edit className="mr-2 h-4 w-4" /> Editar Producto
-              </Button>
+
               <Button variant="destructive" onClick={handleDelete}>
                 <Trash2 className="mr-2 h-4 w-4" /> Eliminar
               </Button>
