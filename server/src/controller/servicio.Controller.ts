@@ -127,53 +127,50 @@ const obtenerEquiposPorClienteCTRL = async (req: Request, res: Response) => {
 const registrarServicioBasicoCTRL = async (req: Request, res: Response) => {
   try {
     const {
-      motivo_ingreso_id,
-      descripcion_motivo,
+      motivos,  // CAMBIO: Ahora recibe array de motivos
       observacion,
       usuario_recibe_id,
       servicio_equipos_id,
       cliente_id,
-      precio_final  // <- NUEVO CAMPO DEL BODY
+      precio_total  // CAMBIO: precio_final -> precio_total
     } = req.body;
 
     console.log('📦 Body recibido:', req.body);
-    console.log('💰 Precio final recibido en controlador:', precio_final);
+    console.log('🔧 Motivos recibidos:', motivos);
 
     // Validar campos obligatorios
-    if (!motivo_ingreso_id || !usuario_recibe_id || !servicio_equipos_id || !cliente_id) {
+    if (!motivos || !Array.isArray(motivos) || motivos.length === 0 || 
+        !usuario_recibe_id || !servicio_equipos_id || !cliente_id) {
       res.status(400).json({
         status: 400,
         success: false,
-        mensaje: "Todos los campos obligatorios son requeridos"
+        mensaje: "Todos los campos obligatorios son requeridos, incluyendo al menos un motivo"
       });
-      return
+      return;
     }
 
     const response = await registrarServicioBasico(
-      motivo_ingreso_id,
-      descripcion_motivo || '',
+      motivos,           // Array de motivos
       observacion || '',
       usuario_recibe_id,
       servicio_equipos_id,
       cliente_id,
-      precio_final  // <- Pasar el nuevo parámetro
+      precio_total       // Precio total del servicio
     );
 
     res.status(response.status).json(response);
 
   } catch (error: any) {
     console.error("Error en controlador registrarServicioBasicoCTRL:", error);
-
     res.status(500).json({
       status: 500,
       success: false,
       mensaje: "Error interno del servidor",
       error: error.message
     });
-    return
+    return;
   }
 };
-
 const iniciarReparacionCTRL = async (req: Request, res: Response) => {
   try {
     const { servicio_id, usuario_soluciona_id } = req.body;

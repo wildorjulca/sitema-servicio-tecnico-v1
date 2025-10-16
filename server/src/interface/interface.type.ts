@@ -106,3 +106,68 @@ export interface ServicioEquipo {
     codigo_barras?: string;
     usuarioId: number;
 }
+
+
+export interface ServiceFilterParams {
+    tecnico_id: number;
+    estado_id?: number | null;
+    fecha_desde?: string | null;
+    fecha_hasta?: string | null;
+}
+
+export interface StatsFilterParams {
+    tecnico_id: number;
+    fecha_desde?: string | null;
+    fecha_hasta?: string | null;
+}
+
+export interface ServiceResult {
+    idServicio: number;
+    codigoSeguimiento: string;
+    fechaIngreso: string;
+    fechaEntrega: string | null;
+    estado_id: number;
+    estado: string;
+    diagnostico: string;
+    solucion: string;
+    mano_obra: number;
+    precioRepuestos: number;
+    precioTotal: number;
+    tecnico_id: number;
+    tecnico_nombre: string;
+    tecnico_usuario: string;
+    cliente: string;
+    equipo: string;
+    marca: string;
+    modelo: string;
+    repuestos: string; // JSON string
+}
+
+export interface TechnicianStats {
+    tecnico_id: number;
+    tecnico_nombre: string;
+    tecnico_usuario: string;
+    total_servicios: number;
+    pendientes: number;
+    en_reparacion: number;
+    terminados: number;
+    entregados: number;
+    ingresos_totales: number;
+    total_mano_obra: number;
+    total_repuestos: number;
+    ticket_promedio: number;
+    dias_promedio_reparacion: number;
+    porcentaje_entregados: number;
+    repuestos_utilizados: number;
+    valor_total_repuestos: number;
+    clientes_unicos: number;
+}
+
+export interface Tecnico {
+    id: number;
+    nombre: string;
+    apellidos: string;
+    dni: string;
+    telefono: string;
+    usuario: string;
+}

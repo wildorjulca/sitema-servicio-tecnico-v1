@@ -172,27 +172,28 @@ const obtenerEquiposPorCliente = async (cliente_id: number) => {
 
 // 🔥 NUEVO: Servicio con WebSocket integrado
 const registrarServicioBasico = async (
-    motivo_ingreso_id: number,
-    descripcion_motivo: string,
+    motivos: any[],  // CAMBIO: Array de motivos
     observacion: string,
     usuario_recibe_id: number,
     servicio_equipos_id: number,
     cliente_id: number,
-    precio_final?: number  // <- NUEVO PARÁMETRO OPCIONAL
+    precio_total?: number  // CAMBIO: precio_final -> precio_total
 ) => {
     try {
+        // Convertir array de motivos a JSON string
+        const motivosJson = JSON.stringify(motivos);
+
         const [results]: any = await cn
             .promise()
             .query(
-                "CALL sp_registrar_servicio_basico(?, ?, ?, ?, ?, ?, ?)", // <- 7 parámetros ahora
+                "CALL sp_registrar_servicio_basico(?, ?, ?, ?, ?, ?)", // 6 parámetros ahora
                 [
-                    motivo_ingreso_id,
-                    descripcion_motivo,
+                    motivosJson,           // JSON con motivos
                     observacion,
                     usuario_recibe_id,
                     servicio_equipos_id,
                     cliente_id,
-                    precio_final !== undefined ? precio_final : null  // <- Pasar NULL si no viene
+                    precio_total !== undefined ? precio_total : 0
                 ]
             );
 
@@ -209,12 +210,11 @@ const registrarServicioBasico = async (
             precioTotal: precioTotal,
             estado_id: 1, // Estado inicial "Recibido"
             cliente_id: cliente_id,
-            motivo_ingreso_id: motivo_ingreso_id,
-            descripcion_motivo: descripcion_motivo
+            motivos: motivos  // CAMBIO: Enviar array de motivos
         });
 
-        console.log('✅ Servicio registrado - Precio usado:', precioTotal);
-        console.log('💰 Precio final recibido:', precio_final);
+        console.log('✅ Servicio registrado con', motivos.length, 'motivos');
+        console.log('💰 Precio total:', precioTotal);
 
         return {
             status: 200,
@@ -222,9 +222,10 @@ const registrarServicioBasico = async (
             data: {
                 id_servicio: servicioId,
                 codigo_seguimiento: codigoSeguimiento,
-                precio_total: precioTotal
+                precio_total: precioTotal,
+                motivos_registrados: motivos.length
             },
-            mensaje: "Servicio registrado exitosamente"
+            mensaje: `Servicio registrado exitosamente con ${motivos.length} motivo(s)`
         };
     } catch (error: any) {
         console.error("Error en registrar servicio básico:", error);
@@ -435,24 +436,24 @@ const finalizarReparacion = async (
 
 // services/servicioService.ts - AGREGAR ESTA FUNCIÓN
 const obtenerRepuestosServicioService = async (servicioId: number) => {
-  try {
-    const [results]: any = await cn
-      .promise()
-      .query("CALL sp_obtener_repuestos_servicio(?)", [servicioId]);
+    try {
+        const [results]: any = await cn
+            .promise()
+            .query("CALL sp_obtener_repuestos_servicio(?)", [servicioId]);
 
-    return {
-      success: true,
-      data: results[0] || [],
-      count: results[0] ? results[0].length : 0
-    };
-  } catch (error: any) {
-    console.error('Error en servicio obtener repuestos:', error);
-    return {
-      success: false,
-      mensaje: "Error al obtener repuestos del servicio",
-      error: error.sqlMessage || error.message
-    };
-  }
+        return {
+            success: true,
+            data: results[0] || [],
+            count: results[0] ? results[0].length : 0
+        };
+    } catch (error: any) {
+        console.error('Error en servicio obtener repuestos:', error);
+        return {
+            success: false,
+            mensaje: "Error al obtener repuestos del servicio",
+            error: error.sqlMessage || error.message
+        };
+    }
 };
 
 // 🔥 NUEVO: Entregar servicio con WebSocket

@@ -18,12 +18,12 @@ import { routerRol } from './router/rol.Routes';
 import { routerPermisos } from './router/permiso.Routes';
 import { protectedRoute } from './router/protectedRoute';
 import { routerLogin } from './router/authRouter';
-import { routerTecnico } from './router/tecnicoRouter';
+import { routerTecnico } from './router/tecnico.Routes';
 import { routerServicioEquipos } from './router/servicio_equipos.Routes';
 import { routerMotivoIngreso } from './router/motivo_ingreso.Routes';
 import { routerCliente } from './router/cliente.Routes';
 import { routerReportes } from './router/reporte.Routes';
-import { routerEmail } from './router/emailRouter';
+import { routerEmail } from './router/email.Routes';
 import routerPermiso from './router/rol_permiso.Routes';
 // ... otros imports
 
