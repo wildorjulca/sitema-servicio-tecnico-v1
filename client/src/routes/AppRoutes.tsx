@@ -30,6 +30,7 @@ import { ReportesDashboard } from '@/pages/dashboard/report/ReportesDashboard';
 import { AlertasPanel } from '@/pages/dashboard/alerts/AlertasPanel';
 import AsignarRol from '@/pages/dashboard/rol/AsignarRol';
 import TecnicoReporte from '@/pages/dashboard/report/tecnico/TecnicoReporte';
+import Web from '@/pages/web/web';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -40,8 +41,11 @@ const AppRoutes = () => {
                 {/* Ruta raíz */}
                 <Route path="/" element={<Navigate to="/login" />} />
 
+
                 {/* Login */}
                 <Route path="/login" element={<Login />} />
+                <Route path="web" element={<Web />} />
+
 
                 {/* Rutas protegidas */}
                 <Route
@@ -91,6 +95,9 @@ const AppRoutes = () => {
                     {/* <Route path="list" element={<Listar_Servicio />} /> */}
 
                     <Route path="new" element={<New_Service />} />
+
+
+
 
 
 

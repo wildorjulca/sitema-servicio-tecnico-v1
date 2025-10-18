@@ -12,6 +12,12 @@ export default {
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+        // Tus colores personalizados
+        'inforsystems-azul': '#1e40af',
+        'inforsystems-azul-hover': '#1e3a8a',
+        'cable-latino-verde': '#10b981',
+        'cable-latino-verde-hover': '#059669',
+        
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
