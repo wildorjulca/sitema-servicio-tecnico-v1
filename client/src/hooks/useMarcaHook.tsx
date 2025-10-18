@@ -1,4 +1,5 @@
 import { addBrandAPI, Brand, deleteBrandAPI, editBrandAPI, fetchBrands, fetchMarca } from '@/apis';
+import { showErrorToast } from '@/utils/errorHandler';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
@@ -47,9 +48,7 @@ export const useAddBrand = (usuarioId: number) => {
       toast.success('Marca agregada');
       queryClient.invalidateQueries({ queryKey: ['allBrands', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error al agregar marca');
-    },
+    onError: showErrorToast
   });
 };
 
@@ -73,9 +72,7 @@ export const useEditBrand = (usuarioId: number) => {
       toast.success('Marca actualizada');
       queryClient.invalidateQueries({ queryKey: ['allBrands', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error al actualizar marca');
-    },
+    onError:showErrorToast
   });
 };
 
@@ -91,9 +88,7 @@ export const useDeleteBrand = (usuarioId: number) => {
       toast.success('Marca eliminada');
       queryClient.invalidateQueries({ queryKey: ['allBrands', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error al eliminar marca');
-    },
+    onError:showErrorToast
   });
 };
 

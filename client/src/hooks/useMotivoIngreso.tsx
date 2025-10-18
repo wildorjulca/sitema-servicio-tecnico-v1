@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { useEffect } from 'react';
 import { MotivoIngreso } from '@/interface';
 import { addMotivoIngresoAPI, deleteMotivoIngresoAPI, editMotoviIngresoAPI, fetchMotivoIngreso } from '@/apis/motivo_ingreso';
+import { showErrorToast } from '@/utils/errorHandler';
 
 
 
@@ -53,9 +54,7 @@ export const useAddMotivoIngreso= (usuarioId: number) => {
       toast.success('motivo ingreso agregada');
       queryClient.invalidateQueries({ queryKey: ['ref', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error al agregar motivo ingreso');
-    },
+    onError:showErrorToast
   });
 };
 
@@ -80,9 +79,7 @@ export const useEditMotivoIngreso = (usuarioId: number) => {
       toast.success('motivo ingreso actualizada');
       queryClient.invalidateQueries({ queryKey: ['ref', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error al actualizar motivo ingreso');
-    },
+    onError:showErrorToast
   });
 };
 
@@ -98,8 +95,6 @@ export const useDeleteMotivoIngreso = (usuarioId: number) => {
       toast.success('motivo ingreso eliminada');
       queryClient.invalidateQueries({ queryKey: ['ref', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error al eliminar motivo ingreso');
-    },
+    onError:showErrorToast
   });
 };

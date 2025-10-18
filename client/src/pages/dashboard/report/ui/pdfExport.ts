@@ -2,6 +2,13 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
+interface Motivo {
+  motivo_ingreso_id: number;
+  motivo_ingreso: string;
+  descripcion_adicional: string;
+  precio_motivo: number;
+}
+
 interface Repuesto {
   idServicioRepuesto: number;
   producto_id: number;
@@ -15,9 +22,7 @@ interface ServicioDetallado {
   idServicio: number;
   codigoSeguimiento: string;
   fechaIngreso: string;
-  motivo_ingreso_id: number;
-  motivo_ingreso: string;
-  descripcion_motivo: string;
+  motivos: string; // Ahora es un JSON string con array de Motivo[]
   observacion: string;
   diagnostico: string;
   solucion: string;
@@ -71,6 +76,39 @@ interface DatosExportacion {
   fechaBase: string;
 }
 
+// Función para procesar los motivos desde el JSON
+const procesarMotivos = (motivosJson: string): string => {
+  try {
+    if (!motivosJson) return 'Sin motivos';
+    
+    const motivos: Motivo[] = JSON.parse(motivosJson);
+    if (!Array.isArray(motivos) || motivos.length === 0) {
+      return 'Sin motivos';
+    }
+    
+    return motivos.map(motivo => 
+      `${motivo.motivo_ingreso}${motivo.descripcion_adicional ? `: ${motivo.descripcion_adicional}` : ''}`
+    ).join('; ');
+  } catch (error) {
+    console.error('Error procesando motivos:', error);
+    return 'Error al cargar motivos';
+  }
+};
+
+// Función para calcular el total de motivos
+const calcularTotalMotivos = (motivosJson: string): number => {
+  try {
+    if (!motivosJson) return 0;
+    
+    const motivos: Motivo[] = JSON.parse(motivosJson);
+    if (!Array.isArray(motivos)) return 0;
+    
+    return motivos.reduce((total, motivo) => total + (motivo.precio_motivo || 0), 0);
+  } catch (error) {
+    return 0;
+  }
+};
+
 export const generarPDFBlob = async (datos: DatosExportacion): Promise<Blob> => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -85,6 +123,7 @@ export const generarPDFBlob = async (datos: DatosExportacion): Promise<Blob> => 
       // Calcular totales
       const totalManoObra = datos.detalle.reduce((sum, s) => sum + (s.precio || 0), 0);
       const totalRepuestos = datos.detalle.reduce((sum, s) => sum + (s.precioRepuestos || 0), 0);
+      const totalMotivos = datos.detalle.reduce((sum, s) => sum + calcularTotalMotivos(s.motivos), 0);
       const totalGeneral = datos.detalle.reduce((sum, s) => sum + (s.precioTotal || 0), 0);
 
       // Contenido del PDF
@@ -173,6 +212,7 @@ export const generarPDFBlob = async (datos: DatosExportacion): Promise<Blob> => 
           <th style="padding: 8px; border: 1px solid #374151; text-align: left;">Código</th>
           <th style="padding: 8px; border: 1px solid #374151; text-align: left;">Cliente</th>
           <th style="padding: 8px; border: 1px solid #374151; text-align: left;">Equipo</th>
+          <th style="padding: 8px; border: 1px solid #374151; text-align: left;">Motivos</th>
           <th style="padding: 8px; border: 1px solid #374151; text-align: left;">Estado</th>
           <th style="padding: 8px; border: 1px solid #374151; text-align: right;">Total</th>
         </tr>
@@ -191,10 +231,13 @@ export const generarPDFBlob = async (datos: DatosExportacion): Promise<Blob> => 
           servicio.estado === 'Terminado' ? '#10b981' :
           servicio.estado === 'Entregado' ? '#8b5cf6' : '#6b7280';
 
+        const motivosTexto = procesarMotivos(servicio.motivos);
+
         row.innerHTML = `
           <td style="padding: 6px; border: 1px solid #d1d5db; font-weight: bold;">${servicio.codigoSeguimiento}</td>
           <td style="padding: 6px; border: 1px solid #d1d5db;">${servicio.cliente}</td>
           <td style="padding: 6px; border: 1px solid #d1d5db;">${servicio.equipo} - ${servicio.marca}</td>
+          <td style="padding: 6px; border: 1px solid #d1d5db; font-size: 9px; max-width: 200px;">${motivosTexto}</td>
           <td style="padding: 6px; border: 1px solid #d1d5db;">
             <span style="color: ${estadoColor}; font-weight: bold;">${servicio.estado}</span>
           </td>
@@ -220,9 +263,10 @@ export const generarPDFBlob = async (datos: DatosExportacion): Promise<Blob> => 
       
       totalesDiv.innerHTML = `
         <div style="font-size: 16px;">RESUMEN FINAL</div>
-        <div style="display: flex; justify-content: space-around; margin-top: 10px; font-size: 14px;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; font-size: 12px;">
           <div>Mano Obra: <span style="color: #fbbf24">S/ ${totalManoObra.toFixed(2)}</span></div>
           <div>Repuestos: <span style="color: #34d399">S/ ${totalRepuestos.toFixed(2)}</span></div>
+          <div>Motivos: <span style="color: #a78bfa">S/ ${totalMotivos.toFixed(2)}</span></div>
           <div>Total General: <span style="color: #f87171">S/ ${totalGeneral.toFixed(2)}</span></div>
         </div>
       `;

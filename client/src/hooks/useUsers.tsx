@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useEffect } from 'react';
 import { addUserAPI, deleteUserAPI, editUserAPI, fetchUsers, Users, Usuario } from '@/apis/usuario';
+import { showErrorToast } from '@/utils/errorHandler';
 
 // Definir la interfaz para un tipo de documento
 
@@ -84,15 +85,14 @@ export const useEditUserHook = (usuarioId: number) => {
       queryClient.invalidateQueries({ queryKey: ['userAll', usuarioId] });
       queryClient.invalidateQueries({ queryKey: ['userAlls', usuarioId] }); // Invalidar cache individual
     },
-    onError: () => {
-      toast.error('Error al actualizar usuario');
-    },
+    onError:showErrorToast
   });
 };
 
 // ----------------------
 // Hook para eliminar usuario
 // ----------------------
+
 
 export const useDeleteUserHook = (usuarioId: number) => {
   const queryClient = useQueryClient();
@@ -102,9 +102,7 @@ export const useDeleteUserHook = (usuarioId: number) => {
       toast.success('Usuario eliminado correctamente');
       queryClient.invalidateQueries({ queryKey: ['userAll', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error al eliminar usuario');
-    },
+    onError: showErrorToast,
   });
 };
 

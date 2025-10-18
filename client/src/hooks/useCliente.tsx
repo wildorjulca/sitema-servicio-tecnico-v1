@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { useEffect } from 'react';
 import { Clientes, ClienteEdit } from '@/interface';
 import { addClienteAPI, deleteClienteAPI, editClienteAPI, fetchCliente } from '@/apis/cliente';
+import { showErrorToast } from '@/utils/errorHandler';
 
 
 
@@ -106,8 +107,6 @@ export const useDeleteClienteHook = (usuarioId: number) => {
       toast.success('cliente eliminada');
       queryClient.invalidateQueries({ queryKey: ['ffcliente', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error al eliminar cliente');
-    },
+    onError:showErrorToast
   });
 };

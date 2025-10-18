@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { ServicioEquipo } from '@/interface';
 import { addServicioEquipoAPI, deleteServicioEquipoAPI, editServicioEquipoAPI, fetchServ_equipo } from '@/apis/servicio_equipo';
 import { fetchMarca } from '@/apis';
+import { showErrorToast } from '@/utils/errorHandler';
 
 // Definir la interfaz para la respuesta del API
 interface Servicio_e {
@@ -62,9 +63,7 @@ export const useAddServicioEqHook = (usuarioId: number) => {
       toast.success('servicio equipo agregada');
       queryClient.invalidateQueries({ queryKey: ['serEq', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error al servicio equipos');
-    },
+    onError:showErrorToast
   });
 };
 
@@ -93,9 +92,7 @@ export const useEditServicioEqHook = (usuarioId: number) => {
       toast.success('servicio equipo actualizada');
       queryClient.invalidateQueries({ queryKey: ['serEq', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error al actualizar servicio equipo');
-    },
+    onError:showErrorToast
   });
 };
 
@@ -111,9 +108,7 @@ export const useDeleteServicioEqHook = (usuarioId: number) => {
       toast.success('servicio equipo eliminado');
       queryClient.invalidateQueries({ queryKey: ['serEq', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error aliminar servicio equipo');
-    },
+    onError:showErrorToast
   });
 };
 

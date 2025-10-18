@@ -1,6 +1,7 @@
 
 import { addProducto, deleteProducto, editProducto, fetchProductos, Producto, ProductoInit } from '@/apis/producto';
 import { Productos } from '@/interface';
+import { showErrorToast } from '@/utils/errorHandler';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
@@ -85,9 +86,7 @@ export const useDeleteProducto = (usuarioId: number) => {
       toast.success('Producto eliminado');
       queryClient.invalidateQueries({ queryKey: ['allProductos', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error al eliminar producto');
-    },
+    onError:showErrorToast
   });
 };
 

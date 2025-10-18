@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { useEffect } from 'react';
 import { Categoria } from '@/interface';
 import { addCatAPI, deleteCatAPI, editCatAPI, fetchCat } from '@/apis/categoria';
+import { showErrorToast } from '@/utils/errorHandler';
 
 
 
@@ -51,9 +52,7 @@ export const useAddCatHook = (usuarioId: number) => {
       toast.success('categoria agregada');
       queryClient.invalidateQueries({ queryKey: ['catref', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error al agregar categoria');
-    },
+    onError:showErrorToast
   });
 };
 
@@ -78,9 +77,7 @@ export const useEditCatHook = (usuarioId: number) => {
       toast.success('categoria actualizada');
       queryClient.invalidateQueries({ queryKey: ['catref', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error al actualizar categoria');
-    },
+    onError: showErrorToast
   });
 };
 
@@ -96,8 +93,6 @@ export const useDeleteCatHook = (usuarioId: number) => {
       toast.success('categoria eliminada');
       queryClient.invalidateQueries({ queryKey: ['catref', usuarioId] });
     },
-    onError: () => {
-      toast.error('Error al eliminar categoria');
-    },
+    onError:showErrorToast
   });
 };

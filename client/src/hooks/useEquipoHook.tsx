@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { addEquiposApi, deleteEquiposApi, editEquiposApi, Equipo, fetchEquipoCbo, fetchEquiposApi } from '@/apis';
 import toast from 'react-hot-toast';
-import { AxiosError } from 'axios'; // Importar AxiosError
+import { showErrorToast } from '@/utils/errorHandler';
 
 // Hook para listar equipos
 interface EquipoResponse {
@@ -43,9 +43,7 @@ export const useAddEquipoHook = (usuarioId: number) => {
       toast.success('Equipo agregado');
       queryClient.invalidateQueries({ queryKey: ['allEquipo', usuarioId] });
     },
-    onError: (error: AxiosError<{ mensaje?: string }>) => {
-      toast.error(error.response?.data?.mensaje || 'Error al agregar equipo');
-    },
+    onError: showErrorToast
   });
 };
 
@@ -65,9 +63,7 @@ export const useEditEquipoHook = (usuarioId: number) => {
       toast.success('Equipo actualizado');
       queryClient.invalidateQueries({ queryKey: ['allEquipo', usuarioId] });
     },
-    onError: (error: AxiosError<{ mensaje?: string }>) => {
-      toast.error(error.response?.data?.mensaje || 'Error al actualizar equipo');
-    },
+    onError:showErrorToast
   });
 };
 
@@ -80,9 +76,7 @@ export const useDeleteEquipoHook = (usuarioId: number) => {
       toast.success('Equipo eliminado');
       queryClient.invalidateQueries({ queryKey: ['allEquipo', usuarioId] });
     },
-    onError: (error: AxiosError<{ mensaje?: string }>) => {
-      toast.error(error.response?.data?.mensaje || 'Error al eliminar equipo');
-    },
+    onError:showErrorToast
   });
 };
 
