@@ -589,7 +589,7 @@ const Repare = ({ servicioData }: RepareProps) => {
               // ✅ BOTONES SECRETARIA MEJORADOS
               <div className="space-y-3 w-full">
                 {/* BOTÓN PRINCIPAL: GUARDAR TODOS LOS CAMBIOS */}
-                <Button
+                {/* <Button
                   onClick={handleGuardarTodosLosCambios}
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   disabled={isPending || !hayCambiosPendientes()}
@@ -606,19 +606,19 @@ const Repare = ({ servicioData }: RepareProps) => {
                       Guardar Todos los Cambios
                     </>
                   )}
-                </Button>
+                </Button> */}
 
                 {/* BOTÓN SECUNDARIO: SOLO GUARDAR NUEVOS */}
                 {repuestosNuevos > 0 && (
                   <Button
                     onClick={handleAgregarRepuestos}
-                    variant="outline"
+                    variant="default"
                     className="w-full"
                     disabled={isPending}
-                    size="sm"
+                    size="lg"
                   >
                     <Save className="w-4 h-4 mr-2" />
-                    Solo Guardar Repuestos Nuevos ({repuestosNuevos})
+                     Guardar Repuestos Nuevos ({repuestosNuevos})
                   </Button>
                 )}
 
@@ -647,7 +647,7 @@ const Repare = ({ servicioData }: RepareProps) => {
                   ) : (
                     <>
                       <ReceiptIndianRupee className="w-4 h-4 mr-2" />
-                      Guardar Avance
+                      Guardar Data
                     </>
                   )}
                 </Button>

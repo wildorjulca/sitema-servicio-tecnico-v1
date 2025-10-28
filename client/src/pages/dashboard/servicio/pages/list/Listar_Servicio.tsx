@@ -12,7 +12,7 @@ import { SelectWithCheckbox } from "@/components/chexbox/SelectWithCheckbox";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { DataTableService } from "../../../ui/table-service";
-import { Plus, Wifi, WifiOff, RefreshCw } from "lucide-react";
+import { Plus, Wifi, WifiOff, RefreshCw, CreditCard } from "lucide-react";
 
 interface X {
   id: number,
@@ -28,7 +28,6 @@ export default function Listar_Servicio() {
   const [filtros, setFiltros] = useState<{ estadoId?: number; clienteId?: number }>({});
   const [totalRows, setTotalRows] = useState(0);
 
-  // 🔥 AGREGAR isConnected del hook
   const { data, total, isLoading, isError, error, isConnected } = useServicioHook(
     usuarioId,
     pageIndex,
@@ -56,7 +55,6 @@ export default function Listar_Servicio() {
     }
   }, [data, total, usuarioId, isConnected]);
 
-  // 🔥 NUEVO: Debug para ver actualizaciones en tiempo real
   useEffect(() => {
     console.log("🔄 Estado WebSocket en componente:", isConnected);
   }, [isConnected]);
@@ -69,33 +67,41 @@ export default function Listar_Servicio() {
     }));
   };
 
-  // ... (tus funciones handleView, handleRepair, etc. se mantienen igual)
   const handleView = (servicio: X) => {
     navigate(`/dashboard/list/${servicio.id}`);
   };
 
-// En Listar_Servicio.tsx - SIMPLIFICAR
-const handleRepair = (servicio: any) => {
-  const isSecretaria = user?.rol === 'SECRETARIA';
+  const handleRepair = (servicio: any) => {
+    const isSecretaria = user?.rol === 'SECRETARIA';
 
-  if (isSecretaria) {
-    // ✅ SOLO NAVEGAR - Repare obtendrá sus propios datos
-    navigate(`/dashboard/list/${servicio.id}/reparacion`);
-  } else {
-    // ✅ TÉCNICO: Iniciar reparación y navegar
-    iniciarReparacion(
-      {
-        servicioId: servicio.id,
-        usuarioId: usuarioId
-      },
-      {
-        onSuccess: () => {
-          navigate(`/dashboard/list/${servicio.id}/reparacion`);
+    if (isSecretaria) {
+      navigate(`/dashboard/list/${servicio.id}/reparacion`);
+    } else {
+      iniciarReparacion(
+        {
+          servicioId: servicio.id,
+          usuarioId: usuarioId
+        },
+        {
+          onSuccess: () => {
+            navigate(`/dashboard/list/${servicio.id}/reparacion`);
+          }
         }
-      }
-    );
-  }
-};
+      );
+    }
+  };
+
+  // ✅ NUEVA FUNCIÓN PARA MANEJAR PAGOS
+  const handlePay = (servicio: any) => {
+    const isSecretaria = user?.rol === 'SECRETARIA';
+    
+    if (isSecretaria) {
+      // Navegar a la página de pago
+      navigate(`/dashboard/list/${servicio.id}/pay`);
+    } else {
+      console.log("Solo las secretarias pueden procesar pagos");
+    }
+  };
 
   const handleDeliver = (servicio: X) => {
     const confirmar = window.confirm(
@@ -121,25 +127,31 @@ const handleRepair = (servicio: any) => {
     setFiltros({});
   };
 
-  // 🔥 NUEVO: Función para forzar recarga
   const handleForceRefresh = () => {
     window.location.reload();
   };
 
-  // ✅ EL getActionState SE MANTIENE IGUAL - la tabla lo maneja internamente
-  // En Listar_Servicio - CORREGIDO
+  // ✅ ACTUALIZAR getActionState CON PROPIEDADES DE PAGO
   const getActionState = (servicio: any) => {
     const isSecretaria = user?.rol === 'SECRETARIA';
 
     if (isSecretaria) {
+      // Para secretaria: puede pagar cuando el estado es "Terminado" (estadoId 3)
+      const canPay = servicio.estadoId === 3;
+      
       return {
         canRepair: servicio.estadoId !== 4,
+        canPay: canPay,
         repairText: "Agregar Repuestos",
-        repairVariant: "default" as const, // ✅ AGREGAR 'as const'
+        repairVariant: "default" as const,
         repairClassName: "bg-purple-500 hover:bg-purple-600 text-white",
+        payText: canPay ? "Pagar Servicio" : "Servicio no terminado",
+        payVariant: canPay ? "default" as const : "outline" as const,
+        payClassName: canPay ? "bg-green-500 hover:bg-green-600 text-white" : "bg-gray-300 text-gray-600",
         isDeliverDisabled: true
       };
     } else {
+      // Para técnico: no puede pagar
       const isRepairDisabled = servicio.estadoId === 3 || servicio.estadoId === 4 ||
         (servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId);
 
@@ -148,7 +160,6 @@ const handleRepair = (servicio: any) => {
           servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId ? "En Reparación (Otro)" :
             servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId ? "Continuar Reparación" : "Reparar";
 
-      // ✅ TIPAR CORRECTAMENTE EL VARIANT
       let repairVariant: "default" | "secondary" | "outline" | "ghost" | "link" | "destructive";
 
       if (servicio.estadoId === 3 || servicio.estadoId === 4) {
@@ -161,8 +172,9 @@ const handleRepair = (servicio: any) => {
 
       return {
         canRepair: !isRepairDisabled,
+        canPay: false, // Técnicos no pueden pagar
         repairText,
-        repairVariant, // ✅ YA ESTÁ TIPADO
+        repairVariant,
         repairClassName: servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId ?
           "bg-orange-500 hover:bg-orange-600 text-white" : "",
         isDeliverDisabled: servicio.estadoId !== 3
@@ -266,7 +278,7 @@ const handleRepair = (servicio: any) => {
 
   return (
     <div className="w-full space-y-2">
-      {/* 🔥 NUEVO: Indicador de estado WebSocket */}
+      {/* Indicador de estado WebSocket */}
       <div className={`p-1 rounded-md flex items-center justify-between ${isConnected ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'
         }`}>
         <div className="flex items-center space-x-2">
@@ -326,6 +338,7 @@ const handleRepair = (servicio: any) => {
         </div>
       </div>
 
+      {/* ✅ AGREGAR onPay AL DataTableService */}
       <DataTableService
         data={MapedService}
         columns={columns}
@@ -339,6 +352,7 @@ const handleRepair = (servicio: any) => {
         onRepair={handleRepair}
         onDeliver={handleDeliver}
         onPrint={handlePrint}
+        onPay={handlePay} // ✅ NUEVA PROPIEDAD
         getActionState={getActionState}
         actions={<Link to={'/dashboard/new'}>
           <Button size="sm" className="flex items-center gap-2">

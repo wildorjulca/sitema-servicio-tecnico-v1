@@ -29,6 +29,7 @@ export interface Servicio {
     codigo_barras: string;
     cliente_id: number;
     cliente: string;
+    Estado_pago?:number;
     
     // NUEVOS CAMPOS
     motivos: MotivoServicio[];

@@ -1,4 +1,4 @@
-import { DataTable } from "../ui/table-reutilizable";
+import { DataTable } from "../../ui/table-reutilizable";
 import { useUser } from "@/hooks/useUser";
 import { useState, useEffect } from "react";
 import { RolPag } from "@/interface";

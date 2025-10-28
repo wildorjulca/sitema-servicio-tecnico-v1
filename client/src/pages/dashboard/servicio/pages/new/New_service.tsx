@@ -478,9 +478,6 @@ function ServiceSummaryCard({ customer, equipment, motivos }: {
             {motivos.map((motivo, index) => (
               <div key={index} className="mt-1">
                 <p className="font-semibold text-sm">{motivo.motivo_nombre}</p>
-                {motivo.descripcion_adicional && (
-                  <p className="text-blue-100 text-xs">{motivo.descripcion_adicional}</p>
-                )}
                 <p className="text-blue-100 text-xs">Precio: S/. {motivo.precio_motivo}</p>
               </div>
             ))}

@@ -237,7 +237,7 @@ export const guardarAvanceTecnico = async (payload: {
 }) => {
   try {
     const response = await instance.put(`/guardar-avance`, payload);
-    
+
     // ✅ EL SP AHORA RETORNA LOS REPUESTOS EN results[0]
     const data = response.data;
     console.log("Respuesta al guardar avance:", data);
@@ -326,6 +326,24 @@ export const entregarServicio = async (payload: {
     return data;
   } catch (error) {
     console.error("Error al entregar servicio:", error);
+    throw error;
+  }
+};
+
+
+export const pagarServicio = async (payload: {
+  servicio_id: number;
+  usuario_recibe_pago_id: number;
+}) => {
+  try {
+    const response = await instance.put(`/pay`, payload);
+
+    const data = response.data;
+    console.log("Respuesta al pagar servicio:", data);
+
+    return data;
+  } catch (error) {
+    console.error("Error al pagar servicio:", error);
     throw error;
   }
 };

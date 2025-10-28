@@ -17,11 +17,13 @@ import {
   iniciarReparacionService,
   obtenerEquiposPorCliente,
   obtenerRepuestosServicio,
+  pagarServicio,
   servicioReparacion1,
   servicioReparacion2
 } from '@/apis/servicio';
 import { useNavigate } from 'react-router-dom';
 import { useWebSocket } from './useWebSocket';
+import { showErrorToast } from '@/utils/errorHandler';
 
 
 // ----------------------
@@ -438,7 +440,7 @@ export const useObtenerRepuestosServicio = (servicioId: number) => {
 };
 
 // ----------------------
-// Hook para entregar servicio - OPTIMIZADO
+// Hook para entregar servicio 
 // ----------------------
 export const useEntregarServicio = () => {
   const queryClient = useQueryClient();
@@ -458,6 +460,28 @@ export const useEntregarServicio = () => {
       const errorMessage = error.response?.data?.message || "Error al entregar el servicio";
       toast.error(errorMessage);
     },
+  });
+};
+
+// ----------------------
+// Hook para pagar el servicio
+// ----------------------
+
+export const usePagarServicio = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: pagarServicio,
+    onSuccess: (data, variables) => {
+      toast.success("Servicio pagado correctamente");
+
+      // Invalidar las queries para refrescar datos
+      queryClient.invalidateQueries({ queryKey: ["servicios"] });
+      queryClient.invalidateQueries({
+        queryKey: ["servicio", variables.servicio_id.toString()]
+      });
+    },
+    onError: showErrorToast,
   });
 };
 

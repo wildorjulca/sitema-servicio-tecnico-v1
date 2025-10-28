@@ -8,10 +8,10 @@ import Error404 from './error404';
 import { Equipo } from '@/pages/dashboard/equipo';
 import { Tipo_doc } from '@/pages/dashboard/tipo_doc';
 import { Permiso } from '@/pages/dashboard/permisos';
-import { Roles } from '@/pages/dashboard/rol';
+import { Roles } from '@/pages/dashboard/producto/rol';
 import { Motivo_Ingreso } from '@/pages/dashboard/motivo_ingreso';
 import { Cliente } from '@/pages/dashboard/cliente';
-import { Categoria } from '@/pages/dashboard/categoria';
+import { Categoria } from '@/pages/dashboard/alerts/categoria';
 import Panel from '@/pages/dashboard';
 import Perfil from '@/pages/dashboard/user-info';
 import Documentacion from '@/pages/dashboard/document/documentacion';
@@ -28,9 +28,10 @@ import ReparacionPage from '@/pages/dashboard/servicio/pages/repare/ReparacionPa
 import { ImprimirServicio } from '@/pages/dashboard/servicio/pages/print/ImprimirServicio';
 import { ReportesDashboard } from '@/pages/dashboard/report/ReportesDashboard';
 import { AlertasPanel } from '@/pages/dashboard/alerts/AlertasPanel';
-import AsignarRol from '@/pages/dashboard/rol/AsignarRol';
+import AsignarRol from '@/pages/dashboard/producto/rol/AsignarRol';
 import TecnicoReporte from '@/pages/dashboard/report/tecnico/TecnicoReporte';
 import Web from '@/pages/web/web';
+import { PagoService } from '@/pages/dashboard/servicio/pages/list/ui/PagoService';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -89,6 +90,7 @@ const AppRoutes = () => {
                             <Route index element={<DetalleService />} />
                             <Route path="reparacion" element={<ReparacionPage />} />
                             <Route path="imprimir" element={<ImprimirServicio />} />
+                            <Route path="pay" element={<PagoService />} />
                         </Route>
                     </Route>
 

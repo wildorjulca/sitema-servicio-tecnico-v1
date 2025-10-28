@@ -1,4 +1,4 @@
-import { DataTable } from "../ui/table-reutilizable";
+import { DataTable } from "../../ui/table-reutilizable";
 import { useUser } from "@/hooks/useUser";
 import { useState, useEffect, useRef } from "react";
 import Loader from "@/components/sniper-carga/loader";

@@ -23,20 +23,24 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { Edit, MoreHorizontal, Search, Eye, Wrench, Truck, Printer, Package } from "lucide-react";
+import { Edit, MoreHorizontal, Search, Eye, Wrench, Truck, Printer, Package, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useBuscarCtrlB } from "@/utils/hotkeys";
 import { useUser } from "@/hooks/useUser";
 
-// ✅ MEJORAR LA INTERFACE CON TIPADO MÁS ESPECÍFICO
+// ✅ ACTUALIZAR LA INTERFACE CON NUEVA PROPIEDAD DE PAGO
 interface ActionState {
   canRepair?: boolean;
+  canPay?: boolean;
   repairText?: string;
   repairVariant?: "default" | "secondary" | "outline" | "ghost" | "link" | "destructive";
   repairClassName?: string;
   isDeliverDisabled?: boolean;
   showEdit?: boolean;
+  payText?: string;
+  payVariant?: "default" | "secondary" | "outline" | "ghost" | "link" | "destructive";
+  payClassName?: string;
 }
 
 interface DataTableDetalleProps<T> {
@@ -52,16 +56,17 @@ interface DataTableDetalleProps<T> {
   onPrint?: (row: T) => void;
   onEdit?: (row: T) => void;
   onView?: (row: T) => void;
+  onPay?: (row: T) => void; // ✅ NUEVA PROPIEDAD PARA PAGAR
   onRowSelect?: (row: T) => void;
   searchColumn?: keyof T;
   placeholderSearch?: string;
   actions?: React.ReactNode;
-  // ✅ ACTUALIZAR RUTAS POR DEFECTO PARA COINCIDIR CON TU ESTRUCTURA
   viewRoute?: string;
   repairRoute?: string;
   deliverRoute?: string;
   printRoute?: string;
   editRoute?: string;
+  payRoute?: string; // ✅ NUEVA RUTA PARA PAGOS
   getActionState?: (row: T) => ActionState;
 }
 
@@ -78,16 +83,17 @@ export function DataTableService<T extends { id: string | number }>({
   onPrint,
   onEdit,
   onView,
+  onPay, // ✅ NUEVO PROP
   onRowSelect,
   searchColumn,
   placeholderSearch = "Buscar... o Ctrl + G",
   actions,
-  // ✅ RUTAS ACTUALIZADAS PARA COINCIDIR CON TU ESTRUCTURA
   viewRoute = "/dashboard/list",
   repairRoute = "/dashboard/list",
   deliverRoute = "/dashboard/list",
   printRoute = "/dashboard/list",
   editRoute = "/dashboard/list",
+  payRoute = "/dashboard/list", // ✅ NUEVA RUTA POR DEFECTO
   getActionState,
 }: DataTableDetalleProps<T>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -115,7 +121,6 @@ export function DataTableService<T extends { id: string | number }>({
     if (onRepair) {
       onRepair(row);
     } else {
-      // ✅ PARA SECRETARIA: NAVEGA A RUTA DE REPUESTOS
       if (isSecretaria) {
         navigate(`${repairRoute}/${row.id}/repare`);
       } else {
@@ -148,6 +153,16 @@ export function DataTableService<T extends { id: string | number }>({
     }
   };
 
+  // ✅ NUEVA FUNCIÓN PARA MANEJAR PAGOS
+  const handlePay = (row: T) => {
+    if (onPay) {
+      onPay(row);
+    } else {
+      // Navegar a la ruta de pago específica para secretarias
+      navigate(`${payRoute}/${row.id}/pay`);
+    }
+  };
+
   const table = useReactTable({
     data,
     columns,
@@ -177,38 +192,48 @@ export function DataTableService<T extends { id: string | number }>({
     pageCount: Math.ceil(totalRows / pageSize),
   });
 
-  // ✅ FUNCIÓN MEJORADA PARA DETERMINAR ACCIONES
+  // ✅ FUNCIÓN MEJORADA PARA DETERMINAR ACCIONES CON PAGO
   const getRoleBasedActions = (row: T) => {
     const actionState = getActionState ? getActionState(row) : {};
     
     if (isSecretaria) {
       return {
         canRepair: actionState.canRepair ?? true,
+        canPay: actionState.canPay ?? true, // ✅ POR DEFECTO PUEDE PAGAR
         repairText: "Agregar Repuestos",
         repairVariant: "default" as const,
         repairClassName: "bg-purple-500 hover:bg-purple-600 text-white",
+        payText: actionState.payText || "Pagar Servicio", // ✅ TEXTO DE PAGO
+        payVariant: actionState.payVariant || "default",
+        payClassName: actionState.payClassName || "bg-green-500 hover:bg-green-600 text-white",
         isDeliverDisabled: true,
         showRepair: true,
         showDeliver: false,
         showEdit: false,
+        showPay: true, // ✅ MOSTRAR PAGO PARA SECRETARIA
         ...actionState
       };
     } else {
       return {
         canRepair: actionState.canRepair ?? true,
+        canPay: actionState.canPay ?? false, // ✅ TÉCNICOS NO PUEDEN PAGAR POR DEFECTO
         repairText: actionState.repairText || "Reparar",
         repairVariant: actionState.repairVariant || "default",
         repairClassName: actionState.repairClassName || "",
+        payText: actionState.payText || "Pagar",
+        payVariant: actionState.payVariant || "default",
+        payClassName: actionState.payClassName || "",
         isDeliverDisabled: actionState.isDeliverDisabled ?? false,
         showRepair: true,
         showDeliver: true,
         showEdit: actionState.showEdit ?? true,
+        showPay: actionState.canPay ?? false, // ✅ SOLO MOSTRAR SI EXPLÍCITAMENTE PERMITIDO
         ...actionState
       };
     }
   };
 
-  const hasActions = onRepair || onDeliver || onPrint || onEdit || onView;
+  const hasActions = onRepair || onDeliver || onPrint || onEdit || onView || onPay;
 
   return (
     <div className="w-full">
@@ -284,6 +309,22 @@ export function DataTableService<T extends { id: string | number }>({
                               >
                                 <Eye className="mr-2 h-4 w-4 text-blue-500" />
                                 Ver más
+                              </DropdownMenuItem>
+                            )}
+
+                            {/* ✅ NUEVA OPCIÓN DE PAGO - SOLO PARA SECRETARIA */}
+                            {(onPay || payRoute) && roleActions.showPay && (
+                              <DropdownMenuItem
+                                onClick={() => handlePay(row.original)}
+                                disabled={!roleActions.canPay}
+                                className={`${
+                                  !roleActions.canPay 
+                                    ? 'text-gray-400 cursor-not-allowed' 
+                                    : 'text-green-600 hover:bg-green-50 focus:bg-green-50 cursor-pointer'
+                                }`}
+                              >
+                                <CreditCard className="mr-2 h-4 w-4 text-green-500" />
+                                {roleActions.payText}
                               </DropdownMenuItem>
                             )}
 
@@ -391,6 +432,25 @@ export function DataTableService<T extends { id: string | number }>({
                 ))}
                 {hasActions && (
                   <div className="flex justify-end gap-2 pt-2 flex-wrap">
+                    {/* ✅ BOTÓN DE PAGO MÓVIL - SOLO SECRETARIA */}
+                    {(onPay || payRoute) && roleActions.showPay && (
+                      <Button
+                        variant={roleActions.payVariant}
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePay(row.original);
+                        }}
+                        disabled={!roleActions.canPay}
+                        className={`${
+                          roleActions.payClassName || "bg-green-500 hover:bg-green-600 text-white"
+                        } ${!roleActions.canPay ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <CreditCard className="h-4 w-4 mr-1" />
+                        {roleActions.payText}
+                      </Button>
+                    )}
+
                     {(onView || viewRoute) && (
                       <Button
                         variant="outline"
