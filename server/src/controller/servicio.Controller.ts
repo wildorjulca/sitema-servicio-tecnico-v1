@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import { agregarRepuestosSecretaria, buscarClienteServ, buscarProduct, eliminarRepuestosSecretaria, entregarServicioCliente, finalizarReparacion, guardarAvanceTecnico, iniciarReparacion, listEstadoServ, listMot_Ingreso, listServicio, obtenerEquiposPorCliente, obtenerRepuestosServicioService, registrarServicioBasico } from "../service/servicio.Service";
+import { agregarRepuestosSecretaria, buscarClienteServ, buscarProduct, eliminarRepuestosSecretaria, entregarServicioCliente, finalizarReparacion, guardarAvanceTecnico, iniciarReparacion, listEstadoServ, listMot_Ingreso, listServicio, obtenerEquiposPorCliente, obtenerRepuestosServicioService, pagarServicio, registrarServicioBasico } from "../service/servicio.Service";
 
 
 const getAllServicioCTRL = async (req: Request, res: Response) => {
@@ -139,8 +139,8 @@ const registrarServicioBasicoCTRL = async (req: Request, res: Response) => {
     console.log('🔧 Motivos recibidos:', motivos);
 
     // Validar campos obligatorios
-    if (!motivos || !Array.isArray(motivos) || motivos.length === 0 || 
-        !usuario_recibe_id || !servicio_equipos_id || !cliente_id) {
+    if (!motivos || !Array.isArray(motivos) || motivos.length === 0 ||
+      !usuario_recibe_id || !servicio_equipos_id || !cliente_id) {
       res.status(400).json({
         status: 400,
         success: false,
@@ -474,9 +474,41 @@ const entregarServicioCTRL = async (req: Request, res: Response) => {
   }
 };
 
+const pagarServicioCTRL = async (req: Request, res: Response) => {
+  try {
+    const { servicio_id, usuario_recibe_pago_id } = req.body;
+
+    if (!servicio_id || !usuario_recibe_pago_id) {
+      res.status(400).json({
+        status: 400,
+        success: false,
+        mensaje: "Campos obligatorios faltantes: servicio_id, usuario_entrega_id"
+      });
+      return
+    }
+    const response = await pagarServicio(
+      servicio_id,
+      usuario_recibe_pago_id
+    );
+
+    res.status(response.status).json(response);
+
+  } catch (error: any) {
+    console.error("Error en controlador entregarServicioCTRL:", error);
+
+    res.status(500).json({
+      status: 500,
+      success: false,
+      mensaje: "Error interno del servidor",
+      error: error.message
+    });
+    return
+  }
+};
 
 
 
 
 
-export { guardarAvanceTecnicoCTRL, agregarRepuestosSecretariaCTRL,eliminarRepuestosSecretariaCTRL, finalizarReparacionCTRL, obtenerRepuestosServicioCTRL, getAllServicioCTRL, getMot_IngresoCTRL, buscarProducCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL, iniciarReparacionCTRL, entregarServicioCTRL }
+
+export { pagarServicioCTRL, guardarAvanceTecnicoCTRL, agregarRepuestosSecretariaCTRL, eliminarRepuestosSecretariaCTRL, finalizarReparacionCTRL, obtenerRepuestosServicioCTRL, getAllServicioCTRL, getMot_IngresoCTRL, buscarProducCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL, iniciarReparacionCTRL, entregarServicioCTRL }

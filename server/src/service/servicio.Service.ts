@@ -494,6 +494,39 @@ const entregarServicioCliente = async (
     }
 };
 
+//pagar servicio secretaria
+
+const pagarServicio = async (
+    servicio_id: number,
+    usuario_recibe_pago_id: number
+) => {
+    try {
+        const [results]: any = await cn
+            .promise()
+            .query(
+                "CALL sp_PagarServicio(?, ?)",
+                [servicio_id, usuario_recibe_pago_id]
+            );
+
+        const servicioEntregado = results[0][0];
+
+        return {
+            status: 200,
+            success: true,
+            data: servicioEntregado,
+            mensaje: "Servicio entregado exitosamente al cliente"
+        };
+    } catch (error: any) {
+        console.error("Error en entregar servicio:", error);
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error en la base de datos",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
+
 export {
     listServicio,
     listEstadoServ,
@@ -508,5 +541,6 @@ export {
     eliminarRepuestosSecretaria,
     finalizarReparacion,
     obtenerRepuestosServicioService,
-    entregarServicioCliente
+    entregarServicioCliente,
+    pagarServicio
 };
