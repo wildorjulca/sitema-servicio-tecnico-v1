@@ -55,7 +55,7 @@ export function CustomerSearchSection({
   };
 
   return (
-    <Card className="border-blue-200 shadow-lg">
+    <Card>
       <CardContent className="p-6">
         <div className='grid grid-cols-2 mb-2 items-center'>
           <span className="font-semibold text-base text-[#0A5CB8] flex">

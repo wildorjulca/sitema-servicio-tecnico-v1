@@ -11,7 +11,7 @@ interface CustomerCardProps {
 
 export function CustomerCard({ customer, onClearSelection }: CustomerCardProps) {
   return (
-    <Card className="border-green-200 bg-green-50 shadow-md">
+    <Card className="border-green-200 bg-green-50 ">
       <CardContent className="p-2 flex justify-between ml-3 items-center">
         <div className="flex items-start gap-4">
           <div className="bg-green-100 p-3 rounded-full">

@@ -23,24 +23,28 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { Edit, MoreHorizontal, Search, Eye, Wrench, Truck, Printer, Package, CreditCard } from "lucide-react";
+import {  MoreHorizontal, Search, Eye, Wrench, Truck, Printer, Package, CreditCard, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useBuscarCtrlB } from "@/utils/hotkeys";
 import { useUser } from "@/hooks/useUser";
 
-// ✅ ACTUALIZAR LA INTERFACE CON NUEVA PROPIEDAD DE PAGO
 interface ActionState {
   canRepair?: boolean;
   canPay?: boolean;
+  canCancel?: boolean;
   repairText?: string;
   repairVariant?: "default" | "secondary" | "outline" | "ghost" | "link" | "destructive";
   repairClassName?: string;
   isDeliverDisabled?: boolean;
   showEdit?: boolean;
+  showCancel?: boolean;
   payText?: string;
   payVariant?: "default" | "secondary" | "outline" | "ghost" | "link" | "destructive";
   payClassName?: string;
+  cancelText?: string;
+  cancelVariant?: "default" | "secondary" | "outline" | "ghost" | "link" | "destructive";
+  cancelClassName?: string;
 }
 
 interface DataTableDetalleProps<T> {
@@ -56,7 +60,7 @@ interface DataTableDetalleProps<T> {
   onPrint?: (row: T) => void;
   onEdit?: (row: T) => void;
   onView?: (row: T) => void;
-  onPay?: (row: T) => void; // ✅ NUEVA PROPIEDAD PARA PAGAR
+  onPay?: (row: T) => void;
   onRowSelect?: (row: T) => void;
   searchColumn?: keyof T;
   placeholderSearch?: string;
@@ -66,7 +70,7 @@ interface DataTableDetalleProps<T> {
   deliverRoute?: string;
   printRoute?: string;
   editRoute?: string;
-  payRoute?: string; // ✅ NUEVA RUTA PARA PAGOS
+  payRoute?: string;
   getActionState?: (row: T) => ActionState;
 }
 
@@ -83,7 +87,7 @@ export function DataTableService<T extends { id: string | number }>({
   onPrint,
   onEdit,
   onView,
-  onPay, // ✅ NUEVO PROP
+  onPay,
   onRowSelect,
   searchColumn,
   placeholderSearch = "Buscar... o Ctrl + G",
@@ -93,7 +97,7 @@ export function DataTableService<T extends { id: string | number }>({
   deliverRoute = "/dashboard/list",
   printRoute = "/dashboard/list",
   editRoute = "/dashboard/list",
-  payRoute = "/dashboard/list", // ✅ NUEVA RUTA POR DEFECTO
+  payRoute = "/dashboard/list",
   getActionState,
 }: DataTableDetalleProps<T>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -108,7 +112,6 @@ export function DataTableService<T extends { id: string | number }>({
   const { user } = useUser();
   const isSecretaria = user?.rol === 'SECRETARIA';
 
-  // ✅ FUNCIONES DE NAVEGACIÓN ACTUALIZADAS
   const handleView = (row: T) => {
     if (onView) {
       onView(row);
@@ -153,14 +156,38 @@ export function DataTableService<T extends { id: string | number }>({
     }
   };
 
-  // ✅ NUEVA FUNCIÓN PARA MANEJAR PAGOS
   const handlePay = (row: T) => {
     if (onPay) {
       onPay(row);
     } else {
-      // Navegar a la ruta de pago específica para secretarias
       navigate(`${payRoute}/${row.id}/pay`);
     }
+  };
+
+  const getRoleBasedActions = (row: T) => {
+    const actionState = getActionState ? getActionState(row) : {};
+    
+    return {
+      canRepair: actionState.canRepair ?? true,
+      canPay: actionState.canPay ?? isSecretaria,
+      canCancel: actionState.canCancel ?? true,
+      repairText: isSecretaria ? "Agregar Repuestos" : (actionState.repairText || "Reparar"),
+      repairVariant: actionState.repairVariant || "default",
+      repairClassName: actionState.repairClassName || (isSecretaria ? "bg-purple-500 hover:bg-purple-600 text-white" : ""),
+      payText: actionState.payText || "Pagar Servicio",
+      payVariant: actionState.payVariant || "default",
+      payClassName: actionState.payClassName || "bg-green-500 hover:bg-green-600 text-white",
+      cancelText: actionState.cancelText || "Cancelar Servicio",
+      cancelVariant: actionState.cancelVariant || "destructive",
+      cancelClassName: actionState.cancelClassName || "bg-red-500 hover:bg-red-600 text-white",
+      isDeliverDisabled: actionState.isDeliverDisabled ?? (isSecretaria ? true : false),
+      showRepair: true,
+      showDeliver: !isSecretaria,
+      showEdit: false,
+      showCancel: true,
+      showPay: isSecretaria,
+      ...actionState
+    };
   };
 
   const table = useReactTable({
@@ -191,47 +218,6 @@ export function DataTableService<T extends { id: string | number }>({
     manualPagination: true,
     pageCount: Math.ceil(totalRows / pageSize),
   });
-
-  // ✅ FUNCIÓN MEJORADA PARA DETERMINAR ACCIONES CON PAGO
-  const getRoleBasedActions = (row: T) => {
-    const actionState = getActionState ? getActionState(row) : {};
-    
-    if (isSecretaria) {
-      return {
-        canRepair: actionState.canRepair ?? true,
-        canPay: actionState.canPay ?? true, // ✅ POR DEFECTO PUEDE PAGAR
-        repairText: "Agregar Repuestos",
-        repairVariant: "default" as const,
-        repairClassName: "bg-purple-500 hover:bg-purple-600 text-white",
-        payText: actionState.payText || "Pagar Servicio", // ✅ TEXTO DE PAGO
-        payVariant: actionState.payVariant || "default",
-        payClassName: actionState.payClassName || "bg-green-500 hover:bg-green-600 text-white",
-        isDeliverDisabled: true,
-        showRepair: true,
-        showDeliver: false,
-        showEdit: false,
-        showPay: true, // ✅ MOSTRAR PAGO PARA SECRETARIA
-        ...actionState
-      };
-    } else {
-      return {
-        canRepair: actionState.canRepair ?? true,
-        canPay: actionState.canPay ?? false, // ✅ TÉCNICOS NO PUEDEN PAGAR POR DEFECTO
-        repairText: actionState.repairText || "Reparar",
-        repairVariant: actionState.repairVariant || "default",
-        repairClassName: actionState.repairClassName || "",
-        payText: actionState.payText || "Pagar",
-        payVariant: actionState.payVariant || "default",
-        payClassName: actionState.payClassName || "",
-        isDeliverDisabled: actionState.isDeliverDisabled ?? false,
-        showRepair: true,
-        showDeliver: true,
-        showEdit: actionState.showEdit ?? true,
-        showPay: actionState.canPay ?? false, // ✅ SOLO MOSTRAR SI EXPLÍCITAMENTE PERMITIDO
-        ...actionState
-      };
-    }
-  };
 
   const hasActions = onRepair || onDeliver || onPrint || onEdit || onView || onPay;
 
@@ -301,7 +287,6 @@ export function DataTableService<T extends { id: string | number }>({
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
 
-                            {/* Ver más */}
                             {(onView || viewRoute) && (
                               <DropdownMenuItem
                                 onClick={() => handleView(row.original)}
@@ -312,7 +297,6 @@ export function DataTableService<T extends { id: string | number }>({
                               </DropdownMenuItem>
                             )}
 
-                            {/* ✅ NUEVA OPCIÓN DE PAGO - SOLO PARA SECRETARIA */}
                             {(onPay || payRoute) && roleActions.showPay && (
                               <DropdownMenuItem
                                 onClick={() => handlePay(row.original)}
@@ -328,7 +312,6 @@ export function DataTableService<T extends { id: string | number }>({
                               </DropdownMenuItem>
                             )}
 
-                            {/* Reparar/Agregar Repuestos */}
                             {(onRepair || repairRoute) && roleActions.showRepair && (
                               <DropdownMenuItem
                                 onClick={() => handleRepair(row.original)}
@@ -350,7 +333,6 @@ export function DataTableService<T extends { id: string | number }>({
                               </DropdownMenuItem>
                             )}
 
-                            {/* Entregar equipo - SOLO TÉCNICO */}
                             {(onDeliver || deliverRoute) && roleActions.showDeliver && (
                               <DropdownMenuItem
                                 onClick={() => handleDeliver(row.original)}
@@ -366,7 +348,6 @@ export function DataTableService<T extends { id: string | number }>({
                               </DropdownMenuItem>
                             )}
 
-                            {/* Imprimir */}
                             {(onPrint || printRoute) && (
                               <DropdownMenuItem
                                 onClick={() => handlePrint(row.original)}
@@ -377,14 +358,18 @@ export function DataTableService<T extends { id: string | number }>({
                               </DropdownMenuItem>
                             )}
 
-                            {/* Editar - SOLO TÉCNICO */}
-                            {(onEdit || editRoute) && roleActions.showEdit && (
+                            {(onEdit || editRoute) && roleActions.showCancel && (
                               <DropdownMenuItem
                                 onClick={() => handleEdit(row.original)}
-                                className="text-cyan-600 hover:bg-cyan-50 focus:bg-cyan-50 cursor-pointer"
+                                disabled={!roleActions.canCancel}
+                                className={`${
+                                  !roleActions.canCancel 
+                                    ? 'text-gray-400 cursor-not-allowed' 
+                                    : 'text-red-600 hover:bg-red-50 focus:bg-red-50 cursor-pointer'
+                                }`}
                               >
-                                <Edit className="mr-2 h-4 w-4 text-cyan-500" />
-                                Editar
+                                <Trash className="mr-2 h-4 w-4 text-red-500" />
+                                {roleActions.cancelText}
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
@@ -432,7 +417,6 @@ export function DataTableService<T extends { id: string | number }>({
                 ))}
                 {hasActions && (
                   <div className="flex justify-end gap-2 pt-2 flex-wrap">
-                    {/* ✅ BOTÓN DE PAGO MÓVIL - SOLO SECRETARIA */}
                     {(onPay || payRoute) && roleActions.showPay && (
                       <Button
                         variant={roleActions.payVariant}
@@ -464,6 +448,7 @@ export function DataTableService<T extends { id: string | number }>({
                         <Eye className="h-4 w-4 mr-1" /> Ver
                       </Button>
                     )}
+
                     {(onRepair || repairRoute) && roleActions.showRepair && (
                       <Button
                         variant={roleActions.repairVariant}
@@ -488,6 +473,7 @@ export function DataTableService<T extends { id: string | number }>({
                         {roleActions.repairText}
                       </Button>
                     )}
+
                     {(onDeliver || deliverRoute) && roleActions.showDeliver && (
                       <Button
                         variant="outline"
@@ -504,6 +490,7 @@ export function DataTableService<T extends { id: string | number }>({
                         <Truck className="h-4 w-4 mr-1" /> Entregar
                       </Button>
                     )}
+
                     {(onPrint || printRoute) && (
                       <Button
                         variant="outline"
@@ -517,17 +504,22 @@ export function DataTableService<T extends { id: string | number }>({
                         <Printer className="h-4 w-4 mr-1" /> Imprimir
                       </Button>
                     )}
-                    {(onEdit || editRoute) && roleActions.showEdit && (
+
+                    {(onEdit || editRoute) && roleActions.showCancel && (
                       <Button
-                        variant="outline"
+                        variant={roleActions.cancelVariant}
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleEdit(row.original);
                         }}
-                        className="border-cyan-200 text-cyan-600 hover:bg-cyan-50"
+                        disabled={!roleActions.canCancel}
+                        className={`${
+                          roleActions.cancelClassName || "bg-red-500 hover:bg-red-600 text-white"
+                        } ${!roleActions.canCancel ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
-                        <Edit className="h-4 w-4 mr-1" /> Editar
+                        <Trash className="h-4 w-4 mr-1" />
+                        {roleActions.cancelText}
                       </Button>
                     )}
                   </div>

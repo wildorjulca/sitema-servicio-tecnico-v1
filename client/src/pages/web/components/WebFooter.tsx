@@ -12,26 +12,27 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import Partners from './Partners';
+// import Partners from './Partners';
+import img1 from '../../../assets/inforsystem3.jpg'
 
-const Footer: React.FC = () => {
+const WebFooter: React.FC = () => {
   return (
     <footer className="bg-gray-900 text-white">
       {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-12">
           {/* Company Info */}
           <div className="lg:col-span-1">
             <div className="flex items-center mb-6">
               <img 
-                src="/logo-inforsystems.png" 
+                src={img1} 
                 alt="Inforsystems" 
                 className="h-8 mr-3"
               />
               <span className="text-xl font-bold">Inforsystems</span>
             </div>
             <p className="text-gray-400 mb-6 leading-relaxed">
-              Líderes en soluciones tecnológicas integrales. Más de 10 años brindando 
+              Líderes en soluciones tecnológicas integrales. Más de 15 años brindando 
               servicios de internet, mantenimiento técnico y equipos de calidad.
             </p>
             
@@ -39,7 +40,7 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center text-gray-400">
                 <MapPin className="h-4 w-4 mr-3 text-inforsystems-azul" />
-                <span className="text-sm">Av. Tecnología 123, Lima, Perú</span>
+                <span className="text-sm">Jr. San Martin 346-224, Bagua Grande 01621, Perú</span>
               </div>
               <div className="flex items-center text-gray-400">
                 <Phone className="h-4 w-4 mr-3 text-inforsystems-azul" />
@@ -51,7 +52,7 @@ const Footer: React.FC = () => {
               </div>
               <div className="flex items-center text-gray-400">
                 <Clock className="h-4 w-4 mr-3 text-inforsystems-azul" />
-                <span className="text-sm">Lun-Vie: 8:00 AM - 6:00 PM</span>
+                <span className="text-sm">Lun-Vie: 8:00 AM - 7:00 PM</span>
               </div>
             </div>
           </div>
@@ -149,7 +150,7 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Partners */}
-       <Partners/>
+       {/* <Partners/> */}
       </div>
 
 
@@ -157,4 +158,4 @@ const Footer: React.FC = () => {
   );
 };
 
-export default Footer;
+export default WebFooter;

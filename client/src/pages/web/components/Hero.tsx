@@ -8,23 +8,23 @@ import { Button } from '@/components/ui/button';
 
 const Hero: React.FC = () => {
   return (
-    <section id="inicio" className="pt-24 pb-16 bg-gradient-to-br from-blue-500 to-gray-100">
+    <section id="inicio" className="pt-24 pb-16 bg-gradient-to-br to-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-              Internet de Alta Velocidad con{' '}
-              <span className="text-inforsystems-azul">Fibra Óptica</span>
+              Inforsystems{' '}
+              <span className="text-inforsystems-azul">Computer</span>
             </h1>
             <p className="mt-6 text-xl text-gray-600">
-              Más de 10 años brindando soluciones tecnológicas en redes, mantenimiento y equipos de calidad
+              Más de 15 años brindando soluciones tecnológicas en redes, mantenimiento y equipos de calidad
             </p>
             
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
-              <Button className="bg-inforsystems-azul hover:bg-inforsystems-azul-hover text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors shadow-lg">
-                Ver Planes desde S/ 50
+              <Button className="bg-inforsystems-azul hover:bg-inforsystems-azul-hover text-white px-8 py-4  font-semibold text-lg transition-colors shadow-lg">
+                Seguimiento de Equipos
               </Button>
-              <Button className="bg-cable-latino-verde hover:bg-cable-latino-verde-hover text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors shadow-lg">
+              <Button className="bg-cable-latino-verde hover:bg-cable-latino-verde-hover text-white px-8 py-4 font-semibold text-lg transition-colors shadow-lg">
                 Solicitar Mantenimiento
               </Button>
             </div>

@@ -5,6 +5,7 @@ import { useEffect, useMemo } from 'react';
 import { Estado, Servicio } from '@/interface/types';
 import {
   agregarRepuestosSecretaria,
+  cancelarServicio,
   eliminarRepuestosSecretaria,
   entregarServicio,
   fetchEstadoServ,
@@ -521,4 +522,34 @@ export const useServicioById = (usuarioId: number, idServicio: string | undefine
     isError,
     refetch: () => { }
   };
+};
+
+export const useCancelarServicio = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: cancelarServicio,
+    onSuccess: (data, variables) => {
+      // Mostrar mensaje de éxito
+      toast.success(data.mensaje || "Servicio cancelado correctamente");
+
+      // Invalidar las queries para refrescar datos
+      queryClient.invalidateQueries({ queryKey: ["servicios"] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["servicio", variables.servicio_id.toString()] 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ["repuestos-servicio", variables.servicio_id.toString()] 
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error al cancelar servicio:', error);
+      
+      // Mostrar mensaje de error específico del backend
+      const errorMessage = error.response?.data?.mensaje || 
+                          error.response?.data?.error || 
+                          'Error al cancelar el servicio';
+      toast.error(errorMessage);
+    },
+  });
 };

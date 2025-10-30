@@ -32,6 +32,13 @@ import AsignarRol from '@/pages/dashboard/producto/rol/AsignarRol';
 import TecnicoReporte from '@/pages/dashboard/report/tecnico/TecnicoReporte';
 import Web from '@/pages/web/web';
 import { PagoService } from '@/pages/dashboard/servicio/pages/list/ui/PagoService';
+import WebLayout from '@/layouts/WebLayout';
+import PlanesInternet from '@/pages/web/components/PlanesInternet';
+import FibraOptica from '@/pages/web/components/FibraOptica';
+import MantenimientoTecnico from '@/pages/web/components/MantenimientoTecnico';
+import SeguimientoReparacion from '@/pages/web/components/SeguimientoReparacion';
+import Productos from '@/pages/web/components/Productos';
+import Contacto from '@/pages/web/components/Contacto';
 
 const NotFound = () => <div><Error404 /></div>;
 
@@ -45,7 +52,20 @@ const AppRoutes = () => {
 
                 {/* Login */}
                 <Route path="/login" element={<Login />} />
+
+
                 <Route path="web" element={<Web />} />
+
+
+                <Route path="web" element={<WebLayout />}>
+                    <Route index element={<Web />} />
+                    <Route path="planes-internet" element={<PlanesInternet />} />
+                    <Route path="fibra-optica" element={<FibraOptica />} />
+                    <Route path="mantenimiento" element={<MantenimientoTecnico />} />
+                    <Route path="seguimiento" element={<SeguimientoReparacion />} />
+                    <Route path="productos" element={<Productos />} />
+                    <Route path="contacto" element={<Contacto />} />
+                </Route>
 
 
                 {/* Rutas protegidas */}

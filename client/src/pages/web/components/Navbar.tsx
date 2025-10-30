@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { 
-  Phone, 
-  Menu, 
+import {
+  Phone,
+  Menu,
   Home,
   Wifi,
   Settings,
   Search,
   ShoppingCart,
-  Mail
+  Mail,
+  Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -31,6 +32,7 @@ const Navbar: React.FC = () => {
   const menuItems = [
     { icon: Home, label: 'Inicio', href: '#inicio' },
     { icon: Wifi, label: 'Planes Internet', href: '#planes' },
+    { icon: Globe, label: 'Fibra Óptica', href: '#fibra-optica' },
     { icon: Settings, label: 'Mantenimiento', href: '#mantenimiento' },
     { icon: Search, label: 'Seguimiento', href: '#seguimiento' },
     { icon: ShoppingCart, label: 'Productos', href: '#productos' },
@@ -43,8 +45,8 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <img 
-              className="h-10 w-auto" 
+            <img
+              className="h-10 w-auto"
               src={img}
               alt="Inforsystems Computer"
             />
@@ -71,16 +73,16 @@ const Navbar: React.FC = () => {
 
           {/* Desktop CTA Button */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button 
+            <Button
               onClick={scrollToContacto}
-              variant="outline" 
+              variant="outline"
               size="sm"
               className="border-inforsystems-azul text-inforsystems-azul hover:bg-inforsystems-azul hover:text-white"
             >
               <Mail className="h-4 w-4 mr-2" />
               Contactar
             </Button>
-            <Button 
+            <Button
               onClick={scrollToContacto}
               size="sm"
               className="bg-inforsystems-azul hover:bg-inforsystems-azul-hover text-white"
@@ -92,14 +94,14 @@ const Navbar: React.FC = () => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center space-x-2">
-            <Button 
+            <Button
               onClick={scrollToContacto}
               size="sm"
               className="bg-inforsystems-azul hover:bg-inforsystems-azul-hover text-white"
             >
               <Phone className="h-4 w-4" />
             </Button>
-            
+
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-gray-700">
@@ -110,8 +112,8 @@ const Navbar: React.FC = () => {
                 <div className="flex flex-col h-full">
                   {/* Header */}
                   <div className="flex items-center space-x-3 mb-8">
-                    <img 
-                      className="h-8 w-auto" 
+                    <img
+                      className="h-8 w-auto"
                       src={img}
                       alt="Inforsystems Computer"
                     />
@@ -135,7 +137,7 @@ const Navbar: React.FC = () => {
 
                   {/* Footer */}
                   <div className="pt-6 border-t border-gray-200 space-y-3">
-                    <Button 
+                    <Button
                       onClick={scrollToContacto}
                       className="w-full bg-inforsystems-azul hover:bg-inforsystems-azul-hover text-white"
                     >

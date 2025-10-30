@@ -5,14 +5,15 @@ import {
   useEstadoHook,
   useIniciarReparacion,
   useServicioHook,
-  useEntregarServicio
+  useEntregarServicio,
+  useCancelarServicio
 } from "@/hooks/useService";
 import { Servicio } from "@/interface/types";
 import { SelectWithCheckbox } from "@/components/chexbox/SelectWithCheckbox";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { DataTableService } from "../../../ui/table-service";
-import { Plus, Wifi, WifiOff, RefreshCw, CreditCard } from "lucide-react";
+import { Plus, Wifi, WifiOff, RefreshCw } from "lucide-react";
 
 interface X {
   id: number,
@@ -38,6 +39,7 @@ export default function Listar_Servicio() {
   const { data: estados, isLoading: isLoadingEstados } = useEstadoHook();
   const { mutate: iniciarReparacion } = useIniciarReparacion();
   const { mutate: entregarServicio } = useEntregarServicio();
+  const { mutate: cancelarServicio, isPending: isCanceling } = useCancelarServicio();
 
   const estadosOptions = estados.map(est => ({
     value: est.idEstado,
@@ -94,7 +96,7 @@ export default function Listar_Servicio() {
   // ✅ NUEVA FUNCIÓN PARA MANEJAR PAGOS
   const handlePay = (servicio: any) => {
     const isSecretaria = user?.rol === 'SECRETARIA';
-    
+
     if (isSecretaria) {
       // Navegar a la página de pago
       navigate(`/dashboard/list/${servicio.id}/pay`);
@@ -131,27 +133,138 @@ export default function Listar_Servicio() {
     window.location.reload();
   };
 
-  // ✅ ACTUALIZAR getActionState CON PROPIEDADES DE PAGO
+  const handleCancel = (servicio: any) => {
+
+    const usuarioPuedeCancelar = user?.rol === 'SECRETARIA' || user?.rol === 'TECNICO';
+
+    if (!usuarioPuedeCancelar) {
+      console.log("Solo secretarias y técnicos pueden cancelar servicios");
+      return;
+    }
+
+    // Validar que el servicio no esté ya cancelado, entregado o facturado
+    if (servicio.estadoId === 6) {
+      alert("Este servicio ya está cancelado");
+      return;
+    }
+
+    if (servicio.estadoId === 4 || servicio.estadoId === 5) {
+      alert("No se puede cancelar un servicio ya entregado o facturado");
+      return;
+    }
+
+    // ✅ VALIDACIONES ESPECÍFICAS POR ROL
+    if (user?.rol === 'TECNICO') {
+      // Técnicos solo pueden cancelar servicios que estén asignados a ellos
+      if (servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId) {
+        alert("No puedes cancelar un servicio que está siendo reparado por otro técnico");
+        return;
+      }
+
+      // Técnicos no pueden cancelar servicios terminados
+      if (servicio.estadoId === 3) {
+        alert("No puedes cancelar un servicio terminado. Contacta a la secretaria.");
+        return;
+      }
+    }
+
+    // Pedir motivo de cancelación
+    const motivo = prompt(
+      `¿Estás seguro de cancelar el servicio ${servicio.cod}?\n\n` +
+      `Por favor ingresa el motivo de la cancelación (mínimo 5 caracteres):\n\n` +
+      `Ej: ${user?.rol === 'TECNICO' ?
+        'Cliente desistió, equipo irreparable, falta de repuestos, diagnóstico complejo' :
+        'Cliente desistió, equipo irreparable, costo elevado, etc.'}`
+    );
+
+    // Validar el motivo
+    if (motivo === null) {
+      return; // Usuario canceló
+    }
+
+    if (!motivo.trim() || motivo.trim().length < 5) {
+      alert("El motivo debe tener al menos 5 caracteres");
+      return;
+    }
+
+    // Confirmación final con mensaje específico por rol
+    const mensajeConfirmacion = user?.rol === 'TECNICO' ?
+      `⚠️ CONFIRMAR CANCELACIÓN COMO TÉCNICO\n\n` +
+      `Servicio: ${servicio.cod}\n` +
+      `Cliente: ${servicio.cliente}\n` +
+      `Motivo: ${motivo}\n\n` +
+      `¿Estás seguro de proceder con la cancelación?\n\n` +
+      `Esta acción:\n` +
+      `• Liberará los repuestos reservados\n` +
+      `• Marcará el servicio como cancelado\n` +
+      `• Se notificará a la secretaria\n` +
+      `• No se podrá deshacer` :
+      `⚠️ CONFIRMAR CANCELACIÓN\n\n` +
+      `Servicio: ${servicio.cod}\n` +
+      `Cliente: ${servicio.cliente}\n` +
+      `Motivo: ${motivo}\n\n` +
+      `¿Estás seguro de proceder con la cancelación?\n\n` +
+      `Esta acción:\n` +
+      `• Liberará los repuestos reservados\n` +
+      `• Marcará el servicio como cancelado\n` +
+      `• No se podrá deshacer`;
+
+    if (confirm(mensajeConfirmacion) && usuarioId) {
+      cancelarServicio(
+        {
+          servicio_id: servicio.id,
+          usuario_id: usuarioId,
+          motivo: `${user?.rol === 'TECNICO' ? '[TÉCNICO] ' : '[SECRETARIA] '}${motivo.trim()}`
+        },
+        {
+          onSuccess: (data) => {
+            console.log("Servicio cancelado exitosamente:", data);
+            // Mostrar mensaje diferente según el rol
+            if (user?.rol === 'TECNICO') {
+              alert("Servicio cancelado. Se ha notificado a la secretaria.");
+            } else {
+              alert("Servicio cancelado exitosamente.");
+            }
+          },
+          onError: (error) => {
+            console.error("Error al cancelar servicio:", error);
+            alert("Error al cancelar el servicio: " + (error.response?.data?.mensaje || error.message));
+          }
+        }
+      );
+    }
+  };
+
+
   const getActionState = (servicio: any) => {
     const isSecretaria = user?.rol === 'SECRETARIA';
+    const isTecnico = user?.rol === 'TECNICO';
 
     if (isSecretaria) {
       // Para secretaria: puede pagar cuando el estado es "Terminado" (estadoId 3)
       const canPay = servicio.estadoId === 3;
-      
+
+      // Secretaria puede cancelar servicios que no estén terminados, entregados o ya cancelados
+      const canCancel = servicio.estadoId !== 3 && servicio.estadoId !== 4 &&
+        servicio.estadoId !== 5 && servicio.estadoId !== 6;
+
       return {
         canRepair: servicio.estadoId !== 4,
         canPay: canPay,
+        canCancel: canCancel,
         repairText: "Agregar Repuestos",
         repairVariant: "default" as const,
         repairClassName: "bg-purple-500 hover:bg-purple-600 text-white",
         payText: canPay ? "Pagar Servicio" : "Servicio no terminado",
         payVariant: canPay ? "default" as const : "outline" as const,
         payClassName: canPay ? "bg-green-500 hover:bg-green-600 text-white" : "bg-gray-300 text-gray-600",
+        cancelText: canCancel ? "Cancelar" : "No cancelable",
+        cancelVariant: canCancel ? "destructive" as const : "outline" as const,
+        cancelClassName: canCancel ? "bg-red-500 hover:bg-red-600 text-white" : "bg-gray-300 text-gray-600",
         isDeliverDisabled: true
       };
-    } else {
-      // Para técnico: no puede pagar
+    } else if (isTecnico) {
+      // Para técnico: lógica de reparación
       const isRepairDisabled = servicio.estadoId === 3 || servicio.estadoId === 4 ||
         (servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId);
 
@@ -170,18 +283,48 @@ export default function Listar_Servicio() {
         repairVariant = "default";
       }
 
+      // ✅ TÉCNICO PUEDE CANCELAR SI:
+      // - No está terminado, entregado o facturado
+      // - Si está en reparación, debe ser el técnico asignado
+      const canCancel = servicio.estadoId !== 3 &&
+        servicio.estadoId !== 4 &&
+        servicio.estadoId !== 5 &&
+        servicio.estadoId !== 6 &&
+        (servicio.estadoId !== 2 || servicio.usuarioSolucionaId === usuarioId);
+
+      const cancelText = canCancel ? "Cancelar" :
+        servicio.estadoId === 2 && servicio.usuarioSolucionaId !== usuarioId ?
+          "En reparación (Otro)" : "No cancelable";
+
       return {
         canRepair: !isRepairDisabled,
         canPay: false, // Técnicos no pueden pagar
+        canCancel: canCancel,
         repairText,
         repairVariant,
         repairClassName: servicio.estadoId === 2 && servicio.usuarioSolucionaId === usuarioId ?
           "bg-orange-500 hover:bg-orange-600 text-white" : "",
+        cancelText,
+        cancelVariant: canCancel ? "destructive" as const : "outline" as const,
+        cancelClassName: canCancel ? "bg-red-500 hover:bg-red-600 text-white" : "bg-gray-300 text-gray-600",
         isDeliverDisabled: servicio.estadoId !== 3
+      };
+    } else {
+      // Para otros roles (si los hay)
+      return {
+        canRepair: false,
+        canPay: false,
+        canCancel: false,
+        repairText: "No disponible",
+        repairVariant: "outline" as const,
+        repairClassName: "bg-gray-300 text-gray-600",
+        cancelText: "No disponible",
+        cancelVariant: "outline" as const,
+        cancelClassName: "bg-gray-300 text-gray-600",
+        isDeliverDisabled: true
       };
     }
   };
-
   const columns = [
     { accessorKey: "id", header: "ID" },
     { accessorKey: "cod", header: "Código" },
@@ -245,7 +388,9 @@ export default function Listar_Servicio() {
     );
   }
 
-  const MapedService = data.map((ser: Servicio) => ({
+  const MapedService = data
+  // .filter((ser:Servicio)=>ser.estado_id !==6)
+  .map((ser: Servicio) => ({
     id: ser.idServicio,
     cod: ser.codigoSeguimiento,
     cliente: ser.cliente,
@@ -353,6 +498,7 @@ export default function Listar_Servicio() {
         onDeliver={handleDeliver}
         onPrint={handlePrint}
         onPay={handlePay} // ✅ NUEVA PROPIEDAD
+        onEdit={handleCancel}
         getActionState={getActionState}
         actions={<Link to={'/dashboard/new'}>
           <Button size="sm" className="flex items-center gap-2">

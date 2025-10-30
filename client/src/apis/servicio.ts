@@ -347,3 +347,22 @@ export const pagarServicio = async (payload: {
     throw error;
   }
 };
+
+// api/servicioApi.ts
+export const cancelarServicio = async (payload: {
+  servicio_id: number;
+  usuario_id: number;
+  motivo: string;
+}) => {
+  try {
+    const response = await instance.put(`/cancelar`, payload);
+
+    const data = response.data;
+    console.log("Respuesta al cancelar servicio:", data);
+
+    return data;
+  } catch (error) {
+    console.error("Error al cancelar servicio:", error);
+    throw error;
+  }
+};

@@ -128,11 +128,11 @@ export function ServiceDetailsSection({
 
   return (
     <>
-      <Card className="border-blue-200 shadow-lg">
+      <Card>
         <CardContent className="p-6">
           <span className="font-semibold text-base text-[#0A5CB8] mb-4 flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Detalles del Servicio
+            Mas Detalles
           </span>
 
           <div className="space-y-4">

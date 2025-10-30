@@ -148,7 +148,7 @@ export default function New_Service() {
   };
 
   const handleMotivoUpdate = (index: number, motivoActualizado: MotivoSeleccionado) => {
-    setMotivosSeleccionados(prev => 
+    setMotivosSeleccionados(prev =>
       prev.map((m, i) => i === index ? motivoActualizado : m)
     );
   };
@@ -263,7 +263,7 @@ export default function New_Service() {
     setIsSubmitting(true)
     try {
       // Calcular precio total si no viene (suma de todos los motivos)
-      const precioARegistrar = precioTotal !== undefined ? precioTotal : 
+      const precioARegistrar = precioTotal !== undefined ? precioTotal :
         motivosSeleccionados.reduce((total, motivo) => total + motivo.precio_motivo, 0);
 
       console.log('💰 Precio total a registrar:', precioARegistrar);
@@ -322,8 +322,8 @@ export default function New_Service() {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-4 ">
-          <span className="text-2xl font-semibold text-gray-700 mb-2 font-mono">
-            Registro de Los Equipos
+          <span className="text-2xl font-semibold text-gray-700 mb-2 ">
+            Registrar Servicio
           </span>
         </div>
 
@@ -449,7 +449,7 @@ function ServiceSummaryCard({ customer, equipment, motivos }: {
   const precioTotal = motivos.reduce((total, motivo) => total + motivo.precio_motivo, 0);
 
   return (
-    <Card className="bg-gradient-to-r from-[#1e7eeb] to-blue-600 text-white shadow-xl">
+    <Card className="bg-gradient-to-r from-[#1f2934] to-blue-600 text-white shadow-xl">
       <CardContent className="p-6">
         <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
           Servicio Listo para Registrar

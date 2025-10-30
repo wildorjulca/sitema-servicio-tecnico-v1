@@ -1,13 +1,13 @@
-// components/Repare.tsx - VERSIÓN MEJORADA CON HOOK PROPIO
+// components/Repare.tsx
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom'; // ✅ AGREGAR
+import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Loader2, ReceiptIndianRupee, Package, Trash2 } from 'lucide-react';
+import { Save, Loader2, ReceiptIndianRupee, Package, Trash2, RefreshCw } from 'lucide-react';
 import BuscarRepuestos from './BuscarRepuestos';
 import ResumenCostos from './ResumenCostos';
 import RepuestosList from './RepuestosList';
@@ -19,22 +19,37 @@ import {
   useEliminarRepuestos,
   useFinalizarReparacion,
   useObtenerRepuestosServicio,
-  useServiceyId // ✅ AGREGAR ESTE HOOK
+  useServiceyId
 } from '@/hooks/useService';
+import { useRepuestosWebSocket } from '@/hooks/useRepuestosWebSocket';
 
-// ✅ INTERFACE ACTUALIZADA (puedes mantener servicioData como opcional)
 interface RepareProps {
-  servicioData?: any; // Opcional, por si acaso
+  servicioData?: any;
 }
 
 const Repare = ({ servicioData }: RepareProps) => {
-  const { id } = useParams<{ id: string }>(); // ✅ OBTENER ID DE LA URL
+  const { id } = useParams<{ id: string }>();
   const { user } = useUser();
   const usuarioId = user?.id;
   const isSecretaria = user?.rol === 'SECRETARIA';
 
-  // ✅ OBTENER DATOS COMPLETOS DEL SERVICIO CON EL HOOK
-  const { data: servicioCompleto, isLoading: isLoadingServicio, error: errorServicio } = useServiceyId(usuarioId, id);
+  // ✅ OBTENER DATOS COMPLETOS DEL SERVICIO
+  const { 
+    data: servicioCompleto, 
+    isLoading: isLoadingServicio, 
+    error: errorServicio,
+    refetch: refetchServicio
+  } = useServiceyId(usuarioId, id);
+
+  // ✅ USAR WEBSOCKET PARA ACTUALIZACIONES EN TIEMPO REAL
+  const { isConnected } = useRepuestosWebSocket(parseInt(id || '0'));
+
+  // ✅ GUARDAR USER ID EN LOCALSTORAGE PARA EL WEBSOCKET
+  useEffect(() => {
+    if (usuarioId) {
+      localStorage.setItem('userId', usuarioId.toString());
+    }
+  }, [usuarioId]);
 
   const [servicio, setServicio] = useState({
     servicio_id: parseInt(id || '0'),
@@ -47,6 +62,7 @@ const Repare = ({ servicioData }: RepareProps) => {
 
   const [repuestosSeleccionados, setRepuestosSeleccionados] = useState<number[]>([]);
   const [modoSeleccion, setModoSeleccion] = useState(false);
+  const [ultimaActualizacion, setUltimaActualizacion] = useState<Date>(new Date());
 
   const {
     data: repuestosData,
@@ -62,7 +78,7 @@ const Repare = ({ servicioData }: RepareProps) => {
 
   const isPending = isPendingAvance || isPendingAgregar || isPendingEliminar || isPendingFinalizar;
 
-  // ✅ INICIALIZAR CON DATOS DEL SERVICIO CUANDO LLEGUEN
+  // ✅ INICIALIZAR CON DATOS DEL SERVICIO
   useEffect(() => {
     if (servicioCompleto) {
       console.log('🎯 Datos completos del servicio cargados:', servicioCompleto);
@@ -71,7 +87,7 @@ const Repare = ({ servicioData }: RepareProps) => {
         servicio_id: servicioCompleto.idServicio,
         diagnostico: servicioCompleto.diagnostico || '',
         solucion: servicioCompleto.solucion || '',
-        precio_mano_obra: servicioCompleto.precio || 0, // precio es mano de obra
+        precio_mano_obra: servicioCompleto.precio || 0,
         estado_id: servicioCompleto.estado_id || prev.estado_id
       }));
     }
@@ -84,6 +100,7 @@ const Repare = ({ servicioData }: RepareProps) => {
         ...prev,
         repuestos: repuestosData.data
       }));
+      setUltimaActualizacion(new Date());
     }
   }, [repuestosData]);
 
@@ -93,43 +110,13 @@ const Repare = ({ servicioData }: RepareProps) => {
     }
   }, [repuestosData]);
 
-  // ✅ MOSTRAR LOADING MIENTRAS CARGA EL SERVICIO
-  if (isLoadingServicio) {
-    return (
-      <div className="container mx-auto p-6 flex justify-center items-center min-h-64">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Cargando datos del servicio...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // ✅ MOSTRAR ERROR SI FALLA LA CARGA
-  if (errorServicio || !servicioCompleto) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-8 text-red-600">
-          <h2 className="text-xl font-bold mb-2">Error al cargar el servicio</h2>
-          <p>No se pudieron cargar los datos del servicio. Verifica que el servicio exista.</p>
-          <Button 
-            onClick={() => window.history.back()} 
-            className="mt-4"
-            variant="outline"
-          >
-            Volver atrás
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // ✅ DEBUG: Verificar datos cargados
-  console.log('📊 Estado actual del servicio:', servicio);
-
-  // ... (TODAS TUS FUNCIONES EXISTENTES SE MANTIENEN IGUAL)
-  // handleGuardarTodosLosCambios, handleSeleccionRepuesto, handleActivarModoSeleccion, etc.
-  // ⚠️ SOLO COPIAR DESDE AQUÍ HACIA ABAJO LAS FUNCIONES QUE YA TIENES
+  // ✅ FUNCIÓN PARA FORZAR ACTUALIZACIÓN MANUAL
+  const handleForzarActualizacion = () => {
+    refetchRepuestos();
+    refetchServicio();
+    setUltimaActualizacion(new Date());
+    toast.success('Datos actualizados');
+  };
 
   const handleGuardarTodosLosCambios = async () => {
     if (!usuarioId) {
@@ -230,8 +217,8 @@ const Repare = ({ servicioData }: RepareProps) => {
         onSuccess: () => {
           setRepuestosSeleccionados([]);
           setModoSeleccion(false);
-          refetchRepuestos();
-          toast.success(`${repuestosSeleccionados.length} repuesto(s) eliminado(s)`);
+          // El WebSocket se encargará de actualizar automáticamente
+          toast.success(`🗑️ ${repuestosSeleccionados.length} repuesto(s) eliminado(s)`);
         }
       });
     } catch (error) {
@@ -250,7 +237,7 @@ const Repare = ({ servicioData }: RepareProps) => {
           usuario_elimina_id: usuarioId!
         }, {
           onSuccess: () => {
-            refetchRepuestos();
+            // El WebSocket actualizará automáticamente
             toast.success('Repuesto eliminado correctamente');
           }
         });
@@ -328,9 +315,18 @@ const Repare = ({ servicioData }: RepareProps) => {
     };
 
     agregarRepuestos(payload, {
-      onSuccess: () => {
-        refetchRepuestos();
-        toast.success('Repuestos guardados correctamente');
+      onSuccess: (data) => {
+        // Limpiar repuestos locales después de guardar
+        setServicio(prev => ({
+          ...prev,
+          repuestos: prev.repuestos.filter(repuesto => repuesto.id) // Mantener solo los guardados
+        }));
+        
+        // El WebSocket se encargará de actualizar automáticamente
+        toast.success(`✅ ${repuestosNuevos.length} repuesto(s) guardado(s) correctamente`);
+      },
+      onError: (error) => {
+        toast.error('❌ Error al guardar repuestos');
       }
     });
   };
@@ -427,34 +423,113 @@ const Repare = ({ servicioData }: RepareProps) => {
   const repuestosGuardados = servicio.repuestos.filter(r => r.id).length;
   const repuestosNuevos = servicio.repuestos.filter(r => !r.id).length;
 
-  // ... (EL JSX SE MANTIENE EXACTAMENTE IGUAL)
-  // ⚠️ COPIAR DESDE AQUÍ HACIA ABAJO TODO EL RETURN QUE YA TIENES
+  // ✅ MOSTRAR LOADING MIENTRAS CARGA EL SERVICIO
+  if (isLoadingServicio) {
+    return (
+      <div className="container mx-auto p-6 flex justify-center items-center min-h-64">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Cargando datos del servicio...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ MOSTRAR ERROR SI FALLA LA CARGA
+  if (errorServicio || !servicioCompleto) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center py-8 text-red-600">
+          <h2 className="text-xl font-bold mb-2">Error al cargar el servicio</h2>
+          <p>No se pudieron cargar los datos del servicio. Verifica que el servicio exista.</p>
+          <Button 
+            onClick={() => window.history.back()} 
+            className="mt-4"
+            variant="outline"
+          >
+            Volver atrás
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* HEADER */}
+      {/* HEADER MEJORADO CON WEBSOCKET */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">
-          {isSecretaria ? "📦 Agregar Repuestos" : "🔧 Completar Reparación - Paso 2"}
-        </h1>
-        <div className="flex items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">
+            {isSecretaria ? "📦 Gestión de Repuestos" : "🔧 Completar Reparación"}
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Servicio ID: #{servicio.servicio_id} 
+            <span className={`ml-2 ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+              {isConnected ? '• ✅ Conectado' : '• ❌ Desconectado'}
+            </span>
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          {/* INDICADOR VISUAL DEL WEBSOCKET */}
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs ${
+            isConnected 
+              ? 'bg-green-100 text-green-800 border border-green-200' 
+              : 'bg-red-100 text-red-800 border border-red-200'
+          }`}>
+            <div className={`w-2 h-2 rounded-full ${
+              isConnected ? 'bg-green-500' : 'bg-red-500'
+            }`}></div>
+            {isConnected ? 'En tiempo real' : 'Sin conexión'}
+          </div>
+
+          {/* BOTÓN DE ACTUALIZACIÓN MANUAL */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleForzarActualizacion}
+            disabled={isLoadingRepuestos}
+            className="flex items-center gap-1"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoadingRepuestos ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+
           <Badge variant={servicio.estado_id === 2 ? "secondary" : "default"}>
             {servicio.estado_id === 2 ? "En Reparación" : "Reparado"}
           </Badge>
-          <span className="text-sm text-gray-500">ID: #{servicio.servicio_id}</span>
+          
           <Badge variant="outline" className={isSecretaria ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"}>
             {isSecretaria ? "Secretaria" : "Técnico"}
           </Badge>
         </div>
       </div>
 
-      {/* INDICADOR */}
-      <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-        <div className="flex items-center gap-2">
-          <Package className="h-4 w-4 text-blue-600" />
-          <span className="text-blue-700 text-sm">
-            {repuestosGuardados} repuesto(s) guardados • {repuestosNuevos} repuesto(s) nuevo(s) • {repuestosSeleccionados.length} seleccionado(s) para eliminar
-          </span>
+      {/* INDICADOR DE ESTADO MEJORADO */}
+      <div className={`border rounded-md p-3 ${
+        isConnected 
+          ? 'bg-green-50 border-green-200' 
+          : 'bg-yellow-50 border-yellow-200'
+      }`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Package className="h-4 w-4" />
+            <span className={`text-sm ${
+              isConnected ? 'text-green-700' : 'text-yellow-700'
+            }`}>
+              {servicio.repuestos.length} repuesto(s) • 
+              {repuestosGuardados > 0 && ` ${repuestosGuardados} guardado(s)`}
+              {repuestosNuevos > 0 && ` • ${repuestosNuevos} nuevo(s)`}
+              {repuestosSeleccionados.length > 0 && ` • ${repuestosSeleccionados.length} seleccionado(s)`}
+              {isConnected 
+                ? ' • Actualizaciones en tiempo real' 
+                : ' • Modo manual'
+              }
+            </span>
+          </div>
+          <div className="text-xs text-gray-500">
+            Última actualización: {ultimaActualizacion.toLocaleTimeString()}
+          </div>
         </div>
       </div>
 
@@ -491,7 +566,9 @@ const Repare = ({ servicioData }: RepareProps) => {
                 <Label htmlFor="precio_mano_obra">Precio Mano de Obra (S/.)</Label>
                 <Input
                   id="precio_mano_obra"
+                  type="number"
                   min={0}
+                  step="0.01"
                   value={servicio.precio_mano_obra}
                   onChange={(e) => setServicio({ ...servicio, precio_mano_obra: parseFloat(e.target.value) || 0 })}
                 />
@@ -583,32 +660,12 @@ const Repare = ({ servicioData }: RepareProps) => {
             precioTotal={precioTotal}
           />
 
-          {/* ✅ BOTONES MEJORADOS */}
+          {/* BOTONES */}
           <div className='xl:grid-cols-2 grid gap-3 sm:grid-cols-1'>
             {isSecretaria ? (
-              // ✅ BOTONES SECRETARIA MEJORADOS
+              // BOTONES SECRETARIA
               <div className="space-y-3 w-full">
-                {/* BOTÓN PRINCIPAL: GUARDAR TODOS LOS CAMBIOS */}
-                {/* <Button
-                  onClick={handleGuardarTodosLosCambios}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                  disabled={isPending || !hayCambiosPendientes()}
-                  size="lg"
-                >
-                  {isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Guardando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Guardar Todos los Cambios
-                    </>
-                  )}
-                </Button> */}
-
-                {/* BOTÓN SECUNDARIO: SOLO GUARDAR NUEVOS */}
+                {/* BOTÓN: SOLO GUARDAR NUEVOS */}
                 {repuestosNuevos > 0 && (
                   <Button
                     onClick={handleAgregarRepuestos}
@@ -618,7 +675,7 @@ const Repare = ({ servicioData }: RepareProps) => {
                     size="lg"
                   >
                     <Save className="w-4 h-4 mr-2" />
-                     Guardar Repuestos Nuevos ({repuestosNuevos})
+                    Guardar Repuestos Nuevos ({repuestosNuevos})
                   </Button>
                 )}
 
@@ -628,10 +685,11 @@ const Repare = ({ servicioData }: RepareProps) => {
                   {repuestosNuevos > 0 && repuestosSeleccionados.length > 0 && "• "}
                   {repuestosSeleccionados.length > 0 && `${repuestosSeleccionados.length} por eliminar`}
                   {!hayCambiosPendientes() && "No hay cambios pendientes"}
+                  {isConnected && " • Actualización en tiempo real activa"}
                 </div>
               </div>
             ) : (
-              // BOTONES TÉCNICO (se mantienen igual)
+              // BOTONES TÉCNICO
               <>
                 <Button
                   onClick={handleGuardarAvance}

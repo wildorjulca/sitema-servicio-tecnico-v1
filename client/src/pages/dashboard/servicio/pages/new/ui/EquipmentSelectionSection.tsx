@@ -132,7 +132,7 @@ function EquipmentCard({ equipment, isSelected, onSelect }: {
 
 function EmptyState({ onOpenEquipmentModal }: { onOpenEquipmentModal: () => void }) {
   return (
-    <div className="text-center py-8 border-2 border-dashed border-blue-200 rounded-lg">
+    <div className="text-center py-8 border-2 border-dashed  rounded-lg">
       <div className="bg-blue-100 p-3 rounded-full inline-block mb-3">
         <Monitor className="h-8 w-8 text-[#0A5CB8]" />
       </div>
