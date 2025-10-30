@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import { agregarRepuestosSecretaria, buscarClienteServ, buscarProduct, eliminarRepuestosSecretaria, entregarServicioCliente, finalizarReparacion, guardarAvanceTecnico, iniciarReparacion, listEstadoServ, listMot_Ingreso, listServicio, obtenerEquiposPorCliente, obtenerRepuestosServicioService, pagarServicio, registrarServicioBasico } from "../service/servicio.Service";
+import { agregarRepuestosSecretaria, buscarClienteServ, buscarProduct, cancelarServicioCompleto, eliminarRepuestosSecretaria, entregarServicioCliente, finalizarReparacion, guardarAvanceTecnico, iniciarReparacion, listEstadoServ, listMot_Ingreso, listServicio, obtenerEquiposPorCliente, obtenerRepuestosServicioService, pagarServicio, registrarServicioBasico } from "../service/servicio.Service";
 
 
 const getAllServicioCTRL = async (req: Request, res: Response) => {
@@ -506,9 +506,52 @@ const pagarServicioCTRL = async (req: Request, res: Response) => {
   }
 };
 
+const cancelarServicioCTRL = async (req: Request, res: Response) => {
+  try {
+    const { servicio_id, usuario_id, motivo } = req.body;
+
+    // Validaciones de campos obligatorios
+    if (!servicio_id || !usuario_id || !motivo) {
+      res.status(400).json({
+        status: 400,
+        success: false,
+        mensaje: "Campos obligatorios faltantes: servicio_id, usuario_id, motivo"
+      });
+      return;
+    }
+
+    // Validar longitud del motivo
+    if (motivo.trim().length < 5) {
+      res.status(400).json({
+        status: 400,
+        success: false,
+        mensaje: "El motivo debe tener al menos 5 caracteres"
+      });
+      return;
+    }
+
+    // Llamar al servicio
+    const response = await cancelarServicioCompleto(
+      servicio_id,
+      usuario_id,
+      motivo.trim()
+    );
+
+    res.status(response.status).json(response);
+
+  } catch (error: any) {
+    console.error("Error en controlador cancelarServicioCTRL:", error);
+
+    res.status(500).json({
+      status: 500,
+      success: false,
+      mensaje: "Error interno del servidor",
+      error: error.message
+    });
+    return;
+  }
+};
 
 
 
-
-
-export { pagarServicioCTRL, guardarAvanceTecnicoCTRL, agregarRepuestosSecretariaCTRL, eliminarRepuestosSecretariaCTRL, finalizarReparacionCTRL, obtenerRepuestosServicioCTRL, getAllServicioCTRL, getMot_IngresoCTRL, buscarProducCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL, iniciarReparacionCTRL, entregarServicioCTRL }
+export {cancelarServicioCTRL, pagarServicioCTRL, guardarAvanceTecnicoCTRL, agregarRepuestosSecretariaCTRL, eliminarRepuestosSecretariaCTRL, finalizarReparacionCTRL, obtenerRepuestosServicioCTRL, getAllServicioCTRL, getMot_IngresoCTRL, buscarProducCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL, iniciarReparacionCTRL, entregarServicioCTRL }

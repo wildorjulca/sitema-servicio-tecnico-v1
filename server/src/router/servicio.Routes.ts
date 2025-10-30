@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { agregarRepuestosSecretariaCTRL, buscarClienteServicioCTRL, buscarProducCTRL, eliminarRepuestosSecretariaCTRL, entregarServicioCTRL, finalizarReparacionCTRL, getAllServicioCTRL, getEstadoCTRL, getMot_IngresoCTRL, guardarAvanceTecnicoCTRL, iniciarReparacionCTRL, obtenerEquiposPorClienteCTRL, obtenerRepuestosServicioCTRL, pagarServicioCTRL, registrarServicioBasicoCTRL } from "../controller/servicio.Controller";
+import { agregarRepuestosSecretariaCTRL, buscarClienteServicioCTRL, buscarProducCTRL, cancelarServicioCTRL, eliminarRepuestosSecretariaCTRL, entregarServicioCTRL, finalizarReparacionCTRL, getAllServicioCTRL, getEstadoCTRL, getMot_IngresoCTRL, guardarAvanceTecnicoCTRL, iniciarReparacionCTRL, obtenerEquiposPorClienteCTRL, obtenerRepuestosServicioCTRL, pagarServicioCTRL, registrarServicioBasicoCTRL } from "../controller/servicio.Controller";
 import { validate } from "../middlewares/validation";
-import { validateActualizarReparacion, validateAgregarRepuestos, validateFinalizarReparacion, validateGuardarAvance, validateRegistroBasico } from "../validation/servicioValidation";
+import { validateAgregarRepuestos, validateFinalizarReparacion, validateGuardarAvance, validateRegistroBasico } from "../validation/servicioValidation";
 
 
 const routerServicio = Router()
@@ -32,6 +32,10 @@ routerServicio.get("/getService/:usuarioId", getAllServicioCTRL),
     routerServicio.put('/entregar-servicio', entregarServicioCTRL);
 
     routerServicio.put('/pay', pagarServicioCTRL);
+
+
+
+    routerServicio.put('/cancelar', cancelarServicioCTRL);
 
 
 

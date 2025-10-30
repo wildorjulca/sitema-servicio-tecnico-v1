@@ -316,6 +316,8 @@ const guardarAvanceTecnico = async (
     }
 };
 
+// backend/services/servicioService.js
+
 const agregarRepuestosSecretaria = async (
     servicio_id: number,
     repuestos: Array<{
@@ -328,7 +330,7 @@ const agregarRepuestosSecretaria = async (
     try {
         const repuestosJSON = JSON.stringify(repuestos);
 
-        await cn
+        const [result] = await cn
             .promise()
             .query(
                 "CALL sp_agregar_repuestos_secretaria(?, ?, ?)",
@@ -339,13 +341,19 @@ const agregarRepuestosSecretaria = async (
         emitServicioActualizado(
             servicio_id,
             null, // No cambia estado
-            { repuestos_agregados: repuestos.length }
+            {
+                tipo: 'repuestos_agregados',
+                repuestos_agregados: repuestos.length,
+                servicio_id: servicio_id,
+                usuario_id: usuario_agrega_id
+            }
         );
 
         return {
             status: 200,
             success: true,
-            mensaje: `${repuestos.length} repuestos agregados correctamente`
+            mensaje: `${repuestos.length} repuestos agregados correctamente`,
+            data: result // Retornar los repuestos agregados
         };
     } catch (error: any) {
         console.error("Error al agregar repuestos:", error);
@@ -360,7 +368,7 @@ const agregarRepuestosSecretaria = async (
 
 const eliminarRepuestosSecretaria = async (
     servicio_id: number,
-    repuestos_ids: number[], // Array de IDs de repuestos a eliminar [1, 3, 5]
+    repuestos_ids: number[],
     usuario_elimina_id: number
 ) => {
     try {
@@ -377,7 +385,13 @@ const eliminarRepuestosSecretaria = async (
         emitServicioActualizado(
             servicio_id,
             null, // No cambia estado
-            { repuestos_eliminados: repuestos_ids.length }
+            {
+                tipo: 'repuestos_eliminados',
+                repuestos_eliminados: repuestos_ids.length,
+                repuestos_ids: repuestos_ids,
+                servicio_id: servicio_id,
+                usuario_id: usuario_elimina_id
+            }
         );
 
         return {
@@ -527,6 +541,51 @@ const pagarServicio = async (
     }
 };
 
+// services/servicioService.js
+const cancelarServicioCompleto = async (
+    servicio_id: number,
+    usuario_cancela_id: number,
+    motivo: string
+) => {
+    try {
+        const [results]: any = await cn
+            .promise()
+            .query(
+                "CALL sp_CancelarServicioCompleto(?, ?, ?)",
+                [servicio_id, usuario_cancela_id, motivo]
+            );
+
+        const servicioCancelado = results[0][0];
+
+        // 🔥 EMITIR WEBSOCKET - Servicio cancelado
+        emitServicioActualizado(
+            servicio_id,
+            6, // Estado cancelado
+            {
+                tipo: 'servicio_cancelado',
+                motivo: motivo,
+                usuario_id: usuario_cancela_id,
+                servicio_id: servicio_id
+            }
+        );
+
+        return {
+            status: 200,
+            success: true,
+            data: servicioCancelado,
+            mensaje: "Servicio cancelado exitosamente"
+        };
+    } catch (error: any) {
+        console.error("Error al cancelar servicio:", error);
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error en la base de datos",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
+
 export {
     listServicio,
     listEstadoServ,
@@ -542,5 +601,6 @@ export {
     finalizarReparacion,
     obtenerRepuestosServicioService,
     entregarServicioCliente,
-    pagarServicio
+    pagarServicio,
+    cancelarServicioCompleto
 };
