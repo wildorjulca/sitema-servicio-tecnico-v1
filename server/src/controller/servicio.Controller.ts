@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import { agregarRepuestosSecretaria, buscarClienteServ, buscarProduct, cancelarServicioCompleto, eliminarRepuestosSecretaria, entregarServicioCliente, finalizarReparacion, guardarAvanceTecnico, iniciarReparacion, listEstadoServ, listMot_Ingreso, listServicio, obtenerEquiposPorCliente, obtenerRepuestosServicioService, pagarServicio, registrarServicioBasico } from "../service/servicio.Service";
+import {  agregarRepuestosSecretaria, aplicarDescuentoRepuestos, buscarClienteServ, buscarProduct, cancelarServicioCompleto, eliminarRepuestosSecretaria, entregarServicioCliente, finalizarReparacion, guardarAvanceTecnico, iniciarReparacion, listEstadoServ, listMot_Ingreso, listServicio, obtenerEquiposPorCliente, obtenerRepuestosServicioService, pagarServicio, registrarServicioBasico } from "../service/servicio.Service";
 
 
 const getAllServicioCTRL = async (req: Request, res: Response) => {
@@ -331,6 +331,45 @@ const agregarRepuestosSecretariaCTRL = async (req: Request, res: Response) => {
   }
 };
 
+const aplicarDescuentoRepuestosCTRL = async (req: Request, res: Response) => {
+    const { servicio_id, descuento_repuestos, usuario_aplica_id } = req.body;
+
+    try {
+        // Validaciones básicas
+        if (!servicio_id || descuento_repuestos === undefined || !usuario_aplica_id) {
+            res.status(400).json({
+                success: false,
+                mensaje: "Faltan campos obligatorios: servicio_id, descuento_repuestos y usuario_aplica_id"
+            });
+            return;
+        }
+
+        if (descuento_repuestos < 0) {
+            res.status(400).json({
+                success: false,
+                mensaje: "El descuento no puede ser negativo"
+            });
+            return;
+        }
+
+        const response = await aplicarDescuentoRepuestos(
+            servicio_id,
+            descuento_repuestos,
+            usuario_aplica_id
+        );
+
+        res.status(response.status).json(response);
+
+    } catch (error: any) {
+        console.error("Error en controller aplicar descuento:", error);
+        res.status(500).json({
+            success: false,
+            mensaje: "Error interno del servidor",
+            error: error.message
+        });
+    }
+};
+
 const eliminarRepuestosSecretariaCTRL = async (req: Request, res: Response) => {
   const { servicio_id, repuestos_ids, usuario_elimina_id } = req.body;
 
@@ -554,4 +593,4 @@ const cancelarServicioCTRL = async (req: Request, res: Response) => {
 
 
 
-export {cancelarServicioCTRL, pagarServicioCTRL, guardarAvanceTecnicoCTRL, agregarRepuestosSecretariaCTRL, eliminarRepuestosSecretariaCTRL, finalizarReparacionCTRL, obtenerRepuestosServicioCTRL, getAllServicioCTRL, getMot_IngresoCTRL, buscarProducCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL, iniciarReparacionCTRL, entregarServicioCTRL }
+export {cancelarServicioCTRL, pagarServicioCTRL, guardarAvanceTecnicoCTRL, agregarRepuestosSecretariaCTRL,aplicarDescuentoRepuestosCTRL, eliminarRepuestosSecretariaCTRL, finalizarReparacionCTRL, obtenerRepuestosServicioCTRL, getAllServicioCTRL, getMot_IngresoCTRL, buscarProducCTRL, registrarServicioBasicoCTRL, getEstadoCTRL, buscarClienteServicioCTRL, obtenerEquiposPorClienteCTRL, iniciarReparacionCTRL, entregarServicioCTRL }

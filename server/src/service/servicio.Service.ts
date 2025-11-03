@@ -366,6 +366,48 @@ const agregarRepuestosSecretaria = async (
     }
 };
 
+const aplicarDescuentoRepuestos = async (
+    servicio_id: number,
+    descuento_repuestos: number,
+    usuario_aplica_id: number
+) => {
+    try {
+        const [result] = await cn
+            .promise()
+            .query(
+                "CALL sp_AplicarDescuentoRepuestos(?, ?, ?)",
+                [servicio_id, descuento_repuestos, usuario_aplica_id]
+            );
+
+        // 🔥 EMITIR POR WEBSOCKET - Descuento aplicado
+        emitServicioActualizado(
+            servicio_id,
+            null, // No cambia estado
+            {
+                tipo: 'descuento_aplicado',
+                descuento_repuestos: descuento_repuestos,
+                servicio_id: servicio_id,
+                usuario_id: usuario_aplica_id
+            }
+        );
+
+        return {
+            status: 200,
+            success: true,
+            mensaje: "Descuento aplicado correctamente",
+            data: result // Retornar el resultado del SELECT del SP
+        };
+    } catch (error: any) {
+        console.error("Error al aplicar descuento:", error);
+        return {
+            status: 500,
+            success: false,
+            mensaje: "Error al aplicar descuento",
+            error: error.sqlMessage || error.message,
+        };
+    }
+};
+
 const eliminarRepuestosSecretaria = async (
     servicio_id: number,
     repuestos_ids: number[],
@@ -586,6 +628,7 @@ const cancelarServicioCompleto = async (
     }
 };
 
+
 export {
     listServicio,
     listEstadoServ,
@@ -597,6 +640,7 @@ export {
     registrarServicioBasico,
     guardarAvanceTecnico,
     agregarRepuestosSecretaria,
+    aplicarDescuentoRepuestos,
     eliminarRepuestosSecretaria,
     finalizarReparacion,
     obtenerRepuestosServicioService,

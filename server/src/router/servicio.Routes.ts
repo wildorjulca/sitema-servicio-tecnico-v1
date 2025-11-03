@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { agregarRepuestosSecretariaCTRL, buscarClienteServicioCTRL, buscarProducCTRL, cancelarServicioCTRL, eliminarRepuestosSecretariaCTRL, entregarServicioCTRL, finalizarReparacionCTRL, getAllServicioCTRL, getEstadoCTRL, getMot_IngresoCTRL, guardarAvanceTecnicoCTRL, iniciarReparacionCTRL, obtenerEquiposPorClienteCTRL, obtenerRepuestosServicioCTRL, pagarServicioCTRL, registrarServicioBasicoCTRL } from "../controller/servicio.Controller";
+import { agregarRepuestosSecretariaCTRL, aplicarDescuentoRepuestosCTRL, buscarClienteServicioCTRL, buscarProducCTRL, cancelarServicioCTRL, eliminarRepuestosSecretariaCTRL, entregarServicioCTRL, finalizarReparacionCTRL, getAllServicioCTRL, getEstadoCTRL, getMot_IngresoCTRL, guardarAvanceTecnicoCTRL, iniciarReparacionCTRL, obtenerEquiposPorClienteCTRL, obtenerRepuestosServicioCTRL, pagarServicioCTRL, registrarServicioBasicoCTRL } from "../controller/servicio.Controller";
 import { validate } from "../middlewares/validation";
 import { validateAgregarRepuestos, validateFinalizarReparacion, validateGuardarAvance, validateRegistroBasico } from "../validation/servicioValidation";
 
@@ -21,6 +21,7 @@ routerServicio.get("/getService/:usuarioId", getAllServicioCTRL),
 
     // Ruta para Agregar Repuestos (Secretaria)  
     routerServicio.post('/agregar-repuestos', validate, validateAgregarRepuestos(), agregarRepuestosSecretariaCTRL);
+    routerServicio.put('/aplicar-descuento', aplicarDescuentoRepuestosCTRL);
     routerServicio.delete('/delete-repuestos', eliminarRepuestosSecretariaCTRL);
 
     // Ruta para Finalizar Reparación (Técnico)
