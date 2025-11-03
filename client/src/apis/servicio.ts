@@ -270,6 +270,21 @@ export const agregarRepuestosSecretaria = async (payload: {
   }
 };
 
+export const aplicarDescuentoRepuestos = async (payload: {
+  servicio_id: number;
+  descuento_repuestos: number;
+  usuario_aplica_id: number;
+}) => {
+  try {
+    const response = await instance.put(`/aplicar-descuento`, payload);
+    return response.data;
+  } catch (error) {
+    console.error("Error al aplicar descuento:", error);
+    throw error;
+  }
+};
+
+
 export const eliminarRepuestosSecretaria = async (payload: {
   servicio_id: number;
   repuestos_ids: number[];

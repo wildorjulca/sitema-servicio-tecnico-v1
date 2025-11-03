@@ -5,6 +5,7 @@ import { useEffect, useMemo } from 'react';
 import { Estado, Servicio } from '@/interface/types';
 import {
   agregarRepuestosSecretaria,
+  aplicarDescuentoRepuestos,
   cancelarServicio,
   eliminarRepuestosSecretaria,
   entregarServicio,
@@ -297,13 +298,13 @@ export const useGuardarAvanceTecnico = () => {
     mutationFn: guardarAvanceTecnico,
     onSuccess: (data, variables) => {
       toast.success("Avance guardado correctamente");
-      
+
       // ✅ ACTUALIZAR CACHE CON LOS NUEVOS DATOS Y REPUESTOS
       queryClient.setQueryData(
         ["servicio", variables.servicio_id],
         (oldData: any) => {
           if (!oldData) return oldData;
-          
+
           return {
             ...oldData,
             diagnostico: variables.diagnostico,
@@ -315,8 +316,8 @@ export const useGuardarAvanceTecnico = () => {
       );
 
       // ✅ INVALIDAR PARA ASEGURAR DATOS ACTUALIZADOS
-      queryClient.invalidateQueries({ 
-        queryKey: ["servicio", variables.servicio_id] 
+      queryClient.invalidateQueries({
+        queryKey: ["servicio", variables.servicio_id]
       });
     },
     onError: (error) => {
@@ -334,13 +335,13 @@ export const useAgregarRepuestos = () => {
     mutationFn: agregarRepuestosSecretaria,
     onSuccess: (data, variables) => {
       toast.success("Repuestos agregados correctamente");
-      
+
       // ✅ ACTUALIZAR CACHE DEL SERVICIO CON NUEVOS TOTALES
       queryClient.setQueryData(
         ["servicio", variables.servicio_id],
         (oldData: any) => {
           if (!oldData) return oldData;
-          
+
           return {
             ...oldData,
             precioRepuestos: data.data?.total_repuestos || 0,
@@ -351,8 +352,8 @@ export const useAgregarRepuestos = () => {
       );
 
       // ✅ INVALIDAR PARA REFRESCAR DATOS COMPLETOS
-      queryClient.invalidateQueries({ 
-        queryKey: ["servicio", variables.servicio_id] 
+      queryClient.invalidateQueries({
+        queryKey: ["servicio", variables.servicio_id]
       });
     },
     onError: (error) => {
@@ -362,8 +363,41 @@ export const useAgregarRepuestos = () => {
   });
 };
 
+export const useAplicarDescuentoRepuestos = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: aplicarDescuentoRepuestos,
+    onSuccess: (data, variables) => {
+      toast.success("Descuento aplicado correctamente");
+      
+      queryClient.setQueryData(
+        ["servicio", variables.servicio_id],
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          
+          return {
+            ...oldData,
+            descuentoRepuestos: variables.descuento_repuestos,
+            precioRepuestos: oldData.precioRepuestos, // Mantener igual
+            precioTotal: (oldData.precio || 0) + (oldData.precioRepuestos || 0) - variables.descuento_repuestos
+          };
+        }
+      );
+
+      queryClient.invalidateQueries({ 
+        queryKey: ["servicio", variables.servicio_id] 
+      });
+    },
+    onError: (error: any) => { // ← TIPADO MÁS ESPECÍFICO
+      console.error('Error en hook aplicar descuento:', error);
+      toast.error(error.response?.data?.mensaje || "Error al aplicar descuento");
+    },
+  });
+};
+
 // ✅ HOOK PARA ELIMINAR REPUESTOS (VERSIÓN CORRECTA)
-// hooks/useService.ts - MODIFICA EL HOOK DE ELIMINAR
+
 export const useEliminarRepuestos = () => {
   const queryClient = useQueryClient();
 
@@ -371,13 +405,13 @@ export const useEliminarRepuestos = () => {
     mutationFn: eliminarRepuestosSecretaria,
     onSuccess: (data, variables) => {
       toast.success("Repuestos eliminados correctamente");
-      
+
       // ✅ ACTUALIZAR CACHE DEL SERVICIO
       queryClient.setQueryData(
         ["servicio", variables.servicio_id],
         (oldData: any) => {
           if (!oldData) return oldData;
-          
+
           return {
             ...oldData,
             precioRepuestos: data.data?.total_repuestos || 0,
@@ -387,13 +421,13 @@ export const useEliminarRepuestos = () => {
       );
 
       // ✅ FORZAR REFRESCO DE REPUESTOS - ESTO ES LO MÁS IMPORTANTE
-      queryClient.invalidateQueries({ 
-        queryKey: ["repuestos-servicio", variables.servicio_id] 
+      queryClient.invalidateQueries({
+        queryKey: ["repuestos-servicio", variables.servicio_id]
       });
 
       // ✅ TAMBIÉN INVALIDAR EL SERVICIO GENERAL
-      queryClient.invalidateQueries({ 
-        queryKey: ["servicio", variables.servicio_id] 
+      queryClient.invalidateQueries({
+        queryKey: ["servicio", variables.servicio_id]
       });
     },
     onError: (error) => {
@@ -535,20 +569,20 @@ export const useCancelarServicio = () => {
 
       // Invalidar las queries para refrescar datos
       queryClient.invalidateQueries({ queryKey: ["servicios"] });
-      queryClient.invalidateQueries({ 
-        queryKey: ["servicio", variables.servicio_id.toString()] 
+      queryClient.invalidateQueries({
+        queryKey: ["servicio", variables.servicio_id.toString()]
       });
-      queryClient.invalidateQueries({ 
-        queryKey: ["repuestos-servicio", variables.servicio_id.toString()] 
+      queryClient.invalidateQueries({
+        queryKey: ["repuestos-servicio", variables.servicio_id.toString()]
       });
     },
     onError: (error: any) => {
       console.error('Error al cancelar servicio:', error);
-      
+
       // Mostrar mensaje de error específico del backend
-      const errorMessage = error.response?.data?.mensaje || 
-                          error.response?.data?.error || 
-                          'Error al cancelar el servicio';
+      const errorMessage = error.response?.data?.mensaje ||
+        error.response?.data?.error ||
+        'Error al cancelar el servicio';
       toast.error(errorMessage);
     },
   });

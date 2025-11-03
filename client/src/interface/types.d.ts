@@ -30,6 +30,12 @@ export interface Servicio {
     cliente_id: number;
     cliente: string;
     Estado_pago?:number;
+    estadoId?:number,
+    usuarioSolucionaId?:number,
+    cod?:number;
+    id?:number;
+    descuentoRepuestos?:number,
+    descuento_repuestos:number
     
     // NUEVOS CAMPOS
     motivos: MotivoServicio[];

@@ -328,6 +328,10 @@ export function DetalleService() {
                 <span className="text-gray-500 dark:text-gray-400">Repuestos:</span>
                 <span className="text-gray-800 dark:text-gray-100">{formatCurrency(ServiceData.precioRepuestos)}</span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400">Descuento:</span>
+                <span className="text-gray-800 dark:text-gray-100">{formatCurrency(ServiceData.descuento_repuestos)}</span>
+              </div>
               <div className="flex justify-between pt-2 border-t dark:border-gray-700 font-medium">
                 <span className="text-gray-800 dark:text-gray-100">Total:</span>
                 <span className="text-green-600 dark:text-green-400 text-lg">{formatCurrency(ServiceData.precioTotal)}</span>

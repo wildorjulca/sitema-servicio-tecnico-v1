@@ -39,7 +39,7 @@ export default function Listar_Servicio() {
   const { data: estados, isLoading: isLoadingEstados } = useEstadoHook();
   const { mutate: iniciarReparacion } = useIniciarReparacion();
   const { mutate: entregarServicio } = useEntregarServicio();
-  const { mutate: cancelarServicio, isPending: isCanceling } = useCancelarServicio();
+  const { mutate: cancelarServicio } = useCancelarServicio();
 
   const estadosOptions = estados.map(est => ({
     value: est.idEstado,
@@ -133,7 +133,7 @@ export default function Listar_Servicio() {
     window.location.reload();
   };
 
-  const handleCancel = (servicio: any) => {
+  const handleCancel = (servicio: Servicio) => {
 
     const usuarioPuedeCancelar = user?.rol === 'SECRETARIA' || user?.rol === 'TECNICO';
 

@@ -19,7 +19,8 @@ import {
   useEliminarRepuestos,
   useFinalizarReparacion,
   useObtenerRepuestosServicio,
-  useServiceyId
+  useServiceyId,
+  useAplicarDescuentoRepuestos
 } from '@/hooks/useService';
 import { useRepuestosWebSocket } from '@/hooks/useRepuestosWebSocket';
 
@@ -34,9 +35,9 @@ const Repare = ({ servicioData }: RepareProps) => {
   const isSecretaria = user?.rol === 'SECRETARIA';
 
   // ✅ OBTENER DATOS COMPLETOS DEL SERVICIO
-  const { 
-    data: servicioCompleto, 
-    isLoading: isLoadingServicio, 
+  const {
+    data: servicioCompleto,
+    isLoading: isLoadingServicio,
     error: errorServicio,
     refetch: refetchServicio
   } = useServiceyId(usuarioId, id);
@@ -75,6 +76,8 @@ const Repare = ({ servicioData }: RepareProps) => {
   const { mutate: agregarRepuestos, isPending: isPendingAgregar } = useAgregarRepuestos();
   const { mutate: eliminarRepuestos, isPending: isPendingEliminar } = useEliminarRepuestos();
   const { mutate: finalizarReparacion, isPending: isPendingFinalizar } = useFinalizarReparacion();
+  const { mutate: aplicarDescuentoRepuestos, isPending: isPendingDescuento } = useAplicarDescuentoRepuestos();
+
 
   const isPending = isPendingAvance || isPendingAgregar || isPendingEliminar || isPendingFinalizar;
 
@@ -321,7 +324,7 @@ const Repare = ({ servicioData }: RepareProps) => {
           ...prev,
           repuestos: prev.repuestos.filter(repuesto => repuesto.id) // Mantener solo los guardados
         }));
-        
+
         // El WebSocket se encargará de actualizar automáticamente
         toast.success(`✅ ${repuestosNuevos.length} repuesto(s) guardado(s) correctamente`);
       },
@@ -411,15 +414,41 @@ const Repare = ({ servicioData }: RepareProps) => {
     });
   };
 
+  const handleAplicarDescuento = async (descuento: number) => {
+    if (!usuarioId || !isSecretaria) {
+      toast.error('No tienes permisos para aplicar descuentos');
+      return;
+    }
+
+    try {
+      await aplicarDescuentoRepuestos({
+        servicio_id: servicio.servicio_id,
+        descuento_repuestos: descuento,
+        usuario_aplica_id: usuarioId
+      });
+
+      // El hook ya maneja todo: cache, invalidación y toast
+
+    } catch (error) {
+      console.error('Error al aplicar descuento:', error);
+      throw error; // Para que ResumenCostos maneje el error
+    }
+  };
+
   const calcularTotales = () => {
     const totalRepuestos = servicio.repuestos.reduce((sum: number, repuesto: any) =>
       sum + (repuesto.cantidad * parseFloat(repuesto.precio_unitario)), 0
     );
-    const precioTotal = servicio.precio_mano_obra + totalRepuestos;
-    return { totalRepuestos, precioTotal };
+
+    const descuento = servicioCompleto?.descuentoRepuestos || 0; // ← NUEVO
+    const precioTotal = servicio.precio_mano_obra + (totalRepuestos - descuento); // ← ACTUALIZADO
+
+    return { totalRepuestos, precioTotal, descuento }; // ← ACTUALIZADO
   };
 
-  const { totalRepuestos, precioTotal } = calcularTotales();
+  // Y actualiza la destructuración:
+  const { totalRepuestos, precioTotal, descuento } = calcularTotales();
+
   const repuestosGuardados = servicio.repuestos.filter(r => r.id).length;
   const repuestosNuevos = servicio.repuestos.filter(r => !r.id).length;
 
@@ -442,8 +471,8 @@ const Repare = ({ servicioData }: RepareProps) => {
         <div className="text-center py-8 text-red-600">
           <h2 className="text-xl font-bold mb-2">Error al cargar el servicio</h2>
           <p>No se pudieron cargar los datos del servicio. Verifica que el servicio exista.</p>
-          <Button 
-            onClick={() => window.history.back()} 
+          <Button
+            onClick={() => window.history.back()}
             className="mt-4"
             variant="outline"
           >
@@ -463,23 +492,21 @@ const Repare = ({ servicioData }: RepareProps) => {
             {isSecretaria ? "📦 Gestión de Repuestos" : "🔧 Completar Reparación"}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Servicio ID: #{servicio.servicio_id} 
+            Servicio ID: #{servicio.servicio_id}
             <span className={`ml-2 ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
               {isConnected ? '• ✅ Conectado' : '• ❌ Desconectado'}
             </span>
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           {/* INDICADOR VISUAL DEL WEBSOCKET */}
-          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs ${
-            isConnected 
-              ? 'bg-green-100 text-green-800 border border-green-200' 
-              : 'bg-red-100 text-red-800 border border-red-200'
-          }`}>
-            <div className={`w-2 h-2 rounded-full ${
-              isConnected ? 'bg-green-500' : 'bg-red-500'
-            }`}></div>
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs ${isConnected
+            ? 'bg-green-100 text-green-800 border border-green-200'
+            : 'bg-red-100 text-red-800 border border-red-200'
+            }`}>
+            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'
+              }`}></div>
             {isConnected ? 'En tiempo real' : 'Sin conexión'}
           </div>
 
@@ -498,7 +525,7 @@ const Repare = ({ servicioData }: RepareProps) => {
           <Badge variant={servicio.estado_id === 2 ? "secondary" : "default"}>
             {servicio.estado_id === 2 ? "En Reparación" : "Reparado"}
           </Badge>
-          
+
           <Badge variant="outline" className={isSecretaria ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"}>
             {isSecretaria ? "Secretaria" : "Técnico"}
           </Badge>
@@ -506,23 +533,21 @@ const Repare = ({ servicioData }: RepareProps) => {
       </div>
 
       {/* INDICADOR DE ESTADO MEJORADO */}
-      <div className={`border rounded-md p-3 ${
-        isConnected 
-          ? 'bg-green-50 border-green-200' 
-          : 'bg-yellow-50 border-yellow-200'
-      }`}>
+      <div className={`border rounded-md p-3 ${isConnected
+        ? 'bg-green-50 border-green-200'
+        : 'bg-yellow-50 border-yellow-200'
+        }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Package className="h-4 w-4" />
-            <span className={`text-sm ${
-              isConnected ? 'text-green-700' : 'text-yellow-700'
-            }`}>
-              {servicio.repuestos.length} repuesto(s) • 
+            <span className={`text-sm ${isConnected ? 'text-green-700' : 'text-yellow-700'
+              }`}>
+              {servicio.repuestos.length} repuesto(s) •
               {repuestosGuardados > 0 && ` ${repuestosGuardados} guardado(s)`}
               {repuestosNuevos > 0 && ` • ${repuestosNuevos} nuevo(s)`}
               {repuestosSeleccionados.length > 0 && ` • ${repuestosSeleccionados.length} seleccionado(s)`}
-              {isConnected 
-                ? ' • Actualizaciones en tiempo real' 
+              {isConnected
+                ? ' • Actualizaciones en tiempo real'
                 : ' • Modo manual'
               }
             </span>
@@ -657,7 +682,10 @@ const Repare = ({ servicioData }: RepareProps) => {
           <ResumenCostos
             manoObra={servicio.precio_mano_obra}
             totalRepuestos={totalRepuestos}
+            descuentoRepuestos={servicioCompleto?.descuento_repuestos || 0} // ← ESTE ES EL CAMPO IMPORTANTE
             precioTotal={precioTotal}
+            onAplicarDescuento={isSecretaria ? handleAplicarDescuento : undefined}
+            servicioId={servicio.servicio_id}
           />
 
           {/* BOTONES */}
