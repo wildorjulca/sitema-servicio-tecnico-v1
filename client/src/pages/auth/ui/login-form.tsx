@@ -99,7 +99,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
             </div>
 
             {/* Mensajes de error */}
-            {error && <InfoErroMessage title="Error inesperado" />}
+            {error && <InfoErroMessage title=" Fallo al Iniciar Secionq" />}
             {data && !data.ok && (
               <InfoErroMessage title={data.message || "Error en el login"} />
             )}

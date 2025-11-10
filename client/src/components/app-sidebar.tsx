@@ -30,7 +30,7 @@ const data = {
 
     teams: [
         {
-            name: "Inforsystem Computec",
+            name: "Inforsystems Computer Sac",
             logo: Wrench,
             plan: "Soporte & Reparación",
         },
